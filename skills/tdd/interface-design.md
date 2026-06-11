@@ -1,31 +1,31 @@
-# Interface Design for Testability
+# 面向可测试性的 interface 设计
 
-Good interfaces make testing natural:
+好的 interface 让测试变得自然：
 
-1. **Accept dependencies, don't create them**
+1. **接受依赖，不要自己创建依赖**
 
    ```typescript
-   // Testable
+   // 可测试
    function processOrder(order, paymentGateway) {}
 
-   // Hard to test
+   // 难以测试
    function processOrder(order) {
      const gateway = new StripeGateway();
    }
    ```
 
-2. **Return results, don't produce side effects**
+2. **返回结果，不要产生副作用**
 
    ```typescript
-   // Testable
+   // 可测试
    function calculateDiscount(cart): Discount {}
 
-   // Hard to test
+   // 难以测试
    function applyDiscount(cart): void {
      cart.total -= discount;
    }
    ```
 
-3. **Small surface area**
-   - Fewer methods = fewer tests needed
-   - Fewer params = simpler test setup
+3. **小的暴露面**
+   - 更少的方法 = 需要写的测试更少
+   - 更少的参数 = 测试准备更简单

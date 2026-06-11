@@ -3,27 +3,27 @@ name: write-a-skill
 description: Create new agent skills with proper structure, progressive disclosure, and bundled resources. Use when user wants to create, write, or build a new skill.
 ---
 
-# Writing Skills
+# 编写 Skill
 
-## Process
+## 流程
 
-1. **Gather requirements** - ask user about:
-   - What task/domain does the skill cover?
-   - What specific use cases should it handle?
-   - Does it need executable scripts or just instructions?
-   - Any reference materials to include?
+1. **收集需求** —— 向用户询问：
+   - 该 skill 覆盖什么任务/领域？
+   - 它应处理哪些具体用例？
+   - 是否需要可执行脚本，还是仅需说明文档？
+   - 是否需要包含任何参考材料？
 
-2. **Draft the skill** - create:
-   - SKILL.md with concise instructions
-   - Additional reference files if content exceeds 500 lines
-   - Utility scripts if deterministic operations needed
+2. **起草 skill** —— 创建：
+   - 含简洁说明的 SKILL.md
+   - 当内容超过 500 行时补充额外的参考文件
+   - 当需要确定性操作时补充工具脚本
 
-3. **Review with user** - present draft and ask:
-   - Does this cover your use cases?
-   - Anything missing or unclear?
-   - Should any section be more/less detailed?
+3. **与用户一起审阅** —— 展示草稿并询问：
+   - 这是否覆盖了你的用例？
+   - 有没有缺漏或不清楚之处？
+   - 是否有某些部分应当写得更详尽/更简略？
 
-## Skill Structure
+## Skill 结构
 
 ```
 skill-name/
@@ -34,7 +34,7 @@ skill-name/
     └── helper.js
 ```
 
-## SKILL.md Template
+## SKILL.md 模板
 
 ```md
 ---
@@ -57,61 +57,61 @@ description: Brief description of capability. Use when [specific triggers].
 [Link to separate files: See [REFERENCE.md](REFERENCE.md)]
 ```
 
-## Description Requirements
+## description 字段要求
 
-The description is **the only thing your agent sees** when deciding which skill to load. It's surfaced in the system prompt alongside all other installed skills. Your agent reads these descriptions and picks the relevant skill based on the user's request.
+description 是你的 agent 在决定加载哪个 skill 时**唯一能看到的内容**。它会与所有已安装的其他 skill 一起出现在 system prompt 中。你的 agent 会阅读这些 description，并根据用户的请求挑选相关的 skill。
 
-**Goal**: Give your agent just enough info to know:
+**目标**：给你的 agent 刚好够用的信息，使其知道：
 
-1. What capability this skill provides
-2. When/why to trigger it (specific keywords, contexts, file types)
+1. 该 skill 提供什么能力
+2. 何时/为何触发它（具体的关键词、context、文件类型）
 
-**Format**:
+**格式**：
 
-- Max 1024 chars
-- Write in third person
-- First sentence: what it does
-- Second sentence: "Use when [specific triggers]"
+- 最多 1024 字符
+- 用第三人称撰写
+- 第一句：它做什么
+- 第二句："Use when [具体触发条件]"
 
-**Good example**:
+**好的示例**：
 
 ```
 Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when user mentions PDFs, forms, or document extraction.
 ```
 
-**Bad example**:
+**糟糕的示例**：
 
 ```
 Helps with documents.
 ```
 
-The bad example gives your agent no way to distinguish this from other document skills.
+糟糕的示例没有给你的 agent 任何方式将其与其他文档相关的 skill 区分开。
 
-## When to Add Scripts
+## 何时添加脚本
 
-Add utility scripts when:
+在以下情况下添加工具脚本：
 
-- Operation is deterministic (validation, formatting)
-- Same code would be generated repeatedly
-- Errors need explicit handling
+- 操作是确定性的（校验、格式化）
+- 相同的代码会被反复生成
+- 错误需要显式处理
 
-Scripts save tokens and improve reliability vs generated code.
+相比生成式代码，脚本可以节省 token 并提升可靠性。
 
-## When to Split Files
+## 何时拆分文件
 
-Split into separate files when:
+在以下情况下拆分为多个文件：
 
-- SKILL.md exceeds 100 lines
-- Content has distinct domains (finance vs sales schemas)
-- Advanced features are rarely needed
+- SKILL.md 超过 100 行
+- 内容涉及不同领域（finance 与 sales 的 schema）
+- 高级功能很少被使用
 
-## Review Checklist
+## 审阅清单
 
-After drafting, verify:
+起草完成后，请确认：
 
-- [ ] Description includes triggers ("Use when...")
-- [ ] SKILL.md under 100 lines
-- [ ] No time-sensitive info
-- [ ] Consistent terminology
-- [ ] Concrete examples included
-- [ ] References one level deep
+- [ ] description 包含触发条件（"Use when..."）
+- [ ] SKILL.md 不超过 100 行
+- [ ] 没有时效性信息
+- [ ] 术语保持一致
+- [ ] 包含具体示例
+- [ ] 引用层级仅一层

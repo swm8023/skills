@@ -1,79 +1,79 @@
 # Logic Prototype
 
-A tiny interactive terminal app that lets the user drive a state model by hand. Use this when the question is about **business logic, state transitions, or data shape** — the kind of thing that looks reasonable on paper but only feels wrong once you push it through real cases.
+一个微型的交互式终端应用，让用户亲手驱动一个 state 模型。当问题关乎 **业务逻辑、state 之间的迁移或数据形态** 时使用它 —— 那种纸面上看起来合理、但只有把真实用例推进去才会发现不对劲的东西。
 
-## When this is the right shape
+## 什么时候适合用这种形态
 
-- "I'm not sure if this state machine handles the edge case where X then Y."
-- "Does this data model actually let me represent the case where..."
-- "I want to feel out what the API should look like before writing it."
-- Anything where the user wants to **press buttons and watch state change**.
+- "我不确定这个 state machine 在先 X 后 Y 这种 edge case 下能不能处理好。"
+- "这个数据模型到底允不允许我表示……这种情况？"
+- "我想在动手写之前先摸一摸 API 应该长什么样。"
+- 任何用户想要 **按按钮，看着 state 变化** 的场景。
 
-If the question is "what should this look like" — wrong branch. Use [UI.md](UI.md).
+如果问题是"这东西看起来该是什么样" —— 走错分支了。请使用 [UI.md](UI.md)。
 
-## Process
+## 流程
 
-### 1. State the question
+### 1. 把问题写下来
 
-Before writing code, write down what state model and what question you're prototyping. One paragraph, in the prototype's README or a comment at the top of the file. A logic prototype that answers the wrong question is pure waste — make the question explicit so it can be checked later, whether the user is watching now or returning to it AFK.
+在写代码之前，把你正在 prototype 的 state 模型和问题写下来。一段话，写在 prototype 的 README 里，或者写在文件顶部的注释里。一个回答了错误问题的 logic prototype 是纯粹的浪费 —— 把问题写明确，这样后面才能核对，无论用户此刻在旁边盯着还是 AFK 之后才回来看。
 
-### 2. Pick the language
+### 2. 选语言
 
-Use whatever the host project uses. If the project has no obvious runtime (e.g. a docs repo), ask.
+跟随宿主 project 使用的语言。如果 project 没有明显的 runtime（比如一个 docs repo），就问。
 
-Match the project's existing conventions for tooling — don't add a new package manager or runtime just for the prototype.
+在工具方面也匹配 project 已有的约定 —— 不要仅仅为了 prototype 就引入一个新的包管理器或 runtime。
 
-### 3. Isolate the logic in a portable module
+### 3. 把逻辑隔离到一个可移植的模块里
 
-Put the actual logic — the bit that's answering the question — behind a small, pure interface that could be lifted out and dropped into the real codebase later. The TUI around it is throwaway; the logic module shouldn't be.
+把真正的逻辑 —— 那个回答问题的核心部分 —— 放在一个小巧、纯净的接口背后，使其将来可以被整体抽出并落入真实代码库中。围绕它的 TUI 是一次性的；逻辑模块不该是。
 
-The right shape depends on the question:
+合适的形态取决于问题本身：
 
-- **A pure reducer** — `(state, action) => state`. Good when actions are discrete events and state is a single value.
-- **A state machine** — explicit states and transitions. Good when "which actions are even legal right now" is part of the question.
-- **A small set of pure functions** over a plain data type. Good when there's no implicit current state — just transformations.
-- **A class or module with a clear method surface** when the logic genuinely owns ongoing internal state.
+- **一个 pure reducer** —— `(state, action) => state`。当 action 是离散事件、state 是单一值时合适。
+- **一个 state machine** —— 显式的状态和迁移。当"此刻到底哪些 action 是合法的"本身就是问题的一部分时合适。
+- **一组针对某个普通数据类型的纯函数**。当不存在隐式的当前 state —— 只是变换 —— 时合适。
+- **一个有清晰方法接口的 class 或模块**，当逻辑确实拥有持续的内部 state 时。
 
-Pick whichever shape best fits the question being asked, *not* whichever is easiest to wire to a TUI. Keep it pure: no I/O, no terminal code, no `console.log` for control flow. The TUI imports it and calls into it; nothing flows the other direction.
+挑选最契合所提问题的那种形态，*而不是* 最容易接到 TUI 上的那种。保持纯净：不做 I/O，不写终端代码，不为了控制流而 `console.log`。TUI 来 import 它、调用它；信息绝不反向流动。
 
-This is what makes the prototype useful past its own lifetime. When the question's been answered, the validated reducer / machine / function set can be lifted into the real module — the TUI shell gets deleted.
+这正是让 prototype 在自身寿命之外仍然有用的关键。一旦问题被回答，已经被验证过的 reducer / machine / 函数集合可以直接抬进真实模块 —— TUI 那层壳被删掉就行。
 
-### 4. Build the smallest TUI that exposes the state
+### 4. 构造能暴露 state 的最小 TUI
 
-Build it as a **lightweight TUI** — on every tick, clear the screen (`console.clear()` / `print("\033[2J\033[H")` / equivalent) and re-render the whole frame. The user should always see one stable view, not an ever-growing scrollback.
+把它做成一个 **轻量级 TUI** —— 每一个 tick，清屏（`console.clear()` / `print("\033[2J\033[H")` / 等价物），然后整帧重绘。用户应当始终看到一个稳定的视图，而不是一条不断增长的 scrollback。
 
-Each frame has two parts, in this order:
+每一帧由两部分组成，按这个顺序：
 
-1. **Current state**, pretty-printed and diff-friendly (one field per line, or formatted JSON). Use **bold** for field names or section headers and **dim** for less important context (timestamps, IDs, derived values). Native ANSI escape codes are fine — `\x1b[1m` bold, `\x1b[2m` dim, `\x1b[0m` reset. No need to pull in a styling library unless one is already in the project.
-2. **Keyboard shortcuts**, listed at the bottom: `[a] add user  [d] delete user  [t] tick clock  [q] quit`. Bold the key, dim the description, or vice-versa — whatever reads cleanly.
+1. **当前 state**，漂亮打印且 diff 友好（每行一个字段，或格式化的 JSON）。用 **bold** 标记字段名或段落标题，用 **dim** 标记次要 context（时间戳、ID、衍生值）。直接写原生 ANSI escape codes 就好 —— `\x1b[1m` bold，`\x1b[2m` dim，`\x1b[0m` reset。除非 project 里已经有，否则不必引入样式库。
+2. **键盘快捷键**，列在底部：`[a] add user  [d] delete user  [t] tick clock  [q] quit`。把按键加粗、说明置 dim，或者反过来 —— 哪个读起来清爽就用哪个。
 
-Behaviour:
+行为：
 
-1. **Initialise state** — a single in-memory object/struct. Render the first frame on start.
-2. **Read one keystroke (or one line)** at a time, dispatch to a handler that mutates state.
-3. **Re-render** the full frame after every action — don't append, replace.
-4. **Loop until quit.**
+1. **初始化 state** —— 一个内存中的对象/结构体。启动时渲染第一帧。
+2. **每次读取一个按键（或一行）**，dispatch 给一个会改变 state 的 handler。
+3. **每个 action 之后重绘整帧** —— 不要追加，要替换。
+4. **循环直到退出。**
 
-The whole frame should fit on one screen.
+整帧应当能放进一屏。
 
-### 5. Make it runnable in one command
+### 5. 让它一条命令就能跑起来
 
-Add a script to the project's existing task runner (`package.json` scripts, `Makefile`, `justfile`, `pyproject.toml`). The user should run `pnpm run <prototype-name>` or equivalent — never need to remember a path.
+在 project 已有的 task runner（`package.json` scripts、`Makefile`、`justfile`、`pyproject.toml`）里加一条脚本。用户应当能跑 `pnpm run <prototype-name>` 或等价物 —— 永远不必记住路径。
 
-If the host project has no task runner, just put the command at the top of the prototype's README.
+如果宿主 project 没有 task runner，就把命令放在 prototype 自己 README 的最上方。
 
-### 6. Hand it over
+### 6. 交付
 
-Give the user the run command. They'll drive it themselves; the interesting moments are when they say "wait, that shouldn't be possible" or "huh, I assumed X would be different" — those are the bugs in the _idea_, which is the whole point. If they want new actions added, add them. Prototypes evolve.
+把运行命令交给用户。他们自己驱动它；最有意思的瞬间是他们说"等等，这不应该是可能的"或者"咦，我以为 X 会不一样" —— 这些就是 *想法本身* 里的 bug，而这正是整件事的重点。如果他们想加新的 action，就加。Prototype 是会演化的。
 
-### 7. Capture the answer
+### 7. 把答案记下来
 
-When the prototype has done its job, the answer to the question is the only thing worth keeping. If the user is around, ask what it taught them. If not, leave a `NOTES.md` next to the prototype so the answer can be filled in (or filled in by you, if you've watched the session) before the prototype gets deleted.
+当 prototype 完成它的使命，唯一值得保留的就是那个问题的答案。如果用户在场，就问问它教会了他们什么。如果不在，就在 prototype 旁边留一个 `NOTES.md`，让答案能被填上（或者由你来填，如果你旁观了那次 session），然后再删掉 prototype。
 
-## Anti-patterns
+## 反模式
 
-- **Don't add tests.** A prototype that needs tests is no longer a prototype.
-- **Don't wire it to the real database.** Use an in-memory store unless the question is specifically about persistence.
-- **Don't generalise.** No "what if we wanted to support X later." The prototype answers one question.
-- **Don't blur the logic and the TUI together.** If the reducer / state machine references `console.log`, prompts, or terminal escape codes, it's no longer portable. Keep the TUI as a thin shell over a pure module.
-- **Don't ship the TUI shell into production.** The shell is optimised for being driven by hand from a terminal. The logic module behind it is the bit worth keeping.
+- **不要加测试。** 一个需要测试的 prototype 已经不再是 prototype 了。
+- **不要把它接到真实数据库。** 用内存里的 store，除非问题本身就是关于持久化的。
+- **不要泛化。** 没有"以后我们要不要支持 X 万一……"。Prototype 只回答一个问题。
+- **不要把逻辑和 TUI 揉成一团。** 如果 reducer / state machine 里出现 `console.log`、prompt 或终端 escape codes，它就不再可移植了。让 TUI 只是包在一个纯模块外面的薄壳。
+- **不要把 TUI 那层壳带进生产环境。** 这层壳是为了在终端里被手动驱动而优化的。它背后的逻辑模块才是值得保留的部分。

@@ -1,11 +1,11 @@
-# Out-of-Scope Knowledge Base
+# Out-of-Scope 知识库
 
-The `.out-of-scope/` directory in a repo stores persistent records of rejected feature requests. It serves two purposes:
+repo 中的 `.out-of-scope/` 目录用于持久化记录被拒绝的功能请求。它有两个用途：
 
-1. **Institutional memory** — why a feature was rejected, so the reasoning isn't lost when the issue is closed
-2. **Deduplication** — when a new issue comes in that matches a prior rejection, the skill can surface the previous decision instead of re-litigating it
+1. **机构记忆** —— 记录某个功能为何被拒绝，这样在 issue 关闭后，决策的推理过程不会丢失
+2. **去重** —— 当新进来的 issue 匹配到先前的拒绝记录时，skill 可以呈现先前的决策，而不是重新争论一遍
 
-## Directory structure
+## 目录结构
 
 ```
 .out-of-scope/
@@ -14,11 +14,11 @@ The `.out-of-scope/` directory in a repo stores persistent records of rejected f
 └── graphql-api.md
 ```
 
-One file per **concept**, not per issue. Multiple issues requesting the same thing are grouped under one file.
+每个**概念**对应一个文件，而不是每个 issue 一个文件。请求同一件事的多个 issue 会被归到同一个文件下。
 
-## File format
+## 文件格式
 
-The file should be written in a relaxed, readable style — more like a short design document than a database entry. Use paragraphs, code samples, and examples to make the reasoning clear and useful to someone encountering it for the first time.
+文件应当以一种轻松、可读的风格书写 —— 更像一份简短的设计文档，而不是一条数据库条目。使用段落、代码示例和例子，让推理过程对第一次接触它的人来说清晰且有用。
 
 ```markdown
 # Dark Mode
@@ -53,49 +53,49 @@ interface ThemeConfig {
 - #134 — "Dark theme option"
 ```
 
-### Naming the file
+### 命名文件
 
-Use a short, descriptive kebab-case name for the concept: `dark-mode.md`, `plugin-system.md`, `graphql-api.md`. The name should be recognizable enough that someone browsing the directory understands what was rejected without opening the file.
+为概念使用一个简短、描述性的 kebab-case 名称：`dark-mode.md`、`plugin-system.md`、`graphql-api.md`。这个名称应当足够易于识别，让浏览该目录的人无需打开文件就能理解什么被拒绝了。
 
-### Writing the reason
+### 写明理由
 
-The reason should be substantive — not "we don't want this" but why. Good reasons reference:
+理由应当是实质性的 —— 不是"我们不想要这个"，而是为什么。好的理由会引用：
 
-- Project scope or philosophy ("This project focuses on X; theming is a downstream concern")
-- Technical constraints ("Supporting this would require Y, which conflicts with our Z architecture")
-- Strategic decisions ("We chose to use A instead of B because...")
+- 项目范围或理念（"本项目专注于 X；theming 是下游关心的事"）
+- 技术约束（"支持它需要 Y，而 Y 与我们的 Z 架构冲突"）
+- 战略决策（"我们选择使用 A 而不是 B，因为……"）
 
-The reason should be durable. Avoid referencing temporary circumstances ("we're too busy right now") — those aren't real rejections, they're deferrals.
+理由应当是持久的。避免引用临时性的情况（"我们现在太忙了"）—— 那些不是真正的拒绝，而是延期。
 
-## When to check `.out-of-scope/`
+## 何时查看 `.out-of-scope/`
 
-During triage (Step 1: Gather context), read all files in `.out-of-scope/`. When evaluating a new issue:
+在 triage 期间（步骤 1：收集 context），读取 `.out-of-scope/` 中的所有文件。在评估新的 issue 时：
 
-- Check if the request matches an existing out-of-scope concept
-- Matching is by concept similarity, not keyword — "night theme" matches `dark-mode.md`
-- If there's a match, surface it to the maintainer: "This is similar to `.out-of-scope/dark-mode.md` — we rejected this before because [reason]. Do you still feel the same way?"
+- 检查该请求是否匹配现有的 out-of-scope 概念
+- 匹配是按概念相似度，而不是按关键字 —— "night theme" 匹配 `dark-mode.md`
+- 如果有匹配，将其呈现给维护者："这与 `.out-of-scope/dark-mode.md` 类似 —— 我们之前因为 [原因] 拒绝过它。你现在仍然这么认为吗？"
 
-The maintainer may:
+维护者可能会：
 
-- **Confirm** — the new issue gets added to the existing file's "Prior requests" list, then closed
-- **Reconsider** — the out-of-scope file gets deleted or updated, and the issue proceeds through normal triage
-- **Disagree** — the issues are related but distinct, proceed with normal triage
+- **确认** —— 新的 issue 会被添加到现有文件的 "Prior requests" 列表中，然后关闭
+- **重新考虑** —— 删除或更新 out-of-scope 文件，issue 进入正常的 triage 流程
+- **不同意** —— 这些 issue 相关但不同，继续走正常的 triage 流程
 
-## When to write to `.out-of-scope/`
+## 何时向 `.out-of-scope/` 写入
 
-Only when an **enhancement** (not a bug) is rejected as `wontfix`. The flow:
+仅当一个**增强请求**（不是 bug）被拒绝为 `wontfix` 时。流程：
 
-1. Maintainer decides a feature request is out of scope
-2. Check if a matching `.out-of-scope/` file already exists
-3. If yes: append the new issue to the "Prior requests" list
-4. If no: create a new file with the concept name, decision, reason, and first prior request
-5. Post a comment on the issue explaining the decision and mentioning the `.out-of-scope/` file
-6. Close the issue with the `wontfix` label
+1. 维护者判定某个功能请求超出范围
+2. 检查是否已经存在匹配的 `.out-of-scope/` 文件
+3. 如果存在：将新的 issue 追加到 "Prior requests" 列表
+4. 如果不存在：创建一个新文件，包含概念名称、决策、理由，以及第一个 prior request
+5. 在 issue 上发表评论，解释决策并提及 `.out-of-scope/` 文件
+6. 给该 issue 打上 `wontfix` 标签并关闭
 
-## Updating or removing out-of-scope files
+## 更新或移除 out-of-scope 文件
 
-If the maintainer changes their mind about a previously rejected concept:
+如果维护者对先前被拒绝的概念改变了主意：
 
-- Delete the `.out-of-scope/` file
-- The skill does not need to reopen old issues — they're historical records
-- The new issue that triggered the reconsideration proceeds through normal triage
+- 删除该 `.out-of-scope/` 文件
+- skill 不需要重新打开旧的 issue —— 它们是历史记录
+- 触发重新考虑的新 issue 走正常的 triage 流程

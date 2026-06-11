@@ -1,6 +1,6 @@
-# Skill Directory
+# Skill 目录
 
-Create one folder per skill here:
+在此处为每个 skill 创建一个文件夹：
 
 ```text
 skills/
@@ -8,4 +8,4 @@ skills/
     SKILL.md
 ```
 
-Each `SKILL.md` should include frontmatter with `name` and `description`.
+每个 `SKILL.md` 都应包含带有 `name` 和 `description` 的 frontmatter。

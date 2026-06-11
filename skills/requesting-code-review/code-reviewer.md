@@ -1,8 +1,8 @@
-# Code Reviewer Prompt Template
+# Code Reviewer Prompt 模板
 
-Use this template when dispatching a code reviewer subagent.
+在派发 code reviewer subagent 时使用此模板。
 
-**Purpose:** Review completed work against requirements and code quality standards before it cascades into more work.
+**目的：** 在已完成的工作级联引发更多工作之前，依据需求和代码质量标准对其进行 review。
 
 ```
 Task tool (general-purpose):
@@ -121,15 +121,15 @@ Task tool (general-purpose):
     - Avoid giving a clear verdict
 ```
 
-**Placeholders:**
-- `{DESCRIPTION}` — brief summary of what was built
-- `{PLAN_OR_REQUIREMENTS}` — what it should do (plan file path, task text, or requirements)
-- `{BASE_SHA}` — starting commit
-- `{HEAD_SHA}` — ending commit
+**占位符：**
+- `{DESCRIPTION}` —— 对所构建内容的简要概述
+- `{PLAN_OR_REQUIREMENTS}` —— 它应该做什么（plan 文件路径、任务文本或需求）
+- `{BASE_SHA}` —— 起始 commit
+- `{HEAD_SHA}` —— 结束 commit
 
-**Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
+**Reviewer 返回：** Strengths、Issues（Critical / Important / Minor）、Recommendations、Assessment
 
-## Example Output
+## 示例输出
 
 ```
 ### Strengths

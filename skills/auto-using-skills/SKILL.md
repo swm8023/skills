@@ -1,87 +1,45 @@
 ---
 name: auto-using-skills
-description: 在每次对话开始时强制加载。规定"哪怕只有 1% 可能某个 skill 适用，就必须调用 Skill 工具"，并把需求类话题（加 feature、修 bug、改东西、新建系统）自动路由到 scope skill。
+description: Use when starting any conversation or task so the agent selects the right skill before acting. Routes bug reports to debug and unclear feature/change requests to scope.
 ---
 
 <SUBAGENT-STOP>
 如果你是作为 subagent 被派遣来执行某个特定任务，请跳过这个 skill。
 </SUBAGENT-STOP>
 
-<EXTREMELY-IMPORTANT>
-如果你认为某个 skill 哪怕只有 1% 的可能适用于你正在做的事情，你绝对必须调用该 skill。
+# auto-using-skills
 
-如果某个 skill 适用于你的任务，你没有选择余地。你必须使用它。
+## 核心规则
 
-这一点不可商量。这一点不是可选项。你不能用任何理由说服自己绕过它。
-</EXTREMELY-IMPORTANT>
+在任何回复、澄清、读文件、写代码或运行命令之前，先检查 skill。只要某个 skill 有 1% 的可能适用，就必须调用 Skill 工具读取它。
 
-## 指令优先级
+用户指令始终最高优先级；skill 决定的是**怎么做**，不覆盖用户明确说的**做什么**。如果调用后发现某个 skill 不适用，说明原因并继续检查其他 skill。
 
-本 skill 体系会覆盖默认 system prompt 的行为，但**用户的指令始终具有最高优先级**：
+## 路由
 
-1. **用户的明确指令**（CLAUDE.md、AGENTS.md、直接请求）—— 最高优先级
-2. **本 skill 体系** —— 在与默认 system 行为冲突的地方覆盖默认行为
-3. **默认 system prompt** —— 最低优先级
+按顺序判断：
 
-如果 CLAUDE.md 或 AGENTS.md 说"不要使用 TDD"，而某个 skill 说"始终使用 TDD"，请遵循用户的指令。控制权在用户手中。
+1. **用户点名 skill**：先调用被点名的 skill。
+2. **bug / failure**：用户说坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，调用 `debug`。不要先走 `scope`。
+3. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
+4. **即将写生产代码**：如果下一步会实现新行为、修 bug、重构或改现有行为，先调用 `test-driven-development`。
+5. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它。
 
-## 如何访问 skill
+## 调用后
 
-使用 `Skill` 工具。当你调用一个 skill 时，它的内容会被加载并呈现给你 —— 直接遵循即可。**绝不要对 skill 文件使用 Read 工具。**
+调用 skill 后：
 
-# 使用 skill
+1. 告诉用户：`Using [skill] to [purpose]`。
+2. 如果 skill 有 checklist，把每项登记为 todo。
+3. 严格按 skill 内容执行，再回复用户。
 
-## 规则
+## 警示信号
 
-**在任何回复或动作之前，先调用相关或被请求的 skill。** 哪怕只有 1% 的可能某个 skill 适用，你都应该调用该 skill 以作检查。如果调用后发现该 skill 并不适合当前情境，你可以不使用它。
+出现这些想法时，停下来重新检查 skill：
 
-每条用户消息进入时，按以下顺序检查：
-
-1. **即将开始创造性工作？**（加 feature、修 bug、改东西、新建系统等）—— 如果是，且**还未走过 scope 流程**，先调用 scope skill。
-2. **可能有任何 skill 适用？**（哪怕只有 1%）—— 如果可能，调用 Skill 工具。
-3. **调用 skill 后**：宣布"Using [skill] to [purpose]"。
-4. **如果 skill 含 checklist**：为每一项创建 TodoWrite todo。
-5. **严格按 skill 内容执行**，然后才回复用户（包括澄清性提问也排在 skill 检查之后）。
-
-只有当上面每一步都明确"不适用"时，才直接回复用户。
-
-## 红色警示
-
-下面这些念头意味着停下 —— 你正在自我合理化：
-
-| 念头 | 真相 |
-|---------|---------|
-| "这只是一个简单的问题" | 提问也是任务。先检查 skill。 |
-| "我需要先获取更多 context" | skill 检查在澄清性提问之前。 |
-| "让我先探索一下 codebase" | skill 会告诉你怎么去探索。先检查。 |
-| "我可以快速看看 git/文件" | 文件缺少对话 context。先检查 skill。 |
-| "让我先收集信息" | skill 会告诉你怎么去收集信息。 |
-| "这事不需要正式的 skill" | 如果有 skill，就用它。 |
-| "我记得这个 skill" | skill 会演进。读当前版本。 |
-| "这算不上一个任务" | 行动 = 任务。先检查 skill。 |
-| "这个 skill 太重了" | 简单的事情会变复杂。用它。 |
-| "我先做这一件事就好" | 在做任何事情之前先检查。 |
-| "这感觉很有效率" | 没有纪律的行动浪费时间。skill 防止这种情况。 |
-| "我知道那是什么意思" | 知道概念 ≠ 使用 skill。调用它。 |
-
-## skill 优先级
-
-当多个 skill 都可能适用时，按以下顺序使用：
-
-1. **流程类 skill 优先**（scope）—— 这些决定了**如何**着手处理任务
-2. **实现类 skill 其次**（writing-plans 及未来加入的实现类 skill）—— 这些指导执行
-
-"我们来构建 X" → 先 scope，然后才是实现类 skill。
-"加个 feature / 修个 bug / 改一下 Y" → 先 scope，再走后续。
-
-## skill 类型
-
-**刚性**：严格遵循。不要把纪律性变通掉。
-
-**灵活**（模式类）：根据 context 灵活调整原则。
-
-skill 自身会告诉你它属于哪一类。
-
-## 用户指令
-
-指令说的是**做什么**，不是**怎么做**。"添加 X"或"修复 Y"并不意味着可以跳过 workflow。
+- "先问个澄清问题再说"：澄清前也要检查 skill。
+- "先看文件 / 跑命令"：行动前也要检查 skill。
+- "这很简单"：简单任务也可能有适用 skill。
+- "我记得这个 skill"：读取当前版本，不凭记忆执行。
+- "用户说了修 bug，所以直接修"：用户说的是目标，不是允许跳过 debug。
+- "已经 scoped / debug 过了，可以直接写代码"：写生产代码前仍要检查 TDD。

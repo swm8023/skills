@@ -11,8 +11,6 @@ description: Use when you have a written implementation plan to execute in a sep
 
 **开始时声明：** "I'm using the executing-plans skill to implement this plan."
 
-**注意：** 告诉你的人类伙伴，Superpowers 在能够访问 subagent 时表现要好得多。如果运行在支持 subagent 的平台上（比如 Claude Code 或 Codex），其工作质量会显著更高。如果 subagent 可用，请使用 superpowers:subagent-driven-development 而不是本 skill。
-
 ## 流程
 
 ### 第 1 步：加载并审查 plan
@@ -26,8 +24,9 @@ description: Use when you have a written implementation plan to execute in a sep
 对每个任务：
 1. 标记为 in_progress
 2. 严格按每一步执行（plan 中的步骤是细化拆分的）
-3. 按指定方式运行 verifications
-4. 标记为 completed
+3. 如果某一步会写生产代码或改变现有行为，先调用 `test-driven-development`，确认已有失败测试或按 TDD 补齐 RED 步骤
+4. 按指定方式运行 verifications
+5. 标记为 completed
 
 ### 第 3 步：完成开发
 
@@ -57,6 +56,7 @@ description: Use when you have a written implementation plan to execute in a sep
 ## 牢记
 - 先批判性地审查 plan
 - 严格按 plan 的步骤执行
+- 写生产代码前调用 test-driven-development
 - 不要跳过 verifications
 - 当 plan 要求时引用对应的 skills
 - 被 block 时停下，不要猜测
@@ -65,6 +65,5 @@ description: Use when you have a written implementation plan to execute in a sep
 ## 集成
 
 **必需的工作流 skills：**
-- **superpowers:using-git-worktrees** —— 确保隔离的工作空间（创建一个或确认已存在）
-- **superpowers:writing-plans** —— 创建本 skill 要执行的 plan
-- **superpowers:finishing-a-development-branch** —— 在所有任务完成后收尾开发
+- **writing-plans** —— 创建本 skill 要执行的 plan
+- **verification-before-completion** —— 在声明完成前做新鲜验证

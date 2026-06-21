@@ -1,6 +1,6 @@
 ---
 name: scope
-description: Use when a user asks to create, change, design, add, fix, plan, or review product or code behavior and the requirements are not already explicitly scoped.
+description: Use when a user asks to create, change, design, add, plan, or review product or code behavior and the requirements are not already explicitly scoped.
 ---
 
 # scope —— 把需求拷问清楚
@@ -10,11 +10,13 @@ description: Use when a user asks to create, change, design, add, fix, plan, or 
 
 走完后产物是对话里达成的"已确认决策集合"，由用户选两条出口之一：**对话内直接出 plan 立即执行**，或**落 spec.md 进入正式流程**（接 writing-plans skill）。
 
+scope 不处理 bug 诊断。只要用户描述的是报错、测试失败、build 失败、flaky、性能退化、异常行为或已有行为坏掉，立即转交 debug skill。scope 只处理"要做什么"尚未明确的需求，不处理"为什么坏了"。
+
 ## 硬性关口
 
-在用户明确选择出口之前，**不要**调用任何实施类 skill、不要写代码、不要搭脚手架、不要做任何实现性动作。每一个项目都适用，无论看起来多简单。
+在用户明确选择出口之前，**不要**调用任何实施类 skill、不要写代码、不要搭脚手架、不要做任何实现性动作。每一个非 bug 项目都适用，无论看起来多简单。
 
-允许的前置动作只有三类：用户明确点名的元技能 / 审查技能、为回答事实问题所需的只读代码库探索、以及 scope 流程本身要求的澄清提问。它们不能转化为实现动作。
+允许的前置动作只有四类：用户明确点名的元技能 / 审查技能、为回答事实问题所需的只读代码库探索、scope 流程本身要求的澄清提问、以及发现当前任务其实是 bug 时转交 debug。它们不能转化为实现动作。
 
 ## 流程
 

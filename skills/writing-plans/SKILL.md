@@ -49,7 +49,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -135,18 +135,8 @@ git commit -m "feat: add specific feature"
 
 在保存计划后，给出执行选项：
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Execute it with executing-plans when you're ready.**
 
-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
-
-**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
-
-**Which approach?"**
-
-**如果选择 Subagent-Driven：**
-- **REQUIRED SUB-SKILL：** Use superpowers:subagent-driven-development
-- 每个任务一个全新 subagent + 两阶段 review
-
-**如果选择 Inline Execution：**
-- **REQUIRED SUB-SKILL：** Use superpowers:executing-plans
+**REQUIRED SUB-SKILL：** Use executing-plans
 - 批量执行，带 review 检查点
+- 如果平台提供通用 subagent，可把计划审查或独立研究任务委派出去；执行计划本身仍以 executing-plans 为准。

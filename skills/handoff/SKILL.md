@@ -1,0 +1,15 @@
+---
+name: handoff
+description: 将当前对话压缩为一份 handoff 文档，供另一个 agent 接手继续工作。
+argument-hint: "下一个 session 将用于什么？"
+---
+
+撰写一份 handoff 文档，对当前对话进行总结，使一个全新的 agent 能够继续这项工作。保存到用户操作系统的临时目录中——而不是当前 workspace。
+
+在该文档中包含一个 "suggested skills" 部分，建议该 agent 应当调用的 skill。
+
+不要重复其他工件（PRD、plan、ADR、issue、commit、diff）中已经记录的内容。改为通过路径或 URL 引用它们。
+
+对任何敏感信息进行编辑屏蔽，例如 API key、密码或可识别个人身份的信息。
+
+如果用户传入了参数，请将其视为对下一个 session 关注重点的描述，并相应地调整文档内容。

@@ -13,9 +13,11 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 **开始时声明：** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context：** 如果在隔离的 worktree 中工作，它应该已在执行时通过 `superpowers:using-git-worktrees` skill 创建好了。
+**Context：** 如果在隔离的 worktree 中工作，沿用当前 worktree，不要在写计划阶段切换目录。
 
-**保存计划至：** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+**保存计划至：**
+- 如果来自 spec：保存到 spec 同目录，文件名为 `plan-<slug>.md`。例如 `docs/scope/YYYY-MM-DD-<slug>/plan-<slug>.md`
+- 如果没有 spec：保存到 `docs/plans/YYYY-MM-DD-<slug>-plan.md`
 - （用户对计划位置的偏好会覆盖此默认值）
 
 ## 范围检查
@@ -135,7 +137,7 @@ git commit -m "feat: add specific feature"
 
 在保存计划后，给出执行选项：
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Execute it with executing-plans when you're ready.**
+**"Plan complete and saved to `<plan-path>`. Execute it with executing-plans when you're ready."**
 
 **REQUIRED SUB-SKILL：** Use executing-plans
 - 批量执行，带 review 检查点

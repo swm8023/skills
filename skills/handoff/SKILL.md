@@ -4,9 +4,9 @@ description: 将当前对话压缩为一份 handoff 文档，供另一个 agent 
 argument-hint: "下一个 session 将用于什么？"
 ---
 
-撰写一份 handoff 文档，对当前对话进行总结，使一个全新的 agent 能够继续这项工作。保存到用户操作系统的临时目录中——而不是当前 workspace。
+撰写一份 handoff 文档，对当前对话进行总结，使一个全新的 agent 能够继续这项工作。
 
-在该文档中包含一个 "suggested skills" 部分，建议该 agent 应当调用的 skill。
+将文档保存到当前 workspace 的 `docs/handoff/` 目录下。文件名使用 `YYYY-MM-DD-<topic>-handoff.md`；如果主题不明确，使用 `YYYY-MM-DD-handoff.md`。
 
 不要重复其他工件（PRD、plan、ADR、issue、commit、diff）中已经记录的内容。改为通过路径或 URL 引用它们。
 

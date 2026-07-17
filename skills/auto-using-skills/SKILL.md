@@ -21,9 +21,10 @@ description: Use when starting any conversation or task so the agent selects the
 
 1. **用户点名 skill**：先调用被点名的 skill。
 2. **bug / failure**：用户说坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，调用 `debug`。不要先走 `scope`。
-3. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
-4. **即将写生产代码**：如果下一步会实现新行为、修 bug、重构或改现有行为，先调用 `test-driven-development`。
-5. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它。
+3. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki`，调用 `wiki`。
+4. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
+5. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，先调用 `test-driven-development`。bug 修复只有在 `debug` 已提交根因和修复方案并获得用户明确确认后，才进入 `test-driven-development`。
+6. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它。
 
 ## 调用后
 

@@ -14,7 +14,7 @@ scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bu
 
 在用户明确选择出口之前，**不要**调用任何实施类 skill、不要写代码、不要搭脚手架、不要做任何实现性动作。每一个非 bug 项目都适用，无论看起来多简单。
 
-允许的前置动作只有四类：用户明确点名的元技能 / 审查技能、为回答事实问题所需的只读代码库探索（含 wiki 摘要预检）、scope 流程本身要求的澄清提问、以及发现当前任务其实是 bug 时转交 debug。它们不能转化为实现动作。
+允许的前置动作只有四类：用户明确点名的元技能 / 审查技能、为回答事实问题所需的只读代码库探索（含 wiki 摘要预检）、scope 流程本身要求的澄清提问、以及发现当前任务其实是 bug 时转交 debug。它们不能转化为实现动作。`git-workflow-preferences` 只在阶段 3 选定出口后、准备写 spec 或改代码前使用；scope 阶段最多读取已存在的 `docs/user-preferences.md` 作为约束，不初始化偏好文件。
 
 ## 流程
 
@@ -62,21 +62,23 @@ scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bu
 - 对话里直接生成实施 plan（任务列表 + 关键步骤）
 - 立刻做快速自我审查：范围是否收紧、验收是否可验证、风险 / 测试是否有交代
 - 用户确认 plan 后，按已确认的 wiki 目标同步；如果 plan 改变 wiki 目标，先重新确认
+- 开始改代码前调用 `git-workflow-preferences`，根据需求和用户偏好确认是否创建分支、创建 worktree
 - 不生成 `docs/scope/` 或 plan 文档；只更新用户确认过的已有 wiki
 
 #### 落 spec 路径
 
-1. 写 `docs/scope/<YYYY-MM-DD>-<slug>/spec-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题，目录带日期，文件名不带日期
-2. 立刻做自我审查（4 项检查），就地修复
-3. 请用户审阅
-4. 用户要求修改就改并重跑自我审查；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件
-5. 用户批准 spec 后、调用 writing-plans 前，按已确认的 wiki 目标同步
-6. wiki 同步完成后调用 writing-plans skill：
+1. 写 spec 文件前调用 `git-workflow-preferences`，根据需求和用户偏好确认是否创建分支、创建 worktree
+2. 写 `docs/scope/<YYYY-MM-DD>-<slug>/spec-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题，目录带日期，文件名不带日期
+3. 立刻做自我审查（4 项检查），就地修复
+4. 请用户审阅
+5. 用户要求修改就改并重跑自我审查；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件
+6. 用户批准 spec 后、调用 writing-plans 前，按已确认的 wiki 目标同步
+7. 然后调用 writing-plans skill：
    > "我正在使用 writing-plans skill 来创建实施计划。"
 
    不调用其他实施类 skill。wiki 同步是已批准 spec 的后置维护动作；writing-plans 是 scope 的唯一实施下一步。
 
-**终止状态：** 要么"对话内 plan → wiki 落地判断 → 执行"，要么"spec 批准 → wiki 落地判断 → 调用 writing-plans skill"。**不调用其他实施类 skill 作为 scope 的直接下一步。**
+**终止状态：** 要么"对话内 plan → wiki 同步 → git-workflow-preferences → 执行"，要么"git-workflow-preferences → spec 批准 → wiki 同步 → 调用 writing-plans skill"。**不调用其他实施类 skill 作为 scope 的直接下一步。**
 
 ## wiki 落地判断
 
@@ -90,7 +92,7 @@ scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bu
 - **可写入内容**：已确认的架构、约定、术语、稳定流程、模块背景、决策背景。
 - **不可写入内容**：未确认猜测、一次性任务步骤、执行 checklist、对话过程。
 
-wiki 同步是维护动作，不改变 scope 出口；完成后继续调用 writing-plans 或开始执行。
+wiki 同步是维护动作，不改变 scope 出口；不落 spec 路径完成后先过 `git-workflow-preferences` 再执行，落 spec 路径在写 spec 前已经过 `git-workflow-preferences`。
 
 ## spec.md 模板
 

@@ -17,12 +17,12 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 **保存计划至：**
 - 如果来自 spec：保存到 spec 同目录，文件名为 `plan-<slug>.md`。例如 `docs/scope/YYYY-MM-DD-<slug>/plan-<slug>.md`
-- 如果没有 spec：保存到 `docs/plans/YYYY-MM-DD-<slug>-plan.md`
+- 如果没有 spec：保存到 `docs/scope-nospec/<YYYY-MM-DD>-<slug>/plan-<slug>.md`
 - （用户对计划位置的偏好会覆盖此默认值）
 
 ## 范围检查
 
-如果 spec 涵盖多个独立的子系统，那么在 brainstorming 阶段就应该被拆分为子项目 spec。如果没拆，建议把它拆成多个独立的计划——每个子系统一个。每个计划自身应能产出可工作、可测试的软件。
+如果需求涵盖多个独立的子系统，应该先拆成多个子项目 spec 或计划。如果没拆，建议把它拆成多个独立的计划——每个子系统一个。每个计划自身应能产出可工作、可测试的软件。
 
 ## 文件结构
 

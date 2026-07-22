@@ -17,7 +17,8 @@ description: Use when you have a written implementation plan to execute in a sep
 1. 读取 plan 文件
 2. 批判性地审查 —— 识别对该 plan 的任何疑问或顾虑
 3. 如果存在顾虑：在开始之前与你的人类伙伴提出
-4. 如果没有顾虑：创建 TodoWrite 并继续
+4. 如果没有顾虑，且下一步会改代码但当前 workspace 尚未完成 Git 工作流决策，调用 `git-workflow-preferences`
+5. 创建 TodoWrite 并继续
 
 ### 第 2 步：执行任务
 
@@ -31,9 +32,19 @@ description: Use when you have a written implementation plan to execute in a sep
 ### 第 3 步：完成开发
 
 在所有任务完成并验证之后：
-- 声明："I'm using the finishing-a-development-branch skill to complete this work."
-- **必需的子 skill：** 使用 superpowers:finishing-a-development-branch
-- 按该 skill 执行：验证测试、给出选项、执行所选方案
+1. 重新核对用户要求、spec 或 plan，确认没有漏项。
+2. 运行能证明完成状态的验证命令，读取输出和 exit code。
+3. 检查 `git status -sb` 和实际 diff，确认改动范围。
+4. 调用 `git-workflow-preferences`，根据用户偏好和当次指令处理 commit、push、PR、merge、删除分支或清理 worktree。
+5. 给出完成报告：变更摘要、验证命令和结果、剩余风险，以及 Git 状态。
+
+完成报告必须包含：
+
+- 当前分支和 worktree 路径。
+- 本次相关提交：commit hash + subject；没有提交就明确写“未提交”。
+- 是否已 push；如已 push，写明远端分支。
+- 是否创建 PR、是否 merge、是否清理分支或 worktree。
+- 未执行的 Git 动作和原因。
 
 ## 何时停下并寻求帮助
 
@@ -60,10 +71,10 @@ description: Use when you have a written implementation plan to execute in a sep
 - 不要跳过 verifications
 - 当 plan 要求时引用对应的 skills
 - 被 block 时停下，不要猜测
-- 在未获得用户明确同意前，绝不在 main/master branch 上开始实现
+- 不在写 plan 阶段处理 Git 偏好；执行 plan 是实现入口，如果上游没有处理，开始改代码前必须调用 git-workflow-preferences
 
 ## 集成
 
 **必需的工作流 skills：**
 - **writing-plans** —— 创建本 skill 要执行的 plan
-- **verification-before-completion** —— 在声明完成前做新鲜验证
+- **git-workflow-preferences** —— 执行 plan 前若尚未完成 Git 工作流决策，则在改代码前调用

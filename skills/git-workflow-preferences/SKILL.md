@@ -1,11 +1,11 @@
 ---
 name: git-workflow-preferences
-description: 通过 docs/user-preferences.md 获取并维护用户的 Git 工作流行为；配置不存在时创建，行为不明确时逐项询问并回写。
+description: 通过 docs/user/git-preferences.md 获取并维护用户的 Git 工作流行为；配置不存在时创建，行为不明确时逐项询问并回写。
 ---
 
 # Git 工作流偏好
 
-配置文件固定为当前 workspace 的 `docs/user-preferences.md`。
+配置文件固定为当前 workspace 的 `docs/user/git-preferences.md`。
 
 ## 主流程
 
@@ -18,7 +18,7 @@ description: 通过 docs/user-preferences.md 获取并维护用户的 Git 工作
 
 ## 初始化流程
 
-1. 使用配置模板创建文件，将六项操作都标记为“待确认”，并写入当前日期。
+1. 使用配置模板创建文件，将七项操作都标记为“待确认”，并写入当前日期。
 2. 默认准备全部预设问题，先向用户展示实际问题清单，让用户删除不需要的问题。
 3. 按问问题的流程逐项提问；用户删掉的问题保留为“待确认”。
 4. 所选问题回答完毕且整份配置无冲突后，结束初始化。
@@ -27,10 +27,11 @@ description: 通过 docs/user-preferences.md 获取并维护用户的 Git 工作
 
 1. 基线：基础分支是什么？
 2. Branch/Worktree：何时创建 branch/worktree；创建时两者是否绑定；worktree 放在哪里、如何命名？
-3. Commit：是否自动 commit？
-4. Merge：是否自动合回主干？
-5. Push：何时 push？
-6. Cleanup：push 后是否保留 branch/worktree？
+3. Sync：何时同步远端；使用 rebase 还是 merge；冲突如何处理？
+4. Commit：是否自动 commit？
+5. Merge：是否自动合回基线；是否创建 PR？
+6. Push：何时 push？
+7. Cleanup：push 后是否保留 branch/worktree？
 
 ## 问问题的流程
 
@@ -57,6 +58,7 @@ description: 通过 docs/user-preferences.md 获取并维护用户的 Git 工作
 
 - 基线：待确认。
 - Branch/Worktree：待确认。
+- Sync：待确认。
 - Commit：待确认。
 - Merge：待确认。
 - Push：待确认。

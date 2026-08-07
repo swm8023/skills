@@ -49,8 +49,8 @@ scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bu
 
 > "下一步走哪条路径？
 >
-> - **落 spec** —— 我会写 `docs/scope/<日期>-<slug>/spec-<slug>.md`，你批准 spec 后按已确认的 wiki 目标同步，再调用 writing-plans 生成 plan
-> - **不落 spec** —— 我直接在对话里生成 plan，你确认 plan 后按已确认的已有 wiki 目标同步，再执行（不生成 scope/plan 文档）"
+> - **落 spec** —— 我会写 `docs/scope/<日期>-<slug>.md`；你批准后，把 spec 和已确认的 wiki 目标交给 do-scoped，由它生成持久化 plan 并直接执行
+> - **不落 spec** —— 我直接在对话里生成实施契约；你确认后，把契约和已确认的 wiki 目标交给 do-scoped 执行（不生成 scope/plan 文档）"
 
 同一条消息中必须列出：
 
@@ -60,47 +60,45 @@ scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bu
 
 #### 不落 spec 路径
 
-- 对话里直接生成实施 plan（任务列表 + 关键步骤）
+- 对话里直接生成实施契约：目标、任务列表、关键步骤、验收标准、风险和测试
 - 立刻做快速自我审查：范围是否收紧、验收是否可验证、风险 / 测试是否有交代
-- 用户确认 plan 后，按已确认的 wiki 目标同步；如果 plan 改变 wiki 目标，先重新确认
-- 开始改代码前调用 `git-workflow-preferences` 的 `prepare` 阶段
-- 不生成 `docs/scope/` 或 plan 文档；只更新用户确认过的已有 wiki
+- 用户确认后调用 `do-scoped`，传入 `source_kind: confirmed-conversation`、完整契约和已确认的 wiki 目标
+- 不生成 `docs/scope/` 或 `docs/plans/` 文档；由 do-scoped 建立对话 Todo、同步 wiki（如需要）、执行并负责 Git 全生命周期
 
 #### 落 spec 路径
 
 1. 写 spec 文件前调用 `git-workflow-preferences` 的 `prepare` 阶段
-2. 写 `docs/scope/<YYYY-MM-DD>-<slug>/spec-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题，目录带日期，文件名不带日期
+2. 写 `docs/scope/<YYYY-MM-DD>-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题
 3. 立刻做自我审查（4 项检查），就地修复
 4. 请用户审阅
 5. 用户要求修改就改并重跑自我审查；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件
-6. 用户批准 spec 后、调用 writing-plans 前，按已确认的 wiki 目标同步
-7. 然后调用 writing-plans skill：
-   > "我正在使用 writing-plans skill 来创建实施计划。"
+6. 用户批准 spec 后调用 `do-scoped`，传入 `source_kind: approved-spec`、spec 路径、已确认的 wiki 目标和当前 Git handoff：
+   > "我正在使用 do-scoped skill 来规划并完成这个已批准的 spec。"
 
-   不调用其他实施类 skill。wiki 同步是已批准 spec 的后置维护动作；writing-plans 是 scope 的唯一实施下一步。
+   do-scoped 在 `docs/plans/<spec 文件 basename>/` 中生成一个或多个 `plan-*.md`，自我审查后直接执行，不再要求用户另行调用执行 skill。
 
-**终止状态：** 要么"对话内 plan → wiki 同步 → Git prepare → 执行 → Git finalize"，要么"Git prepare → spec 批准 → wiki 同步 → 调用 writing-plans skill"。**不调用其他实施类 skill 作为 scope 的直接下一步。**
+**终止状态：** 要么"已确认对话契约 → do-scoped"，要么"已批准 spec → do-scoped"。`writing-plans` 与 `executing-plans` 只保留兼容用途，不是 scope 的默认下一步。
 
 ### Git 所有权与 handoff
 
-- scope 一旦写入 spec、wiki 或其他仓库文件，就持有本次任务的 Git 所有权。首次写入前必须已有 `prepare` 结果。
+- scope 一旦写入 spec 或其他仓库文件，就持有本阶段的 Git 所有权。首次写入前必须已有 `prepare` 结果。
 - 每次在持久化修改后暂停等待用户、结束本轮或 handoff 前，都调用 `finalize`，并传入 `complete`、`awaiting_review` 或其他真实任务结果。
-- handoff 给 writing-plans 或后续执行者时，明确传递 branch/worktree、prepare 时记录的已有修改和当前 Git 状态；接收者仍必须在自己交还控制权前调用 `finalize`。
-- 不落 spec 路径由实际实施者负责最终 `finalize`；不能因为 scope 已调用 prepare 就省略收尾。
+- handoff 给 do-scoped 时，明确传递 branch/worktree、prepare 时记录的已有修改和当前 Git 状态；do-scoped 仍必须重新核对并建立自己的 `prepare` 上下文，在交还控制权前调用 `finalize`。
+- 不落 spec 路径在 scope 阶段不写仓库，由 do-scoped 负责 wiki、实现和 Git 全生命周期。
 
 ## wiki 落地判断
 
-离开 scope、进入 writing-plans 或执行前，都要完成 wiki 落地判断；这个判断不以是否落 spec 为前提。
+离开 scope、进入 do-scoped 前，必须完成 wiki 落地判断；这个判断不以是否落 spec 为前提。
 
 - **扫描方式**：只读 `docs/wiki/` 路径和每个 `.md` 第一行摘要，不读正文。
-- **确认时机**：阶段 3 询问是否落 spec 时，同时让用户确认 wiki 目标；后续只同步用户确认过的文件。
+- **确认时机**：阶段 3 询问是否落 spec 时，同时让用户确认 wiki 目标；把结果作为 do-scoped 输入，后续只同步用户确认过的文件。
 - **建议类型**：`更新 <path>`、`新建 <path>`、`不更新 wiki`。
 - **落 spec**：大任务默认建议同步 wiki。可更新已有页面；也可在用户确认后新建最小必要目录或页面。
 - **不落 spec**：小任务只建议更新已有 wiki；没有匹配页面时不新建，除非用户明确要求沉淀。
 - **可写入内容**：已确认的架构、约定、术语、稳定流程、模块背景、决策背景。
 - **不可写入内容**：未确认猜测、一次性任务步骤、执行 checklist、对话过程。
 
-wiki 同步是持久化维护动作，不改变 scope 出口；不落 spec 路径首次写入前执行 Git `prepare`，落 spec 路径在写 spec 前执行 Git `prepare`，两条路径都遵守上面的 `finalize` 所有权规则。
+wiki 同步是 do-scoped 的第一个实施工作单元，不改变 scope 出口。落 spec 路径仍在写 spec 前执行 Git `prepare` 并在等待批准前 `finalize`；不落 spec 路径由 do-scoped 在首次写入前执行 Git `prepare`。
 
 ## spec.md 模板
 

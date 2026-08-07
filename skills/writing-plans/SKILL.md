@@ -1,13 +1,13 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: Compatibility entry point for users who explicitly want a standalone implementation plan without execution. Persist a plan by default only when an approved spec path is provided; otherwise return the plan in conversation unless the user explicitly chooses another location. Use do-scoped for normal end-to-end implementation.
 ---
 
 # 编写计划
 
 ## 概览
 
-撰写全面的实现计划，假设工程师对我们的代码库零上下文，且品味存疑。把他们需要知道的一切都写下来：每个任务要改动哪些文件、代码、测试、可能需要查阅的文档、如何测试。把整个计划以一口大小的任务（bite-sized tasks）形式交给他们。DRY。YAGNI。TDD。按项目 Git 偏好设置验证检查点。
+这是“只写计划、不执行”的兼容入口。撰写全面的实现计划，假设工程师对代码库零上下文：写明每个任务涉及的文件、代码、测试、文档和验证，并拆成一口大小的任务。DRY。YAGNI。TDD。按项目 Git 偏好设置验证检查点。
 
 假设他们是熟练的开发者，但对我们的工具集或问题域几乎一无所知。假设他们对优秀的测试设计也不太熟悉。
 
@@ -18,13 +18,15 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 ## Git 所有权
 
 - 纯对话内规划不调用 Git skill。首次把 plan 写入仓库前，调用 `git-workflow-preferences` 的 `prepare` 阶段；如果调用方传入了同一任务的完整 prepare 结果，先核对 branch/worktree 和已有修改仍一致，再复用。
-- 计划中的阶段性提交写成 Git checkpoint，由 executing-plans 在验证通过后调用 `git-workflow-preferences` 的 `checkpoint` 阶段；不要在计划中无条件硬编码 commit 或 push。
+- 计划中的阶段性提交写成 Git checkpoint；后续由 executing-plans 转交 do-scoped，并在验证通过后调用 `git-workflow-preferences` 的 `checkpoint` 阶段。不要在计划中无条件硬编码 commit 或 push。
 - plan 保存并完成自我审查后，在执行 handoff 前调用 `git-workflow-preferences` 的 `finalize` 阶段，收口本次“创建计划”任务。
 
 **保存计划至：**
-- 如果来自 spec：保存到 spec 同目录，文件名为 `plan-<slug>.md`。例如 `docs/scope/YYYY-MM-DD-<slug>/plan-<slug>.md`
-- 如果没有 spec：保存到 `docs/scope-nospec/<YYYY-MM-DD>-<slug>/plan-<slug>.md`
-- （用户对计划位置的偏好会覆盖此默认值）
+- 如果来自 spec：取 spec 文件 basename，保存到 `docs/plans/<spec-basename>/plan-<slug>.md`。例如 `docs/scope/2026-08-07-example.md` 对应 `docs/plans/2026-08-07-example/plan-example.md`
+- 一个 spec 需要多个计划时，使用同一目录下有意义的 `plan-<part>.md`
+- 目标目录已有 plan 时先读取；同一实施可更新复用，独立实施另建文件，不覆盖无关计划
+- 如果没有 spec：默认只在对话中返回，不创建计划文档
+- 用户明确指定的计划位置覆盖默认值
 
 ## 范围检查
 
@@ -57,7 +59,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILLS: Use executing-plans to implement this plan task-by-task, and let it invoke git-workflow-preferences through prepare/checkpoint/finalize. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILLS: Use executing-plans as the compatibility entry point; it delegates this file to do-scoped, which invokes git-workflow-preferences through prepare/checkpoint/finalize. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -145,8 +147,8 @@ Expected: create or skip the checkpoint commit according to the workspace Git pr
 
 在保存计划后，给出执行选项：
 
-**"Plan complete and saved to `<plan-path>`. Execute it with executing-plans when you're ready."**
+**"Plan complete and saved to `<plan-path>`. Execute it with executing-plans when you're ready; it will delegate execution to do-scoped."**
 
 **REQUIRED SUB-SKILL：** Use executing-plans
-- 批量执行，带 review 检查点
-- 如果平台提供通用 subagent，可把计划审查或独立研究任务委派出去；执行计划本身仍以 executing-plans 为准。
+- 由兼容入口把 plan 作为 `legacy-plan` 交给 do-scoped，带 review 与 Git 检查点
+- 如果平台提供通用 subagent，可把计划审查或独立研究任务委派出去；实际执行仍由 do-scoped 负责

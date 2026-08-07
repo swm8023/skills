@@ -23,9 +23,11 @@ description: Use when starting any conversation or task so the agent selects the
 2. **bug / failure**：用户说坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，调用 `debug`。不要先走 `scope`。
 3. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki`，调用 `wiki`。
 4. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
-5. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow-preferences`。一旦准备持久化写入 spec、plan、wiki、测试、代码或其他仓库文件，首次写入前必须调用 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；产生持久化修改后，在最终回复、暂停或 handoff 前必须调用 `finalize`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
-6. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，先调用 `test-driven-development`。bug 修复只有在 `debug` 已提交根因和修复方案并获得用户明确确认后，才进入 `test-driven-development`。
-7. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它。
+5. **执行已确认范围**：用户已批准 spec，或 scope 已取得对话内实施契约确认，并要求继续实现时，调用 `do-scoped`。它是新任务从规划到执行的默认统一入口。
+6. **兼容入口**：用户明确只要书面计划、不执行时调用 `writing-plans`；用户明确要执行已有或历史 plan 时调用 `executing-plans`，由其转交 `do-scoped`。不要把这两个兼容 skill 串成新任务的默认链路。
+7. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow-preferences`。一旦准备持久化写入 spec、plan、wiki、测试、代码或其他仓库文件，首次写入前必须调用 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；产生持久化修改后，在最终回复、暂停或 handoff 前必须调用 `finalize`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
+8. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，先调用 `test-driven-development`。bug 修复只有在 `debug` 已提交根因和修复方案并获得用户明确确认后，才进入 `test-driven-development`。
+9. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它。
 
 ## 调用后
 

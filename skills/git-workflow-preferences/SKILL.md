@@ -1,11 +1,47 @@
 ---
 name: git-workflow-preferences
-description: 通过 docs/user/git-preferences.md 获取并维护用户的 Git 工作流行为；配置不存在时创建，行为不明确时逐项询问并回写。
+description: 在会持久化修改仓库的任务开始、验证检查点和结束时，通过 docs/user/git-preferences.md 决定并执行 branch/worktree、同步、commit、push、merge 和 cleanup；配置不存在或行为不明确时初始化或逐项询问。
 ---
 
 # Git 工作流偏好
 
 配置文件固定为当前 workspace 的 `docs/user/git-preferences.md`。
+
+## 调用契约
+
+调用方必须明确指定以下阶段之一，不能只写“参考 Git 偏好”或笼统地“调用 Git skill”：
+
+- **prepare**：首次持久化写入前调用。加载偏好、刷新远端、记录任务开始前已有修改，并决定 branch/worktree 和同步行为。
+- **checkpoint**：一个独立、已验证的工作单元结束后调用。按 Commit 偏好决定是否创建阶段性提交；默认不执行最终 push、merge 或 cleanup。
+- **finalize**：产生持久化修改后，在最终回复、暂停或 handoff 前调用。根据任务结果和偏好处理剩余 commit、push、merge、cleanup，并报告未执行动作。
+
+纯只读调查、需求讨论和不落盘的计划不调用本 skill。一旦写入 spec、plan、wiki、测试、代码或其他仓库文件，就必须先有本任务的 prepare 结果，并在交还控制权前执行 finalize。任务被阻塞、验证失败或等待用户审阅时仍执行 finalize，但把结果标为未完成；不得为了收尾绕过“未完成或验证失败时不提交”的偏好。
+
+### prepare
+
+1. 执行下文配置读取和初始化流程。
+2. 检查当前仓库、branch、worktree、upstream、`git status -sb` 和实际远端状态；按 Sync 偏好先刷新远端，不能用未刷新的 tracking ref 判断同步。
+3. 记录任务开始前已有的 modified、staged 和 untracked 文件。它们默认不属于当前任务；归属不明确时先询问用户。
+4. 按 Branch/Worktree 和 Sync 偏好创建或沿用工作区。遇到会覆盖未提交修改、语义不明确的冲突或不安全的同步时暂停。
+5. 返回并在当前任务中保留：仓库根目录、branch、worktree、base/upstream、开始时已有修改、Commit/Push/Merge/Cleanup 决策。
+
+### checkpoint
+
+1. 确认工作单元已有对应验证信号且验证通过。
+2. 对照 prepare 记录检查实际 diff，只 stage 当前工作单元明确拥有的文件；存在任务外修改时禁止使用 `git add -A`。
+3. 按 Commit 偏好创建或跳过提交。跳过时记录偏好或阻塞原因。
+4. 返回 commit hash + subject，或“未提交”及明确原因。
+
+### finalize
+
+1. 接收任务结果：`complete`、`blocked`、`verification_failed` 或 `awaiting_review`，以及已执行验证的结果。
+2. 对照 prepare 记录检查 `git status -sb` 和实际 diff，区分本任务修改与任务开始前已有修改。
+3. 仅当任务结果和 Commit 偏好允许时，stage 当前任务文件并提交；不得夹带任务外修改。
+4. 按 Sync、Push、Merge 和 Cleanup 偏好执行后续动作。push 遇到 non-fast-forward 时刷新远端，按 Sync 偏好 rebase/merge 后重试一次；语义冲突时暂停并询问用户。
+5. push 后检查实际远端分支，不能只依赖本地 tracking ref。删除未合并分支、丢弃修改、强制推送等破坏性动作仍需单独确认。
+6. 返回固定收尾结果：当前 branch/worktree、commit hash + subject、push 远端分支、merge/PR、cleanup，以及每个未执行动作的原因。
+
+调用方在 finalize 返回前不得声称持久化修改任务已经完成。若偏好要求自动 commit/push 而动作未完成，最终状态必须是 blocked 或明确的部分完成，不能把“未提交”当作无理由的正常出口。
 
 ## 主流程
 
@@ -55,10 +91,10 @@ description: 通过 docs/user/git-preferences.md 获取并维护用户的 Git �
 
 - 基线：使用 `main`，禁止任何删除基线分支的操作。
 - Branch/Worktree：仅落 spec 的任务创建 feature branch，并绑定创建项目根目录 `.worktree/<branch-name>`；不落 spec 的任务和 bug 修复沿用当前分支，同时确保 `.worktree/` 被 Git 忽略。
-- Sync：开始任务前同步远端最新状态；提交前 rebase 到远端最新状态；明确冲突自动解决，存在语义歧义时询问用户。
-- Commit：任务完成且验证通过后自动 commit；未完成或验证失败时不提交。
+- Sync：prepare 时先刷新并同步远端最新状态；提交后、push 前再次刷新并 rebase 到远端最新状态；明确冲突自动解决，存在语义歧义时询问用户。
+- Commit：checkpoint 或 finalize 时，当前工作单元完成且验证通过后自动 commit；未完成或验证失败时不提交。
 - Merge：不创建 PR；任务完成后，本地 `main` 工作树干净则自动合入，存在修改则暂不合入。
-- Push：任务完成时 push 当前分支；若随后成功合入 `main`，再自动 push `main`；因 `main` 存在修改而暂缓合并时，仍 push 当前分支。
+- Push：finalize 时 push 当前分支并核对实际远端 SHA；若随后成功合入 `main`，再自动 push 并核对 `main`；因 `main` 存在修改而暂缓合并时，仍 push 当前分支。
 - Cleanup：任务分支成功合入并 push `main` 后，自动删除干净的任务 worktree、本地任务分支和远端任务分支；合并暂缓或存在未提交修改时全部保留；永不删除基线。
 - 最后更新：YYYY-MM-DD。
 ```

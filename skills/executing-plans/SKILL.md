@@ -17,7 +17,7 @@ description: Use when you have a written implementation plan to execute in a sep
 1. 读取 plan 文件
 2. 批判性地审查 —— 识别对该 plan 的任何疑问或顾虑
 3. 如果存在顾虑：在开始之前与你的人类伙伴提出
-4. 如果没有顾虑，且下一步会改代码但当前 workspace 尚未完成 Git 工作流决策，调用 `git-workflow-preferences`
+4. 如果没有顾虑且本次执行会持久化修改仓库，调用 `git-workflow-preferences` 的 `prepare` 阶段；每次执行 plan 都重新建立本任务的 Git 上下文，不沿用含糊的“workspace 已决策”状态
 5. 创建 TodoWrite 并继续
 
 ### 第 2 步：执行任务
@@ -27,7 +27,8 @@ description: Use when you have a written implementation plan to execute in a sep
 2. 严格按每一步执行（plan 中的步骤是细化拆分的）
 3. 如果某一步会写生产代码或改变现有行为，先调用 `test-driven-development`，确认已有失败测试或按 TDD 补齐 RED 步骤
 4. 按指定方式运行 verifications
-5. 标记为 completed
+5. 如果 plan 要求 Git checkpoint，在验证通过后调用 `git-workflow-preferences` 的 `checkpoint` 阶段，不直接绕过偏好执行硬编码的 commit/push
+6. 标记为 completed
 
 ### 第 3 步：完成开发
 
@@ -35,8 +36,8 @@ description: Use when you have a written implementation plan to execute in a sep
 1. 重新核对用户要求、spec 或 plan，确认没有漏项。
 2. 运行能证明完成状态的验证命令，读取输出和 exit code。
 3. 检查 `git status -sb` 和实际 diff，确认改动范围。
-4. 调用 `git-workflow-preferences`，根据用户偏好和当次指令处理 commit、push、PR、merge、删除分支或清理 worktree。
-5. 给出完成报告：变更摘要、验证命令和结果、剩余风险，以及 Git 状态。
+4. 调用 `git-workflow-preferences` 的 `finalize` 阶段并传入 `complete`；根据用户偏好和当次指令处理 commit、push、PR、merge、删除分支或清理 worktree。
+5. finalize 返回后给出完成报告：变更摘要、验证命令和结果、剩余风险，以及 Git 状态。finalize 未完成偏好要求的动作时，不得把任务报告为已完成。
 
 完成报告必须包含：
 
@@ -56,6 +57,8 @@ description: Use when you have a written implementation plan to execute in a sep
 
 **应当寻求澄清，而不是凭猜测继续。**
 
+如果 blocker 出现前已经产生持久化修改，在寻求帮助或 handoff 前调用 `git-workflow-preferences` 的 `finalize` 阶段并传入真实的未完成结果。
+
 ## 何时回到更早的步骤
 
 **回到审查阶段（第 1 步）的时机：**
@@ -71,10 +74,10 @@ description: Use when you have a written implementation plan to execute in a sep
 - 不要跳过 verifications
 - 当 plan 要求时引用对应的 skills
 - 被 block 时停下，不要猜测
-- 不在写 plan 阶段处理 Git 偏好；执行 plan 是实现入口，如果上游没有处理，开始改代码前必须调用 git-workflow-preferences
+- 执行 plan 是实现入口，开始持久化修改前必须调用 Git `prepare`，验证检查点按 plan 调用 `checkpoint`，交还控制权前必须调用 `finalize`
 
 ## 集成
 
 **必需的工作流 skills：**
 - **writing-plans** —— 创建本 skill 要执行的 plan
-- **git-workflow-preferences** —— 执行 plan 前若尚未完成 Git 工作流决策，则在改代码前调用
+- **git-workflow-preferences** —— 执行 plan 时必须按 `prepare`、`checkpoint`、`finalize` 三阶段调用

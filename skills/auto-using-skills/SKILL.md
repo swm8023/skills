@@ -23,7 +23,7 @@ description: Use when starting any conversation or task so the agent selects the
 2. **bug / failure**：用户说坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，调用 `debug`。不要先走 `scope`。
 3. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki`，调用 `wiki`。
 4. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
-5. **Git 工作流**：涉及文件写入、branch/worktree、commit、push、merge 或清理时，参考 `git-workflow-preferences`；需求澄清、bug 诊断和写 plan 阶段不要因此打断。
+5. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow-preferences`。一旦准备持久化写入 spec、plan、wiki、测试、代码或其他仓库文件，首次写入前必须调用 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；产生持久化修改后，在最终回复、暂停或 handoff 前必须调用 `finalize`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
 6. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，先调用 `test-driven-development`。bug 修复只有在 `debug` 已提交根因和修复方案并获得用户明确确认后，才进入 `test-driven-development`。
 7. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它。
 
@@ -45,3 +45,5 @@ description: Use when starting any conversation or task so the agent selects the
 - "我记得这个 skill"：读取当前版本，不凭记忆执行。
 - "用户说了修 bug，所以直接修"：用户说的是目标，不是允许跳过 debug。
 - "已经 scoped / debug 过了，可以直接写代码"：写生产代码前仍要检查 TDD。
+- "开始时已经调用过 Git skill，结束时不用再调"：prepare 不能替代 finalize。
+- "写一句未提交就可以结束"：如果偏好要求自动提交或推送，必须完成动作或给出明确 blocker。

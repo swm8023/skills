@@ -7,13 +7,19 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 ## 概览
 
-撰写全面的实现计划，假设工程师对我们的代码库零上下文，且品味存疑。把他们需要知道的一切都写下来：每个任务要改动哪些文件、代码、测试、可能需要查阅的文档、如何测试。把整个计划以一口大小的任务（bite-sized tasks）形式交给他们。DRY。YAGNI。TDD。频繁 commit。
+撰写全面的实现计划，假设工程师对我们的代码库零上下文，且品味存疑。把他们需要知道的一切都写下来：每个任务要改动哪些文件、代码、测试、可能需要查阅的文档、如何测试。把整个计划以一口大小的任务（bite-sized tasks）形式交给他们。DRY。YAGNI。TDD。按项目 Git 偏好设置验证检查点。
 
 假设他们是熟练的开发者，但对我们的工具集或问题域几乎一无所知。假设他们对优秀的测试设计也不太熟悉。
 
 **开始时声明：** "I'm using the writing-plans skill to create the implementation plan."
 
 **Context：** 如果在隔离的 worktree 中工作，沿用当前 worktree，不要在写计划阶段切换目录。
+
+## Git 所有权
+
+- 纯对话内规划不调用 Git skill。首次把 plan 写入仓库前，调用 `git-workflow-preferences` 的 `prepare` 阶段；如果调用方传入了同一任务的完整 prepare 结果，先核对 branch/worktree 和已有修改仍一致，再复用。
+- 计划中的阶段性提交写成 Git checkpoint，由 executing-plans 在验证通过后调用 `git-workflow-preferences` 的 `checkpoint` 阶段；不要在计划中无条件硬编码 commit 或 push。
+- plan 保存并完成自我审查后，在执行 handoff 前调用 `git-workflow-preferences` 的 `finalize` 阶段，收口本次“创建计划”任务。
 
 **保存计划至：**
 - 如果来自 spec：保存到 spec 同目录，文件名为 `plan-<slug>.md`。例如 `docs/scope/YYYY-MM-DD-<slug>/plan-<slug>.md`
@@ -42,7 +48,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 - "Run it to make sure it fails" - 一步
 - "Implement the minimal code to make the test pass" - 一步
 - "Run the tests and make sure they pass" - 一步
-- "Commit" - 一步
+- "Git checkpoint" - 一步
 
 ## 计划文档头部
 
@@ -51,7 +57,7 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILLS: Use executing-plans to implement this plan task-by-task, and let it invoke git-workflow-preferences through prepare/checkpoint/finalize. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -97,12 +103,14 @@ def function(input):
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Git checkpoint**
 
-```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
-```
+After the verification passes, invoke `git-workflow-preferences` in `checkpoint` mode for:
+
+- `tests/path/test.py`
+- `src/path/file.py`
+
+Expected: create or skip the checkpoint commit according to the workspace Git preferences, and record the commit hash or the reason it was skipped.
 ````
 
 ## 不允许占位符
@@ -119,7 +127,7 @@ git commit -m "feat: add specific feature"
 - 始终给出精确的文件路径
 - 每一步都给出完整代码——如果一步会改动代码，就把代码展示出来
 - 精确的命令以及预期输出
-- DRY、YAGNI、TDD、频繁 commit
+- DRY、YAGNI、TDD、按 Git 偏好设置 checkpoint
 
 ## 自我审查
 

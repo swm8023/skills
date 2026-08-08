@@ -1,6 +1,6 @@
 ---
 name: scope
-description: Use when a user asks to create, change, design, add, plan, or review product or code behavior and the requirements are not already explicitly scoped.
+description: Use when a user asks to create, change, add, design, plan, or review product or code behavior, and the work still has unresolved requirements or material technical decisions.
 ---
 
 # scope —— 把需求拷问清楚
@@ -8,7 +8,7 @@ description: Use when a user asks to create, change, design, add, plan, or revie
 ## 概览
 先快速理解项目当前状态与需求规模，然后通过决策树式提问把未决策点拷问清楚。对用户进行不留情面的访谈，直到我们达成共同理解。
 
-scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bug、失败、异常行为或性能退化，立即转交 debug skill。
+scope 处理尚未明确的需求和重大技术决策；局部实现细节留给 do-scoped。如果用户描述的是 bug、失败、异常行为或性能退化，立即转交 debug skill。
 
 ## 硬性关口
 
@@ -29,6 +29,13 @@ scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bu
 
 ### 阶段 2：拷问式连续提问
 
+先收敛需求，再收敛技术落地：
+
+- **需求收敛**：明确目标、边界、约束、成功标准和范围之外。
+- **技术收敛**：基于已确认需求做针对性只读探索，只确认影响架构、接口、数据、部署或兼容性的技术决策；局部实现细节留给 do-scoped。
+
+技术方案与已确认需求冲突时，回到需求问题重新确认。
+
 核心规则：
 
 - **一次一题**。同一条消息塞多个问题会让用户挑容易答的、回避难的。
@@ -37,13 +44,13 @@ scope 只处理"要做什么"尚未明确的需求；如果用户描述的是 bu
 - **代码库能答的不问用户**。
 - **优先多选题**（A/B/C + 推荐），开放式次之。
 - **选项之间空一行**，确保每个选项是独立 Markdown 段落。
-- **关注目的、约束、成功标准**。不问"你想怎么做"，问"A 还是 B，倾向哪个 + 为什么"。
+- **关注目的、约束、成功标准**。需求问题不问实现方式；技术问题只问存在实质取舍的落地方案。
 
-决策树每个分支解决后，进入阶段 3。
+需求和重大技术分支都解决后，进入阶段 3。
 
 ### 阶段 3：总结确认 + 出口选择
 
-先做简短的设计呈现，询问用户是否正确；如果用户纠偏，回到阶段 2 继续拷问。
+需求和重大技术决策都闭合后，做简短的统一设计呈现，询问用户是否正确；如果用户纠偏，回到阶段 2 继续拷问。
 
 用户确认理解一致后，按「wiki 落地判断」生成 wiki 建议，并在同一条消息里确认出口和 wiki 目标：
 

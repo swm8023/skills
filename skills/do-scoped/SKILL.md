@@ -1,6 +1,6 @@
 ---
 name: do-scoped
-description: Implement already-scoped product or code work end to end after the user has approved a spec or confirmed scope's in-conversation implementation contract. Also accepts an existing plan only through the executing-plans compatibility entry point. Create persisted plans only for spec-backed work, then execute, verify, and complete the configured Git workflow. Do not use while requirements are still unclear or while a spec is awaiting approval.
+description: Implement approved product, code, or bug-fix work end to end after the user has approved a spec, confirmed scope's in-conversation implementation contract, or approved debug's evidence-backed fix contract. Also accepts an existing plan only through executing-plans. Create persisted plans only for spec-backed work, then execute, verify, and complete the configured Git workflow. Do not use while requirements, root cause, or approval are unresolved.
 ---
 
 # 执行已确认范围
@@ -17,13 +17,14 @@ description: Implement already-scoped product or code work end to end after the 
 
 1. **approved-spec**：用户已批准的 `docs/scope/<YYYY-MM-DD>-<slug>.md`。
 2. **confirmed-conversation**：`scope` 已在当前对话中整理并获得用户确认的实施契约。
-3. **legacy-plan**：由 `executing-plans` 兼容入口传入的现有 plan 路径。
+3. **approved-fix**：`debug` 已复现并确认根因，用户已批准的修复契约。
+4. **legacy-plan**：由 `executing-plans` 兼容入口传入的现有 plan 路径。
 
-如果需求仍未明确、spec 尚未批准，返回 `scope`。如果只有零散要求而没有明确确认记录，不得自行认定为 `confirmed-conversation`。
+如果需求仍未明确、spec 尚未批准，返回 `scope`。如果 bug 根因或修复方案尚未确认，返回 `debug`。只有零散要求或用户最初的“修一下”时，不得自行认定为 `confirmed-conversation` 或 `approved-fix`。
 
 ## 阶段 1：加载与审查
 
-1. 读取 approved-spec 或 legacy-plan；confirmed-conversation 则复述已确认的目标、范围、验收标准、测试要求和排除项。
+1. 读取 approved-spec 或 legacy-plan；confirmed-conversation 则复述已确认的目标、范围、验收标准、测试要求和排除项；approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
 2. 检查输入是否完整、一致、可由一个实施流程完成。多个独立子系统应拆成多个 spec 或多个 plan，每个 plan 都必须能产出可工作、可测试的软件。
 3. 先规划文件结构：哪些文件会创建或修改、每个文件负责什么、边界和接口在哪里。遵循既有代码模式；只在被修改文件已经难以维护时，把拆分纳入计划。
 4. 有实质歧义、缺失决定、危险动作、计划过时或仓库事实冲突时，在写入前提出并等待用户决定；不要用实现细节替用户补产品决策。
@@ -46,6 +47,10 @@ description: Implement already-scoped product or code work end to end after the 
 ### confirmed-conversation
 
 使用对话 Todo 记录任务、关键步骤和验证，不创建 `docs/scope/`、`docs/plans/` 或其他计划文档。快速检查范围、验收、风险和测试后直接执行。
+
+### approved-fix
+
+使用对话 Todo 执行已批准修复，不创建 spec 或 plan 文档。Todo 必须从原始 repro 开始，以重跑原始 repro、回归测试和相关测试结束；只实施契约中的 root-cause 修复，不扩展为功能或无关重构。prepare 时把 debug 交接的诊断产物纳入文件所有权核对。
 
 ### legacy-plan
 
@@ -184,4 +189,5 @@ After verification passes, invoke `git-workflow-preferences` in `checkpoint` mod
 
 - `writing-plans`：仅用于用户明确要求“只写计划、不执行”的场景。
 - `executing-plans`：仅用于显式执行已有或历史 plan；它把 plan 作为 `legacy-plan` 转交本 skill。
+- `debug`：负责复现、根因和用户批准；批准后把 `approved-fix` 交给本 skill，不再自行实施。
 - 新的 scope 主链路不再依次调用 `writing-plans` 和 `executing-plans`。

@@ -1,13 +1,13 @@
 ---
 name: debug
-description: 处理 bug、测试失败、异常、错误行为、偶发问题、性能退化、构建失败、集成失败或任何非预期行为时使用。
+description: 调查 bug、测试失败、异常、错误行为、偶发问题、性能退化、构建失败、集成失败或其他非预期行为；复现并确定根因，提交修复方案等待用户批准，获批后把 approved-fix 交给 do-scoped 实施。
 ---
 
 # debug
 
 ## 概览
 
-debug 是处理 bug 的默认入口。默认产物是诊断结论与修复计划；代码修复必须等用户批准方案后再做。
+debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经用户批准的修复契约；代码实施、验证和 Git 收尾统一交给 `do-scoped`。
 
 非 bug 的功能、设计、需求澄清走 `scope`。
 
@@ -40,6 +40,13 @@ debug 是处理 bug 的默认入口。默认产物是诊断结论与修复计划
 - 用户已在看到计划后明确同意继续。
 
 任一项不成立，就停在调查或计划阶段。不要调用 `test-driven-development`，不要修改生产代码。
+
+## 诊断阶段 Git 边界
+
+- 只读调查、运行现有测试和不落盘实验不调用 Git skill。
+- 如果复现需要把测试、脚本、日志配置或临时埋点写入仓库，首次写入前调用 `git-workflow-preferences` 的 `prepare` 阶段。
+- 诊断阶段产生持久化修改后，在等待用户批准、暂停或 handoff 前调用 `finalize`，传入 `awaiting_review`、`blocked` 或其他真实未完成结果；不得把诊断产物当成已完成修复提交。
+- handoff 时列出所有诊断产物和 prepare 前已有修改；`do-scoped` 接手后仍重新执行并核对自己的 `prepare`。
 
 ## 工作流
 
@@ -106,48 +113,43 @@ debug 是处理 bug 的默认入口。默认产物是诊断结论与修复计划
 - **证据**：哪个验证信号、日志、断点、diff、trace 或实验支持结论。
 - **修复方案**：准备改哪里、为什么这样改、排除了哪些替代方案。
 - **验证计划**：如何证明修好了；哪些测试、脚本、人工步骤或观察信号会重跑。
-- **Git 计划**：确认后、首次持久化写入前会调用 `git-workflow-preferences` 的 `prepare` 阶段；收尾会调用 `finalize`，并按偏好处理 commit/push/merge/cleanup。
+- **Git 计划**：确认后由 `do-scoped` 调用 `git-workflow-preferences` 的 `prepare`、`checkpoint` 和 `finalize`，并按偏好处理 commit/push/merge/cleanup。
 - **风险**：可能影响哪些路径，修复后要检查什么。
 
 没有用户明确确认，不进入修复阶段。如果根因仍是猜测，明确说“还不能修”，回到假设验证。
 
-### 7. 用 TDD 修复
+### 7. 等待批准并形成 handoff
 
-用户确认方案后，先调用 `git-workflow-preferences` 的 `prepare` 阶段，再调用 `test-driven-development` 写生产修复代码。
+用户看到第 6 阶段的完整结论后明确同意，才形成以下实施契约：
 
-执行顺序：
+```yaml
+source_kind: approved-fix
+root_cause: 已证实的根因
+evidence: 复现、日志、trace、diff 或实验
+repro: 可重复验证信号
+fix_scope: 准备修改的文件、行为和排除项
+acceptance: 修复完成必须满足的可观察结果
+verification: 原始 repro、回归测试和相关测试
+risks: 影响路径和回归风险
+diagnostic_artifacts: 已写入仓库的诊断文件或临时埋点
+```
 
-1. 把最小 repro 固化为失败测试或可重复脚本。
-2. 看着它因正确原因失败。
-3. 实施单一 root-cause 修复。
-4. 看着测试通过。
-5. 重跑原始验证信号，确认用户场景不再复现。
-6. 跑相关测试，确认没有回归。
+契约缺少根因证据、repro、fix scope、验收或验证计划时不得交接。用户只说“继续看看”不等于批准修复。
 
-如果修复无效，回到复现、模式分析或假设验证；三次失败后先质疑架构或根本假设，再和用户讨论。
+### 8. 交给 do-scoped 实施
 
-### 8. 收尾验证
+用户批准后调用 `do-scoped`，传入完整 `approved-fix` 契约和当前 Git handoff。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
 
-宣布完成前确认：
+从此由 `do-scoped` 独占：
 
-- 原始 repro 不再复现。
-- 回归测试或可重复脚本通过。
-- 相关测试通过。
-- 所有 `[DEBUG-...]` 临时埋点已清理。
-- 一次性脚手架已删除，或移到明确标记的位置。
-- 最终根因和被证实的假设写进提交信息、PR 信息或最终说明。
+- Git `prepare`、`checkpoint`、`finalize`
+- 对话 Todo 和文件所有权
+- TDD 的 RED、GREEN、重构
+- 原始 repro、回归测试和相关测试
+- 临时诊断产物清理
+- commit、push、merge、cleanup 和最终完成报告
 
-接下来的 Git 操作必须调用 `git-workflow-preferences` 的 `finalize` 阶段。验证全部通过时传入 `complete`；验证失败、修复被阻塞或需要暂停时，在交还控制权前传入对应的未完成结果。finalize 返回前不得宣布修复完成。
-
-最终汇报必须包含：
-
-- 根因和修复摘要。
-- 原始 repro、回归测试和相关测试的验证结果。
-- 当前分支和 worktree 路径。
-- 本次相关提交：commit hash + subject；没有提交时写明符合哪条偏好或具体 blocker。
-- 是否已 push；如已 push，写明远端分支。
-- 是否创建 PR、是否 merge、是否清理分支或 worktree。
-- 未验证项、未执行的 Git 动作和剩余风险。
+实施发现根因错误或关键假设被推翻时，`do-scoped` 停止并把证据退回 debug；不要在执行阶段重新猜根因。
 
 ## 方法准则
 

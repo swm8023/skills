@@ -1,4 +1,4 @@
 interface:
   display_name: "Do Scoped"
-  short_description: "端到端规划并完成已确认范围的实现、验证与 Git 收尾"
-  default_prompt: "使用 $do-scoped 根据已批准的 spec 或 scope 已确认的对话契约完成实现。"
+  short_description: "端到端完成已确认范围或修复方案的实现、验证与 Git 收尾"
+  default_prompt: "使用 $do-scoped 根据已批准的 spec、scope 契约或 debug 修复契约完成实现。"

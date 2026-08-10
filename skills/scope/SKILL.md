@@ -1,6 +1,6 @@
 ---
 name: scope
-description: Use when a user asks to create, change, add, design, plan, or review product or code behavior and important requirements or technical decisions are still unresolved—including vague requests such as “加个功能”“改一下”“怎么设计” or “先规划”。Use before implementation for unclear non-bug work. Do not use for bugs or failures (use debug), approved specs or confirmed implementation contracts (use do-scoped), or explicit plan-only requests (use writing-plans).
+description: Use when a user asks to create, change, add, design, plan, or review product or code behavior and important requirements or technical decisions are still unresolved—including vague requests such as “加个功能”“改一下”“怎么设计” or “先规划”。Use before implementation for unclear non-bug work. Do not use for bugs or failures (use debug) or approved specs and confirmed implementation contracts (use do-scoped).
 ---
 
 # scope —— 把需求拷问清楚
@@ -17,7 +17,7 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 - **bug / failure**：出现报错、失败、异常、偶发、回归、变慢或行为不符合预期——转交 `debug`，不在 scope 里继续收集产品需求。
 - **已批准 spec**：读取 spec 的状态行；只有明确标记 `> 状态：已批准 <日期>` 才能交给 `do-scoped`，否则停在审阅/批准阶段。
 - **已确认实施契约**：用户已经确认目标、范围、验收、测试和排除项——交给 `do-scoped`，不要重新发明一轮 scope。
-- **只要书面计划**：用户明确要求“不执行、只给计划”——走 `writing-plans` 兼容入口。
+- **只要书面计划**：用户明确要求“不执行、只给计划”——直接在对话中生成计划，不写仓库、不执行实现。
 - **未明确的非 bug 需求**：留在本 skill，按下述阶段收敛。
 
 如果目标、范围、验收和重大技术决策已经齐全，只剩局部实现细节，不要制造额外问题：用一段最小摘要确认边界，问一个“是否按此契约执行”的确认；确认后进入阶段 3，通常推荐“不落 spec”。这样既保留实施闸门，也避免 scope 变成无止境的需求访谈。
@@ -129,7 +129,7 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 
    do-scoped 在 `docs/plans/<spec 文件 basename>/` 中生成一个或多个 `plan-*.md`，自我审查后直接执行，不再要求用户另行调用执行 skill。
 
-**终止状态：** 要么"已确认对话契约 → do-scoped"，要么"已批准 spec → do-scoped"。`writing-plans` 与 `executing-plans` 只保留兼容用途，不是 scope 的默认下一步。
+**终止状态：** 要么"已确认对话契约 → do-scoped"，要么"已批准 spec → do-scoped"。
 
 ### Git 所有权与 handoff
 

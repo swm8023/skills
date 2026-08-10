@@ -25,11 +25,13 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 ## 阶段 1：加载与审查
 
-1. 读取 approved-spec；approved-spec 先核对头部状态行——未标记 `已批准` 时（含状态行缺失的旧 spec），先请用户明确批准并补写状态行再继续，不把"用户提到这个 spec"当作批准。confirmed-conversation 则复述已确认的目标、范围、验收标准、测试要求和排除项；approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
+1. 读取 approved-spec；approved-spec 先核对头部状态行——未标记 `已批准` 时（含状态行缺失的旧 spec），先请用户明确批准并补写状态行再继续，不把"用户提到这个 spec"当作批准。approved-spec 与 confirmed-conversation 都提取目标、决策基线（需求边界与技术决策）、设计视图、预估改动面、验收与验证证据；旧结构按语义映射，不要求机械改写标题。approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
 2. 检查输入是否完整、一致、可由一个实施流程完成。多个独立子系统应拆成多个 spec 或多个 plan，每个 plan 都必须能产出可工作、可测试的软件。
-3. 先规划文件结构：哪些文件会创建或修改、每个文件负责什么、边界和接口在哪里。遵循既有代码模式；只在被修改文件已经难以维护时，把拆分纳入计划。
+3. 先规划文件结构：哪些文件会创建或修改、每个文件负责什么、边界和接口在哪里。预估改动面只作为代码探索起点，可以依据仓库事实补充或修正精确文件而不请求二次确认。遵循既有代码模式；只在被修改文件已经难以维护时，把拆分纳入计划。
 4. 有实质歧义、缺失决定、危险动作、计划过时或仓库事实冲突时，在写入前提出并等待用户决定；不要用实现细节替用户补产品决策。
 5. 如果会持久化修改，调用 `git-workflow-preferences` 的 `prepare` 阶段。上游 skill 不传递 Git 状态，必须自己核对 branch、worktree、远端和任务开始前已有修改，建立本次执行的文件所有权。prepare 必须在写 plan、wiki、测试或代码前完成。
+
+对 scope 输入使用同一交接语义：决策基线是硬约束；设计视图是可按代码事实细化的实施基线；预估改动面不是硬性文件边界；验收与验证证据是完成条件。只有需要改变需求边界、技术决策、验收或引入新的实质风险时才回到用户决策，局部实现结构、精确文件和任务顺序由 plan 自行确定。
 
 ## 阶段 2：形成执行计划
 
@@ -143,11 +145,11 @@ After verification passes, invoke `git-workflow-preferences` in `checkpoint` mod
 
 写完计划后重新对照输入：
 
-1. **覆盖度**：每个需求、验收标准和排除项都能指向对应任务。
+1. **覆盖度**：每项需求边界、技术决策、关键设计合同和验收都能指向对应任务；旧 spec 的需求、决策和排除项按同样语义检查。
 2. **占位符**：搜索并消除上文禁止项。
 3. **一致性**：类型、函数名、路径、命令和测试名称前后一致。
 4. **顺序**：先测试再实现；共享基础设施先于依赖它的任务；每个 checkpoint 前都有验证信号。
-5. **边界**：计划只包含本 scope 文件，不夹带无关重构。
+5. **边界**：计划不违反决策基线或扩大已确认结果，不夹带无关重构；预估改动面可以按代码事实细化，不要求文件清单逐字一致。
 
 发现问题就地修复，再进入执行。
 
@@ -160,7 +162,7 @@ After verification passes, invoke `git-workflow-preferences` in `checkpoint` mod
 5. 按任务执行命令，读取实际输出和 exit code。失败时先判断是预期 RED、实现问题、环境问题还是计划错误。
 6. 持久化 plan 存在 checkbox 时，完成一个步骤就更新对应 checkbox；不要等到最后一次性勾完。
 7. 一个独立工作单元验证通过后，调用 `git-workflow-preferences` 的 `checkpoint` 阶段。只 stage prepare 后确认属于本任务的文件，不使用会夹带无关修改的命令。
-8. 执行中发现计划需要调整时，先记录原因，再更新 plan 或 Todo；如果调整改变目标、验收或风险，先向用户确认。
+8. 执行中发现计划需要调整时，先记录原因，再更新 plan 或 Todo。精确文件、局部实现结构和任务顺序的调整无需二次确认；如果调整改变需求边界、技术决策、验收或引入新的实质风险，先向用户确认。
 
 ## 停止条件
 
@@ -174,14 +176,14 @@ After verification passes, invoke `git-workflow-preferences` in `checkpoint` mod
 
 ## 阶段 4：完成
 
-1. 对照输入契约、plan/Todo 和 wiki 目标逐项确认没有漏项。
+1. 对照输入契约、plan/Todo 和 wiki 目标逐项确认没有漏项，并为每项验收记录 PASS、FAIL 或未验证及其验证证据。
 2. 回顾实施过程：如果产生了已确认 wiki 目标范围内的新知识（实施中沉淀的决策背景、约定修订、架构事实），调用 `wiki` 补充同步；只写入用户已确认的目标，要新增目标文件先向用户确认。
 3. 运行能证明完成状态的最终验证；无法运行时说明原因和替代证据。
 4. 检查 `git status -sb` 和实际 diff，区分任务修改与 prepare 前已有修改。
 5. 调用 `git-workflow-preferences` 的 `finalize` 阶段，传入 `complete`、`blocked`、`verification_failed` 或 `awaiting_review` 中的真实结果。
 6. finalize 返回前，不得把持久化修改任务报告为完成。
 
-完成报告必须包含：变更摘要、验证结果、剩余风险、branch/worktree、相关 commit hash + subject、push 远端分支、PR/merge/cleanup 状态，以及每个未执行 Git 动作的原因。
+完成报告必须包含：变更摘要、逐项验收结果与验证证据、剩余风险、branch/worktree、相关 commit hash + subject、push 远端分支、PR/merge/cleanup 状态，以及每个未执行 Git 动作的原因。
 
 ## 兼容边界
 

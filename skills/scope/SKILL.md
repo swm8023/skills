@@ -1,6 +1,6 @@
 ---
 name: scope
-description: Use when a user asks to create, change, add, design, plan, or review product or code behavior and important requirements or technical decisions are still unresolved—including vague requests such as “加个功能”“改一下”“怎么设计” or “先规划”。Use before implementation for unclear non-bug work. Do not use for bugs or failures (use debug) or approved specs and confirmed implementation contracts (use do-scoped).
+description: Scope product or code changes before implementation when requirements or material technical decisions remain unresolved, including vague requests to create, change, design, plan, or review behavior. Use debug for bugs and failures; use do-scoped for approved specs and confirmed implementation contracts.
 ---
 
 # scope —— 把需求拷问清楚

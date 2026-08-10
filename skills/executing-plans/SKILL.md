@@ -7,7 +7,7 @@ description: Compatibility entry point for explicitly executing an existing or h
 
 本 skill 保留旧 plan 和旧调用方的兼容性，不再维护独立的实施工作流。
 
-**开始时声明：** “I'm using the executing-plans compatibility entry point for this existing plan.”
+**开始时声明：** “我正在使用 executing-plans 兼容入口来执行这份已有计划。”
 
 ## 流程
 

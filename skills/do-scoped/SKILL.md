@@ -9,26 +9,28 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 把已确认的实施契约一次完成：审查输入、形成可执行计划、实现、验证，并按项目 Git 偏好收尾。本 skill 内置原 `writing-plans` 与 `executing-plans` 的核心职责；计划不是单独出口，除非用户明确只要计划。
 
-**开始时声明：** “I'm using the do-scoped skill to plan and implement this scoped work.”
+**开始时声明：** “我正在使用 do-scoped skill 来规划并实施这份已确认范围的工作。”
 
 ## 输入关口
 
 只接受以下一种输入，并记录来源类型：
 
-1. **approved-spec**：用户已批准的 `docs/scope/<YYYY-MM-DD>-<slug>.md`。
+1. **approved-spec**：用户已批准、且头部带有 `> 状态：已批准 <日期>` 状态行的 `docs/scope/<YYYY-MM-DD>-<slug>.md`。
 2. **confirmed-conversation**：`scope` 已在当前对话中整理并获得用户确认的实施契约。
 3. **approved-fix**：`debug` 已复现并确认根因，用户已批准的修复契约。
 4. **legacy-plan**：由 `executing-plans` 兼容入口传入的现有 plan 路径。
 
 如果需求仍未明确、spec 尚未批准，返回 `scope`。如果 bug 根因或修复方案尚未确认，返回 `debug`。只有零散要求或用户最初的“修一下”时，不得自行认定为 `confirmed-conversation` 或 `approved-fix`。
 
+`confirmed-conversation` 与 `approved-fix` 契约只存在于对话中，会话中断后无法恢复；此时不得凭残缺记忆执行，返回 `scope` 或 `debug` 重新确认契约。
+
 ## 阶段 1：加载与审查
 
-1. 读取 approved-spec 或 legacy-plan；confirmed-conversation 则复述已确认的目标、范围、验收标准、测试要求和排除项；approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
+1. 读取 approved-spec 或 legacy-plan；approved-spec 先核对头部状态行——未标记 `已批准` 时（含状态行缺失的旧 spec），先请用户明确批准并补写状态行再继续，不把"用户提到这个 spec"当作批准。confirmed-conversation 则复述已确认的目标、范围、验收标准、测试要求和排除项；approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
 2. 检查输入是否完整、一致、可由一个实施流程完成。多个独立子系统应拆成多个 spec 或多个 plan，每个 plan 都必须能产出可工作、可测试的软件。
 3. 先规划文件结构：哪些文件会创建或修改、每个文件负责什么、边界和接口在哪里。遵循既有代码模式；只在被修改文件已经难以维护时，把拆分纳入计划。
 4. 有实质歧义、缺失决定、危险动作、计划过时或仓库事实冲突时，在写入前提出并等待用户决定；不要用实现细节替用户补产品决策。
-5. 如果会持久化修改，调用 `git-workflow-preferences` 的 `prepare` 阶段。即使 scope 或兼容入口提供过 Git 上下文，也要核对 branch、worktree、远端和任务开始前已有修改，建立本次执行的文件所有权。prepare 必须在写 plan、wiki、测试或代码前完成。
+5. 如果会持久化修改，调用 `git-workflow-preferences` 的 `prepare` 阶段。上游 skill 不传递 Git 状态，必须自己核对 branch、worktree、远端和任务开始前已有修改，建立本次执行的文件所有权。prepare 必须在写 plan、wiki、测试或代码前完成。
 
 ## 阶段 2：形成执行计划
 
@@ -42,7 +44,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 - 一个 spec 需要多个计划时，都放在同一目录并使用有意义的 `plan-<part>.md` 名称。
 - 目录中已有 plan 时先读取；同一实施可更新复用，独立实施新建文件，不得盲目覆盖或删除其他计划。
 
-保存后对照 spec 自审并修正。计划验证通过后，调用 `git-workflow-preferences` 的 `checkpoint` 阶段，只处理该 plan 和同一工作单元明确拥有的文档。
+保存后对照 spec 自审并修正。自审通过后，调用 `git-workflow-preferences` 的 `checkpoint` 阶段，只处理该 plan 和同一工作单元明确拥有的文档。
 
 ### confirmed-conversation
 
@@ -178,10 +180,11 @@ After verification passes, invoke `git-workflow-preferences` in `checkpoint` mod
 ## 阶段 4：完成
 
 1. 对照输入契约、plan/Todo 和 wiki 目标逐项确认没有漏项。
-2. 运行能证明完成状态的最终验证；无法运行时说明原因和替代证据。
-3. 检查 `git status -sb` 和实际 diff，区分任务修改与 prepare 前已有修改。
-4. 调用 `git-workflow-preferences` 的 `finalize` 阶段，传入 `complete`、`blocked`、`verification_failed` 或 `awaiting_review` 中的真实结果。
-5. finalize 返回前，不得把持久化修改任务报告为完成。
+2. 回顾实施过程：如果产生了已确认 wiki 目标范围内的新知识（实施中沉淀的决策背景、约定修订、架构事实），调用 `wiki` 补充同步；只写入用户已确认的目标，要新增目标文件先向用户确认。
+3. 运行能证明完成状态的最终验证；无法运行时说明原因和替代证据。
+4. 检查 `git status -sb` 和实际 diff，区分任务修改与 prepare 前已有修改。
+5. 调用 `git-workflow-preferences` 的 `finalize` 阶段，传入 `complete`、`blocked`、`verification_failed` 或 `awaiting_review` 中的真实结果。
+6. finalize 返回前，不得把持久化修改任务报告为完成。
 
 完成报告必须包含：变更摘要、验证结果、剩余风险、branch/worktree、相关 commit hash + subject、push 远端分支、PR/merge/cleanup 状态，以及每个未执行 Git 动作的原因。
 

@@ -3,3 +3,6 @@ Thumbs.db
 *.log
 node_modules/
 .worktree/
+
+# skill eval workspaces (fixtures contain nested git repos)
+skills/*-workspace/

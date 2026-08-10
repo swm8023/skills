@@ -1,6 +1,6 @@
 ---
 name: scope
-description: Use when a user asks to create, change, add, design, plan, or review product or code behavior, and the work still has unresolved requirements or material technical decisions.
+description: Use when a user asks to create, change, add, design, plan, or review product or code behavior and important requirements or technical decisions are still unresolved—including vague requests such as “加个功能”“改一下”“怎么设计” or “先规划”。Use before implementation for unclear non-bug work. Do not use for bugs or failures (use debug), approved specs or confirmed implementation contracts (use do-scoped), or explicit plan-only requests (use writing-plans).
 ---
 
 # scope —— 把需求拷问清楚
@@ -10,11 +10,36 @@ description: Use when a user asks to create, change, add, design, plan, or revie
 
 scope 处理尚未明确的需求和重大技术决策；局部实现细节留给 do-scoped。如果用户描述的是 bug、失败、异常行为或性能退化，立即转交 debug skill。
 
+## 入口判定：先路由，再提问
+
+先把用户请求归入一个出口；不要因为出现“改”“修”“规划”等动词就自动进入完整访谈：
+
+- **bug / failure**：出现报错、失败、异常、偶发、回归、变慢或行为不符合预期——转交 `debug`，不在 scope 里继续收集产品需求。
+- **已批准 spec**：读取 spec 的状态行；只有明确标记 `> 状态：已批准 <日期>` 才能交给 `do-scoped`，否则停在审阅/批准阶段。
+- **已确认实施契约**：用户已经确认目标、范围、验收、测试和排除项——交给 `do-scoped`，不要重新发明一轮 scope。
+- **只要书面计划**：用户明确要求“不执行、只给计划”——走 `writing-plans` 兼容入口。
+- **未明确的非 bug 需求**：留在本 skill，按下述阶段收敛。
+
+如果目标、范围、验收和重大技术决策已经齐全，只剩局部实现细节，不要制造额外问题：用一段最小摘要确认边界，问一个“是否按此契约执行”的确认；确认后进入阶段 3，通常推荐“不落 spec”。这样既保留实施闸门，也避免 scope 变成无止境的需求访谈。
+
 ## 硬性关口
 
 在用户明确选择出口之前，**不要**调用任何实施类 skill、不要写代码、不要搭脚手架、不要做任何实现性动作。每一个非 bug 项目都适用，无论看起来多简单。
 
 允许的前置动作只有四类：用户明确点名的元技能 / 审查技能、为回答事实问题所需的只读代码库探索（含 wiki 摘要预检）、scope 流程本身要求的澄清提问、以及发现当前任务其实是 bug 时转交 debug。它们不能转化为实现动作。`git-workflow-preferences` 只在阶段 3 选定出口后、首次准备写 spec、plan、wiki 或代码前以 `prepare` 阶段使用；纯澄清阶段最多读取已存在的 `docs/user/git-preferences.md` 作为约束，不初始化偏好文件。
+
+## 对话状态与闭合条件
+
+进入阶段 2 时，维护一份内部状态表；每项标记为“已确认”“待决策”或“不适用”：
+
+- 目标与用户价值
+- 范围内 / 范围外
+- 可观察的成功标准与失败行为
+- 约束（兼容性、安全、合规、时间或预算）
+- 重大技术决策（仅记录存在真实取舍的项）
+- 风险、测试与 wiki 落地目标
+
+每次用户回答后先更新状态，再只问**最高影响的一个待决策项**；不要重问已确认内容，也不要为了填满清单而追问“不适用”项。所有适用项都闭合后，停止提问并进入阶段 3；如果用户推翻已确认决策，回到对应问题而不是继续沿用旧结论。
 
 ## 流程
 
@@ -24,6 +49,8 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 
 - **小需求**（边界清晰、单文件级、明显简单）—— 跳过探索，直接进入阶段 2
 - **中大需求**（多文件、影响范围不确定、涉及架构 / 接口 / 新模块）—— 如果需要探索代码，先扫 `docs/wiki/` 的文件路径和每个 `.md` 的第一行摘要，看是否有相关项目知识；只看摘要，不读正文。然后做主题相关的代码库快速探索（30 秒级别）：grep / glob 关键词、读最相关的几个文件、查相关 commit。**不做无关探索**
+
+小需求若已经边界清晰，阶段 2 只做最小确认：复述目标、范围外、验收和“不更新 wiki”的理由，提出一个是否执行的问题；不要为了形式再做代码库扫描或技术访谈。若仍缺少产品决策，按普通阶段 2 逐题收敛。
 
 拷问中遇到事实问题（"仓库里有没有 X"），自己去查，不扔给用户。wiki 摘要只用于定位上下文和收窄探索，不能代替代码事实验证。
 
@@ -46,6 +73,22 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 - **选项之间空一行**，确保每个选项是独立 Markdown 段落。
 - **关注目的、约束、成功标准**。需求问题不问实现方式；技术问题只问存在实质取舍的落地方案。
 
+澄清消息尽量采用固定骨架，降低漏项和重复提问：
+
+```text
+已确认：……
+还缺一个决策：……
+推荐：A —— 取舍原因
+
+- A：……
+
+- B：……
+
+请先选择 A / B。
+```
+
+“已确认”可以包含本轮收到的多个事实，但整条消息只能有一个需要用户作答的主问题；仓库事实用只读结果陈述，不把能自己查到的事实丢给用户。
+
 需求和重大技术分支都解决后，进入阶段 3。
 
 ### 阶段 3：总结确认 + 出口选择
@@ -57,13 +100,15 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 > "下一步走哪条路径？
 >
 > - **落 spec** —— 我会写 `docs/scope/<日期>-<slug>.md`；你批准后，把 spec 和已确认的 wiki 目标交给 do-scoped，由它生成持久化 plan 并直接执行
-> - **不落 spec** —— 我直接在对话里生成实施契约；你确认后，把契约和已确认的 wiki 目标交给 do-scoped 执行（不生成 scope/plan 文档）"
+> - **不落 spec** —— 我直接在对话里生成实施契约；你确认后，把契约和已确认的 wiki 目标交给 do-scoped 执行（不生成 scope/plan 文档；契约只存在于本次对话，会话中断即丢失，建议确认后直接执行）"
 
 同一条消息中必须列出：
 
-- **推荐路径**：落 spec / 不落 spec。
+- **推荐路径**：落 spec / 不落 spec。默认沿用阶段 1 的规模判断：中大需求推荐落 spec，小需求推荐不落 spec；有明确理由时偏离并说明，用户的选择优先于推荐。
 - **wiki 更新建议**：`更新 <path>`、`新建 <path>` 或 `不更新 wiki`。
 - **待用户确认**：路径是否接受、wiki 目标是否接受。
+
+统一设计摘要必须能直接映射到实施输入：目标、范围内、范围外、验收/测试、风险、重大技术决策和 wiki 目标。若其中仍有“待定”或两种可行解释，不能进入出口选择，回到阶段 2；如果都已闭合，才询问路径和 wiki 目标。
 
 #### 不落 spec 路径
 
@@ -79,7 +124,7 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 3. 立刻做自我审查（4 项检查），就地修复
 4. 请用户审阅
 5. 用户要求修改就改并重跑自我审查；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件
-6. 用户批准 spec 后调用 `do-scoped`，传入 `source_kind: approved-spec`、spec 路径、已确认的 wiki 目标和当前 Git handoff：
+6. 用户批准 spec 后，先把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再调用 `do-scoped`，传入 `source_kind: approved-spec`、spec 路径和已确认的 wiki 目标：
    > "我正在使用 do-scoped skill 来规划并完成这个已批准的 spec。"
 
    do-scoped 在 `docs/plans/<spec 文件 basename>/` 中生成一个或多个 `plan-*.md`，自我审查后直接执行，不再要求用户另行调用执行 skill。
@@ -90,7 +135,7 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 
 - scope 一旦写入 spec 或其他仓库文件，就持有本阶段的 Git 所有权。首次写入前必须已有 `prepare` 结果。
 - 每次在持久化修改后暂停等待用户、结束本轮或 handoff 前，都调用 `finalize`，并传入 `complete`、`awaiting_review` 或其他真实任务结果。
-- handoff 给 do-scoped 时，明确传递 branch/worktree、prepare 时记录的已有修改和当前 Git 状态；do-scoped 仍必须重新核对并建立自己的 `prepare` 上下文，在交还控制权前调用 `finalize`。
+- handoff 给 do-scoped 前完成自己的 `finalize`；不传递 Git 状态——do-scoped 会重新执行 `prepare`、核对仓库事实并建立本次执行的文件所有权，交还控制权前调用自己的 `finalize`。
 - 不落 spec 路径在 scope 阶段不写仓库，由 do-scoped 负责 wiki、实现和 Git 全生命周期。
 
 ## wiki 落地判断
@@ -105,6 +150,8 @@ scope 处理尚未明确的需求和重大技术决策；局部实现细节留�
 - **可写入内容**：已确认的架构、约定、术语、稳定流程、模块背景、决策背景。
 - **不可写入内容**：未确认猜测、一次性任务步骤、执行 checklist、对话过程。
 
+阶段 3 生成建议前必须先完成上述摘要扫描；没有匹配页面时，小任务默认“不更新 wiki”，中大任务才可建议在用户确认后新建最小必要页面。不要把“建议更新”当成用户已经授权。
+
 wiki 同步是 do-scoped 的第一个实施工作单元，不改变 scope 出口。落 spec 路径仍在写 spec 前执行 Git `prepare` 并在等待批准前 `finalize`；不落 spec 路径由 do-scoped 在首次写入前执行 Git `prepare`。
 
 ## spec.md 模板
@@ -118,7 +165,7 @@ spec 文件的结构（一级标题是主题名，二级章节如下，没内容
 - **验收标准** —— 项目符号列表，写明做完后必须满足的条件，含失败场景的预期行为。下面用 `### 测试` 子节写测什么、不测什么、用什么测试切入点。
 - **范围之外** —— 明确排除项，避免后续 plan 越界。
 
-文件开头加一行 `> 由 scope skill 于 <YYYY-MM-DD> 生成` 作为元信息。
+文件开头加两行元信息：一行 `> 由 scope skill 于 <YYYY-MM-DD> 生成`，一行 `> 状态：待批准`。用户批准后回写为 `> 状态：已批准 <YYYY-MM-DD>`——批准状态以 spec 文件为准，不以对话记忆为准，do-scoped 凭状态行判断 spec 是否可执行。
 
 **写作风格：**
 - **简洁优先**，没必要的不写。
@@ -127,7 +174,7 @@ spec 文件的结构（一级标题是主题名，二级章节如下，没内容
 
 写完 spec 后立刻过一遍：
 
-1. **占位符扫描：** "TBD"、"TODO"、"implement later"、含糊需求 —— 修掉。
+1. **占位符扫描：** "TBD"、"TODO"、"implement later"、"待定"、"待确认"、"适当处理"、"等"等未决或空泛措辞 —— 修掉。
 2. **内部一致性：** 各节是否矛盾？架构是否与流程描述匹配？
 3. **范围：** 是否聚焦到能用单一计划完成？太大就暂停提示拆分。
 4. **歧义：** 任何能被解读成两种意思的需求 —— 挑一个明确写出。

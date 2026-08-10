@@ -46,7 +46,7 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 - 只读调查、运行现有测试和不落盘实验不调用 Git skill。
 - 如果复现需要把测试、脚本、日志配置或临时埋点写入仓库，首次写入前调用 `git-workflow-preferences` 的 `prepare` 阶段。
 - 诊断阶段产生持久化修改后，在等待用户批准、暂停或 handoff 前调用 `finalize`，传入 `awaiting_review`、`blocked` 或其他真实未完成结果；不得把诊断产物当成已完成修复提交。
-- handoff 时列出所有诊断产物和 prepare 前已有修改；`do-scoped` 接手后仍重新执行并核对自己的 `prepare`。
+- handoff 时列出所有诊断产物；`do-scoped` 接手后会重新执行自己的 `prepare` 并核对文件所有权，无需传递 Git 状态。
 
 ## 工作流
 
@@ -138,7 +138,7 @@ diagnostic_artifacts: 已写入仓库的诊断文件或临时埋点
 
 ### 8. 交给 do-scoped 实施
 
-用户批准后调用 `do-scoped`，传入完整 `approved-fix` 契约和当前 Git handoff。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
+用户批准后调用 `do-scoped`，传入完整 `approved-fix` 契约（含 `diagnostic_artifacts`）。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
 
 从此由 `do-scoped` 独占：
 

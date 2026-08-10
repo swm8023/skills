@@ -1,0 +1,27 @@
+{
+  "skill_name": "scope",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "中大需求（新模块、多文件）：为内部客户管理后台加数据导出模块。所有需求与技术决策已闭合，假设设计呈现已获确认，直接给出阶段 3 出口选择消息。",
+      "expected_output": "推荐「落 spec」路径；「不落 spec」选项含契约随会话中断丢失的提示；列出 wiki 更新建议。",
+      "files": [],
+      "expectations": [
+        "推荐路径为「落 spec」",
+        "「不落 spec」选项包含契约只存在于本次对话、会话中断即丢失的提示",
+        "列出了 wiki 更新建议（更新 <path> / 新建 <path> / 不更新 wiki 之一）"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "小需求（单文件级）：给 CLI 加 --version 标志，打印 package.json 版本号后退出。所有决策已闭合，假设设计呈现已获确认，直接给出阶段 3 出口选择消息。",
+      "expected_output": "推荐「不落 spec」路径；出口消息含契约丢失提示；不写任何 spec/plan 文件。",
+      "files": [],
+      "expectations": [
+        "推荐路径为「不落 spec」",
+        "出口消息包含契约只存在于本次对话、会话中断即丢失的提示",
+        "未写入任何 docs/scope/ 或 docs/plans/ 文件"
+      ]
+    }
+  ]
+}

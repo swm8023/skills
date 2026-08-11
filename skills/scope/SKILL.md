@@ -68,7 +68,7 @@ description: Scope product or code changes before implementation when requiremen
 
 设计呈现只用于暴露理解偏差，不要求达到 spec 的详细度；不展开完整验收证据、预估改动面、文件范围或实施步骤，除非它们会影响已确认决策。
 
-这一轮只做设计确认，不同时给出 A/B 出口。呈现后，按以下模板输出两个独立的普通 Markdown 段落。代码块仅用于标示模板，实际回复不输出代码围栏、引用、列表或粗体，且确认问句后不追加文字：
+这一轮只做设计确认，不同时给出 A/B 出口。呈现后按以下格式确认：
 
 ```markdown
 如有偏差，请直接指出；理解一致时确认继续。
@@ -80,8 +80,9 @@ description: Scope product or code changes before implementation when requiremen
 
 #### 出口选择
 
-用户确认设计呈现后，按「wiki 落地判断」生成建议，并在同一条消息中按以下格式给出推荐路径；A、B 之间必须保留空行：
+用户确认设计呈现后，按「wiki 落地判断」生成建议，并在同一条消息中按以下格式确认出口和 wiki 目标：
 
+```markdown
 **推荐路径：** <A / B>，<简短理由>
 
 **wiki 更新建议：** <更新 path / 新建 path / 不更新 wiki>
@@ -91,6 +92,7 @@ description: Scope product or code changes before implementation when requiremen
 **A. 落 spec** —— 写入 `docs/scope/<日期>-<slug>.md`；批准后交给 do-scoped 规划并执行
 
 **B. 不落 spec** —— 在当前对话中生成实施契约；确认后直接交给 do-scoped 执行，不生成 scope 或 plan 文档；契约只存在于本次对话，会话中断即丢失
+```
 
 默认依据阶段 1 的规模判断推荐路径：中大需求推荐 A，小需求推荐 B；有明确理由时可以偏离并说明原因。用户选择优先于推荐；路径与 wiki 目标均确认后，才能进入出口执行。
 

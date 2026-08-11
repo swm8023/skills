@@ -1,9 +1,9 @@
 ---
-name: git-workflow-preferences
-description: 在会持久化修改仓库的任务开始、验证检查点和结束时，通过 docs/user/git-preferences.md 决定并执行 branch/worktree、同步、commit、push、merge 和 cleanup；配置不存在或行为不明确时初始化或逐项询问。
+name: git-workflow
+description: 执行会持久化仓库修改的 Git 工作流。在任务的 prepare、checkpoint 和 finalize 阶段读取 docs/user/git-preferences.md，管理 branch/worktree、同步、commit、push、merge 和 cleanup；配置不存在或行为不明确时初始化或逐项询问。
 ---
 
-# Git 工作流偏好
+# Git 工作流
 
 配置文件固定为当前 workspace 的 `docs/user/git-preferences.md`。
 

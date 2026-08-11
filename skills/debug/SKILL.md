@@ -44,7 +44,7 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 ## 诊断阶段 Git 边界
 
 - 只读调查、运行现有测试和不落盘实验不调用 Git skill。
-- 如果复现需要把测试、脚本、日志配置或临时埋点写入仓库，首次写入前调用 `git-workflow-preferences` 的 `prepare` 阶段。
+- 如果复现需要把测试、脚本、日志配置或临时埋点写入仓库，首次写入前调用 `git-workflow` 的 `prepare` 阶段。
 - 诊断阶段执行过 `prepare` 后，等待批准和继续调查沿用同一 Git 生命周期，不因内部阶段切换重复 `prepare` 或 `finalize`。
 - 任务取消、阻塞、验证失败或外部 handoff 时，按真实结果调用 `finalize`；不得把诊断产物当成已完成修复提交。
 - 用户批准后把诊断产物列入修复契约；执行过 `prepare` 时向 do-scoped 传递 `git_state: prepared`，纯只读诊断传递 `git_state: unprepared`。

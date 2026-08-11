@@ -83,15 +83,15 @@ description: Scope product or code changes before implementation when requiremen
 用户确认设计呈现后，按「wiki 落地判断」生成建议，并在同一条消息中按以下格式确认出口和 wiki 目标：
 
 ```markdown
-**推荐路径：** <A / B>，<简短理由>
-
 **wiki 更新建议：** <更新 path / 新建 path / 不更新 wiki>
-
-下一步走哪条路径？如需调整 wiki 目标，请一并说明。
 
 **A. 落 spec** —— 写入 `docs/scope/<日期>-<slug>.md`；批准后交给 do-scoped 规划并执行
 
 **B. 不落 spec** —— 在当前对话中生成实施契约；确认后直接交给 do-scoped 执行，不生成 scope 或 plan 文档；契约只存在于本次对话，会话中断即丢失
+
+**推荐路径：** <A / B>，<简短理由>
+
+下一步走哪条路径？如需调整 wiki 目标，请一并说明。
 ```
 
 默认依据阶段 1 的规模判断推荐路径：中大需求推荐 A，小需求推荐 B；有明确理由时可以偏离并说明原因。用户选择优先于推荐；路径与 wiki 目标均确认后，才能进入出口执行。

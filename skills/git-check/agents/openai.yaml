@@ -1,0 +1,7 @@
+interface:
+  display_name: "Git Check"
+  short_description: "Inspect Git state, merge risk, and confirmed cleanup"
+  default_prompt: "Use $git-check to inspect this repository, report merge risk, and wait for my confirmation before changing Git state."
+
+policy:
+  allow_implicit_invocation: false

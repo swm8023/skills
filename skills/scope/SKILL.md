@@ -100,7 +100,7 @@ description: Scope product or code changes before implementation when requiremen
 
 正式契约只在用户选择路径并确认 wiki 目标后生成。以决策账本、当前对话中的已确认结论和代码事实为依据，不把设计呈现当作完整契约来源。
 
-验收与验证由 AI 根据需求边界、技术决策和代码事实推导，不要求用户提供；如果推导过程中发现需要用户决定的实质需求或技术歧义，返回阶段 2。
+验收由 AI 根据需求边界、技术决策和代码事实推导，不要求用户提供；如果推导过程中发现需要用户决定的实质需求或技术歧义，返回阶段 2。
 
 **A. 落 spec**
 
@@ -113,7 +113,7 @@ description: Scope product or code changes before implementation when requiremen
 
 **B. 不落 spec**
 
-1. 在对话中生成与 spec 同构的实施契约：目标、决策基线、必要的设计视图、预估改动面、验收与验证。
+1. 在对话中生成精简实施契约：目标、决策基线、设计视图、预估改动面、验收。设计视图必须包含功能设计和技术设计，只展开实施所需内容，不要求达到 spec 的详细度；关键结构或流程按需补充。
 2. 按下文清单执行完整自我审查并就地修复。
 3. 请用户确认实施契约。
 4. 用户确认后调用 `do-scoped`，传入 `source_kind: confirmed-conversation`、`source: <完整对话契约>`、已确认的 wiki 目标和 `git_state: unprepared`；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 do-scoped 直接规划并执行。

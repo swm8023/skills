@@ -107,8 +107,8 @@ description: Scope product or code changes before implementation when requiremen
 1. 写 spec 文件前调用 `git-workflow-preferences` 的 `prepare` 阶段。
 2. 写 `docs/scope/<YYYY-MM-DD>-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题。
 3. 按下文清单执行完整自我审查并就地修复。
-4. 请用户审阅；用户要求修改时，修改后重新执行完整自我审查。如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件。
-5. 用户批准后，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，并按「Git 所有权与 handoff」完成 scope 的 Git 收尾。
+4. 请用户审阅；暂停等待前以 `awaiting_review` 调用 `finalize`。用户要求修改时，修改前重新执行 `prepare`，修改后重新完整自审并再次 `finalize`；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件。
+5. 用户批准后重新执行 `prepare`，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再以 `complete` 调用 `finalize`。
 6. 调用 `do-scoped`，传入 `source_kind: approved-spec`、spec 路径和已确认的 wiki 目标；do-scoped 生成 plan 后直接执行，不再二次确认计划。
 
 **B. 不落 spec**
@@ -116,18 +116,11 @@ description: Scope product or code changes before implementation when requiremen
 1. 在对话中生成与 spec 同构的实施契约：目标、决策基线、必要的设计视图、预估改动面、验收与验证。
 2. 按下文清单执行完整自我审查并就地修复。
 3. 请用户确认实施契约。
-4. 用户确认后调用 `do-scoped`，传入 `source_kind: confirmed-conversation`、完整契约和已确认的 wiki 目标；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 do-scoped 直接规划并执行。
+4. 用户确认后调用 `do-scoped`，传入 `source_kind: confirmed-conversation`、完整契约和已确认的 wiki 目标；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 do-scoped 直接规划并执行，并独立负责 wiki、实现和 Git 全生命周期。
 
 #### 完成条件
 
 阶段 3 只允许两种出口：已确认对话契约交给 do-scoped，或已批准 spec 交给 do-scoped。
-
-### Git 所有权与 handoff
-
-- scope 一旦写入 spec 或其他仓库文件，就持有本阶段的 Git 所有权。首次写入前必须已有 `prepare` 结果。
-- 每次在持久化修改后暂停等待用户、结束本轮或 handoff 前，都调用 `finalize`，并传入 `complete`、`awaiting_review` 或其他真实任务结果。
-- handoff 给 do-scoped 前完成自己的 `finalize`；不传递 Git 状态——do-scoped 会重新执行 `prepare`、核对仓库事实并建立本次执行的文件所有权，交还控制权前调用自己的 `finalize`。
-- 不落 spec 路径在 scope 阶段不写仓库，由 do-scoped 负责 wiki、实现和 Git 全生命周期。
 
 ## wiki 落地判断
 
@@ -143,7 +136,7 @@ description: Scope product or code changes before implementation when requiremen
 
 阶段 3 生成建议前必须已有上述摘要扫描结果；阶段 1 已扫描则复用，否则此时补做。没有匹配页面时，小任务默认“不更新 wiki”，中大任务才可建议在用户确认后新建最小必要页面。不要把“建议更新”当成用户已经授权。
 
-wiki 同步是 do-scoped 的第一个实施工作单元，不改变 scope 出口。落 spec 路径仍在写 spec 前执行 Git `prepare` 并在等待批准前 `finalize`；不落 spec 路径由 do-scoped 在首次写入前执行 Git `prepare`。
+wiki 同步是 do-scoped 的第一个实施工作单元，不改变 scope 出口。
 
 ## spec.md 模板
 

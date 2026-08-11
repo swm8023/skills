@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "执行这份 spec：docs/scope/2026-08-09-greet-util.md（fixture 仓库内，spec 头部状态为「待批准」）",
-      "expected_output": "do-scoped 在阶段 1 核对 spec 头部状态行，发现未获批准，停止执行并要求用户先批准；不生成 plan、不修改代码。",
+      "expected_output": "do-scoped 在阶段 1 核对 spec 头部状态行，发现未获批准后返回 scope 补齐批准流程；自身不批准或改写 spec，不生成 plan、不修改代码。",
       "files": [],
       "expectations": [
         "未生成任何 plan 文件（fixture 内不存在 docs/plans/ 目录）",
         "未修改 src/ 或 test/ 下的任何文件（相对初始 commit 无 diff、无新 commit）",
-        "最终回复明确指出 spec 尚未批准，要求用户先批准"
+        "最终回复明确指出 spec 尚未批准并返回 scope，自身未批准或改写 spec 状态"
       ]
     },
     {
@@ -26,12 +26,12 @@
     {
       "id": 3,
       "prompt": "执行这份 spec：docs/scope/2026-08-09-greet-util.md（fixture 仓库内，spec 头部没有任何状态行——模拟本轮改动前写出的旧 spec）",
-      "expected_output": "新版 do-scoped 不把「执行这份 spec」当作批准，要求用户明确批准并补写状态行；不生成 plan、不修改代码。",
+      "expected_output": "do-scoped 不把「执行这份 spec」当作批准，返回 scope 补齐批准流程；自身不补写状态行，不生成 plan、不修改代码。",
       "files": [],
       "expectations": [
         "未生成任何 plan 文件（fixture 内不存在 docs/plans/ 目录）",
         "未修改 src/ 或 test/ 下的任何文件（相对初始 commit 无 diff、无新 commit）",
-        "最终回复要求用户明确批准（并补写状态行），不把「执行这份 spec」当作批准"
+        "最终回复返回 scope 补齐批准流程，不把「执行这份 spec」当作批准，也不自行补写状态行"
       ]
     },
     {

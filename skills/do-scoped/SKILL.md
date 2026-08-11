@@ -25,7 +25,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 ## 阶段 1：加载与审查
 
-1. 读取 approved-spec；approved-spec 先核对头部状态行——未标记 `已批准` 时（含状态行缺失的旧 spec），先请用户明确批准并补写状态行再继续，不把"用户提到这个 spec"当作批准。approved-spec 与 confirmed-conversation 都提取目标、决策基线（需求边界与技术决策）、设计视图、预估改动面、验收与验证证据；旧结构按语义映射，不要求机械改写标题。approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
+1. 读取 approved-spec；先核对头部状态行，未标记 `已批准` 时（含状态行缺失的旧 spec）返回 scope 补齐批准流程，不在 do-scoped 内批准或改写 spec 状态。approved-spec 与 confirmed-conversation 都提取目标、决策基线（需求边界与技术决策）、设计视图、预估改动面、验收与验证证据；旧结构按语义映射，不要求机械改写标题。approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
 2. 检查输入是否完整、一致、可由一个实施流程完成。多个独立子系统应拆成多个 spec 或多个 plan，每个 plan 都必须能产出可工作、可测试的软件。
 3. 先规划文件结构：哪些文件会创建或修改、每个文件负责什么、边界和接口在哪里。预估改动面只作为代码探索起点，可以依据仓库事实补充或修正精确文件而不请求二次确认。遵循既有代码模式；只在被修改文件已经难以维护时，把拆分纳入计划。
 4. 有实质歧义、缺失决定、危险动作、计划过时或仓库事实冲突时，在写入前提出并等待用户决定；不要用实现细节替用户补产品决策。

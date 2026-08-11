@@ -83,6 +83,18 @@
         "围绕需求边界或技术决策只提出一个最高影响问题",
         "保持 scope 的实施硬性关口，不开始修复"
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "一项中大需求已经完成设计确认，用户选择落 spec 并确认了 wiki 目标。请生成待批准 spec 并进入等待审阅状态。",
+      "expected_output": "scope 写入并完整自审 spec 后，把当前 spec 作为独立工作单元 checkpoint，再以 awaiting_review finalize；用户批准前不调用 do-scoped。",
+      "files": [],
+      "expectations": [
+        "写 spec 前已执行 Git prepare",
+        "完整自审通过后调用 checkpoint，且只处理当前 spec",
+        "暂停等待用户前以 awaiting_review 调用 finalize",
+        "用户批准前没有调用 do-scoped"
+      ]
     }
   ]
 }

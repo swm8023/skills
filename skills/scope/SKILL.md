@@ -107,7 +107,7 @@ description: Scope product or code changes before implementation when requiremen
 1. 写 spec 文件前调用 `git-workflow-preferences` 的 `prepare` 阶段。
 2. 写 `docs/scope/<YYYY-MM-DD>-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题。
 3. 按下文清单执行完整自我审查并就地修复。
-4. 请用户审阅；暂停等待前以 `awaiting_review` 调用 `finalize`。用户要求修改时，修改前重新执行 `prepare`，修改后重新完整自审并再次 `finalize`；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件。
+4. 请用户审阅；每次完整自审通过后，先调用 `checkpoint` 只处理当前 spec，再在暂停等待前以 `awaiting_review` 调用 `finalize`。用户要求修改时，修改前重新执行 `prepare`，修改后重新完整自审并重复 `checkpoint`、`finalize`；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件。
 5. 用户批准后重新执行 `prepare`，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再以 `complete` 调用 `finalize`。
 6. 调用 `do-scoped`，传入 `source_kind: approved-spec`、spec 路径和已确认的 wiki 目标；do-scoped 生成 plan 后直接执行，不再二次确认计划。
 

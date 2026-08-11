@@ -40,10 +40,10 @@
     {
       "id": 4,
       "prompt": "一份 spec 已完整描述文件菜单统一：需求边界和技术决策已确认，设计视图包含组件关系、菜单模型、交互流程与预估改动面，验收可验证。用户刚刚明确批准。给出下一步动作。",
-      "expected_output": "回写批准状态并立即交给 do-scoped 生成 plan 后执行；预估改动面仅作为探索起点，plan 可按代码事实细化，不增加二次确认。",
+      "expected_output": "回写批准状态，以 complete 调用 finalize 结束当前 spec 的 Git 生命周期，再交给 do-scoped 生成 plan 后执行；预估改动面仅作为探索起点，plan 可按代码事实细化，不增加二次确认。",
       "files": [],
       "expectations": [
-        "把 spec 状态回写为已批准并调用 do-scoped",
+        "把 spec 状态回写为已批准，并在调用 do-scoped 前以 complete 调用 finalize",
         "不要求用户再次批准 plan",
         "不会因为 plan 细化或调整预估文件清单而重新确认",
         "只有需求边界、技术决策、验收或实质风险需要改变时才返回用户"
@@ -87,12 +87,12 @@
     {
       "id": 8,
       "prompt": "一项中大需求已经完成设计确认，用户选择落 spec 并确认了 wiki 目标。请生成待批准 spec 并进入等待审阅状态。",
-      "expected_output": "scope 写入并完整自审 spec 后，把当前 spec 作为独立工作单元 checkpoint，再以 awaiting_review finalize；用户批准前不调用 do-scoped。",
+      "expected_output": "scope 在一次 prepare 建立的连续 Git 生命周期内写入、自审并等待用户修改或批准；批准前不 checkpoint、不 finalize，也不调用 do-scoped。",
       "files": [],
       "expectations": [
         "写 spec 前已执行 Git prepare",
-        "完整自审通过后调用 checkpoint，且只处理当前 spec",
-        "暂停等待用户前以 awaiting_review 调用 finalize",
+        "完整自审通过后直接请用户审阅",
+        "审阅和修改期间沿用首次 prepare 的 Git 上下文，不重复 prepare、checkpoint 或 finalize",
         "用户批准前没有调用 do-scoped"
       ]
     }

@@ -13,9 +13,9 @@ description: 在会持久化修改仓库的任务开始、验证检查点和结�
 
 - **prepare**：首次持久化写入前调用。加载偏好、刷新远端、记录任务开始前已有修改，并决定 branch/worktree 和同步行为。
 - **checkpoint**：一个独立、已验证的工作单元结束后调用。按 Commit 偏好决定是否创建阶段性提交；默认不执行最终 push、merge 或 cleanup。
-- **finalize**：产生持久化修改后，在最终回复、暂停或 handoff 前调用。根据任务结果和偏好处理剩余 commit、push、merge、cleanup，并报告未执行动作。
+- **finalize**：产生持久化修改后，在本次 Git 生命周期结束或 handoff 前调用。根据任务结果和偏好处理剩余 commit、push、merge、cleanup，并报告未执行动作。
 
-纯只读调查、需求讨论和不落盘的计划不调用本 skill。一旦写入 spec、plan、wiki、测试、代码或其他仓库文件，就必须先有本任务的 prepare 结果，并在交还控制权前执行 finalize。任务被阻塞、验证失败或等待用户审阅时仍执行 finalize，但把结果标为未完成；不得为了收尾绕过“未完成或验证失败时不提交”的偏好。
+纯只读调查、需求讨论和不落盘的计划不调用本 skill。一旦写入 spec、plan、wiki、测试、代码或其他仓库文件，就必须先有本任务的 `prepare` 结果，并在本次 Git 生命周期结束前执行 `finalize`。`scope` 将 spec 审阅声明为连续生命周期时，等待和修改期间沿用 `prepare` 结果，不重复 `prepare` 或 `finalize`；spec 获批后以 `complete` 调用 `finalize`。流程取消、阻塞、验证失败或 handoff 时，按真实结果提前调用 `finalize`。
 
 ### prepare
 

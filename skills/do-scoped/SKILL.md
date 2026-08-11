@@ -13,11 +13,14 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 ## 输入关口
 
-只接受以下一种输入，并记录来源类型：
+只接受以下四个参数：
 
-1. **approved-spec**：用户已批准、且头部带有 `> 状态：已批准 <日期>` 状态行的 `docs/scope/<YYYY-MM-DD>-<slug>.md`。
-2. **confirmed-conversation**：`scope` 已在当前对话中整理并获得用户确认的实施契约。
-3. **approved-fix**：`debug` 已复现并确认根因，用户已批准的修复契约。
+- `source_kind`：`approved-spec`、`confirmed-conversation` 或 `approved-fix`。
+- `source`：已批准 spec 路径、当前对话已确认的完整实施契约，或已批准的完整修复契约。
+- `wiki_target`：已确认的 wiki 目标或 `none`。
+- `git_state`：`prepared` 或 `unprepared`。
+
+不传递单独的 approval 参数。`approved-spec` 的 `source` 必须指向头部带有 `> 状态：已批准 <日期>` 的 `docs/scope/<YYYY-MM-DD>-<slug>.md`；`confirmed-conversation` 必须来自当前对话；`approved-fix` 必须包含 debug 已证实并获用户批准的根因与修复契约。
 
 如果需求仍未明确、spec 尚未批准，返回 `scope`。如果 bug 根因或修复方案尚未确认，返回 `debug`。只有零散要求或用户最初的“修一下”时，不得自行认定为 `confirmed-conversation` 或 `approved-fix`。
 
@@ -25,13 +28,15 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 ## 阶段 1：加载与审查
 
-1. 读取 approved-spec；先核对头部状态行，未标记 `已批准` 时（含状态行缺失的旧 spec）返回 scope 补齐批准流程，不在 do-scoped 内批准或改写 spec 状态。approved-spec 与 confirmed-conversation 都提取目标、决策基线（需求边界与技术决策）、设计视图、预估改动面、验收与验证证据；旧结构按语义映射，不要求机械改写标题。approved-fix 则核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
+1. 按 `source_kind` 加载 `source`。approved-spec 先核对头部状态行，未标记 `已批准` 时（含状态行缺失的旧 spec）返回 scope，不在 do-scoped 内批准或改写；confirmed-conversation 核对当前对话中的完整确认记录；approved-fix 核对根因、证据、repro、fix scope、验收、验证、风险和诊断产物。
 2. 检查输入是否完整、一致、可由一个实施流程完成。多个独立子系统应拆成多个 spec 或多个 plan，每个 plan 都必须能产出可工作、可测试的软件。
 3. 先规划文件结构：哪些文件会创建或修改、每个文件负责什么、边界和接口在哪里。预估改动面只作为代码探索起点，可以依据仓库事实补充或修正精确文件而不请求二次确认。遵循既有代码模式；只在被修改文件已经难以维护时，把拆分纳入计划。
 4. 有实质歧义、缺失决定、危险动作、计划过时或仓库事实冲突时，在写入前提出并等待用户决定；不要用实现细节替用户补产品决策。
-5. 如果会持久化修改，调用 `git-workflow-preferences` 的 `prepare` 阶段。上游 skill 不传递 Git 状态，必须自己核对 branch、worktree、远端和任务开始前已有修改，建立本次执行的文件所有权。prepare 必须在写 plan、wiki、测试或代码前完成。
+5. 按 `git_state` 接管 Git：`prepared` 时核对当前任务已有的 `prepare` 结果并继承其文件所有权，不重复 `prepare`；状态与实际上下文不一致时停止并报告。`unprepared` 时在写 plan、wiki、测试或代码前调用 `git-workflow-preferences` 的 `prepare` 阶段。
 
-对 scope 输入使用同一交接语义：决策基线是硬约束；设计视图是可按代码事实细化的实施基线；预估改动面不是硬性文件边界；验收与验证证据是完成条件。只有需要改变需求边界、技术决策、验收或引入新的实质风险时才回到用户决策，局部实现结构、精确文件和任务顺序由 plan 自行确定。
+直接以 `source` 为唯一事实来源，不生成中间契约副本。approved-spec 与 confirmed-conversation 中，决策基线是硬约束，功能与技术设计是可按代码事实细化的实施基线，预估改动面是探索起点，验收及其验证证据是完成条件；旧结构按语义读取。approved-fix 中，根因和 fix scope 是修复边界，修复方案是实施基线，acceptance、原始 repro、回归测试和相关测试是完成条件。
+
+只有需要改变 `source` 中的需求边界、技术决策、修复边界、验收，或引入新的实质风险时才回到用户决策；局部实现结构、精确文件和任务顺序由 plan/Todo 自行确定。
 
 ## 阶段 2：形成执行计划
 
@@ -53,7 +58,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 ### approved-fix
 
-使用对话 Todo 执行已批准修复，不创建 spec 或 plan 文档。Todo 必须从原始 repro 开始，以重跑原始 repro、回归测试和相关测试结束；只实施契约中的 root-cause 修复，不扩展为功能或无关重构。prepare 时把 debug 交接的诊断产物纳入文件所有权核对。
+使用对话 Todo 执行已批准修复，不创建 spec 或 plan 文档。Todo 必须从原始 repro 开始，以重跑原始 repro、回归测试和相关测试结束；只实施契约中的 root-cause 修复，不扩展为功能或无关重构。把 debug 交接的诊断产物纳入继承或新建的文件所有权。
 
 ## 计划质量标准
 
@@ -66,7 +71,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SKILL: Use do-scoped to execute this plan task-by-task. Invoke git-workflow-preferences through prepare/checkpoint/finalize. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SKILL: Use do-scoped to execute this plan task-by-task. Respect the handed-off git_state: inherit prepared, otherwise prepare; use git-workflow-preferences for checkpoint/finalize. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -155,8 +160,8 @@ After verification passes, invoke `git-workflow-preferences` in `checkpoint` mod
 
 ## 阶段 3：执行
 
-1. 如果 scope 传入了已确认的 wiki 目标，先调用 `wiki`，只同步该目标；用户已确认“不更新 wiki”时跳过。
-2. 把 plan 或对话契约转成 Todo；只允许一个任务处于 `in_progress`。
+1. `wiki_target` 不是 `none` 时先调用 `wiki`，只同步该目标；为 `none` 时跳过。
+2. 把 plan 或 `source` 转成 Todo；只允许一个任务处于 `in_progress`。
 3. 每个任务开始前读取相关文件和测试，确认计划仍匹配当前代码。
 4. 写生产代码、重构或改变现有行为前调用 `test-driven-development`：先 RED，再最小 GREEN，再必要重构。不能先改实现再补测试。
 5. 按任务执行命令，读取实际输出和 exit code。失败时先判断是预期 RED、实现问题、环境问题还是计划错误。
@@ -176,9 +181,9 @@ After verification passes, invoke `git-workflow-preferences` in `checkpoint` mod
 
 ## 阶段 4：完成
 
-1. 对照输入契约、plan/Todo 和 wiki 目标逐项确认没有漏项，并为每项验收记录 PASS、FAIL 或未验证及其验证证据。
+1. 确认 Plan/Todo 必须覆盖 `source`，实施结果没有违反其中的硬约束或修复边界。
 2. 回顾实施过程：如果产生了已确认 wiki 目标范围内的新知识（实施中沉淀的决策背景、约定修订、架构事实），调用 `wiki` 补充同步；只写入用户已确认的目标，要新增目标文件先向用户确认。
-3. 运行能证明完成状态的最终验证；无法运行时说明原因和替代证据。
+3. 执行 `source` 要求的验证，并为每项验收记录结果与证据；存在必需验收或验证失败、未执行时，不得以 `complete` 结束。
 4. 检查 `git status -sb` 和实际 diff，区分任务修改与 prepare 前已有修改。
 5. 调用 `git-workflow-preferences` 的 `finalize` 阶段，传入 `complete`、`blocked`、`verification_failed` 或 `awaiting_review` 中的真实结果。
 6. finalize 返回前，不得把持久化修改任务报告为完成。

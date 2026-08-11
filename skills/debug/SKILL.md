@@ -45,8 +45,9 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 
 - 只读调查、运行现有测试和不落盘实验不调用 Git skill。
 - 如果复现需要把测试、脚本、日志配置或临时埋点写入仓库，首次写入前调用 `git-workflow-preferences` 的 `prepare` 阶段。
-- 诊断阶段产生持久化修改后，在等待用户批准、暂停或 handoff 前调用 `finalize`，传入 `awaiting_review`、`blocked` 或其他真实未完成结果；不得把诊断产物当成已完成修复提交。
-- handoff 时列出所有诊断产物；`do-scoped` 接手后会重新执行自己的 `prepare` 并核对文件所有权，无需传递 Git 状态。
+- 诊断阶段执行过 `prepare` 后，等待批准和继续调查沿用同一 Git 生命周期，不因内部阶段切换重复 `prepare` 或 `finalize`。
+- 任务取消、阻塞、验证失败或外部 handoff 时，按真实结果调用 `finalize`；不得把诊断产物当成已完成修复提交。
+- 用户批准后把诊断产物列入修复契约；执行过 `prepare` 时向 do-scoped 传递 `git_state: prepared`，纯只读诊断传递 `git_state: unprepared`。
 
 ## 工作流
 
@@ -113,7 +114,7 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 - **证据**：哪个验证信号、日志、断点、diff、trace 或实验支持结论。
 - **修复方案**：准备改哪里、为什么这样改、排除了哪些替代方案。
 - **验证计划**：如何证明修好了；哪些测试、脚本、人工步骤或观察信号会重跑。
-- **Git 计划**：确认后由 `do-scoped` 调用 `git-workflow-preferences` 的 `prepare`、`checkpoint` 和 `finalize`，并按偏好处理 commit/push/merge/cleanup。
+- **Git 计划**：确认后由 `do-scoped` 继承已有 Git 生命周期或执行 `prepare`，并负责后续 `checkpoint`、`finalize` 及 commit/push/merge/cleanup。
 - **风险**：可能影响哪些路径，修复后要检查什么。
 
 没有用户明确确认，不进入修复阶段。如果根因仍是猜测，明确说“还不能修”，回到假设验证。
@@ -123,7 +124,6 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 用户看到第 6 阶段的完整结论后明确同意，才形成以下实施契约：
 
 ```yaml
-source_kind: approved-fix
 root_cause: 已证实的根因
 evidence: 复现、日志、trace、diff 或实验
 repro: 可重复验证信号
@@ -138,11 +138,11 @@ diagnostic_artifacts: 已写入仓库的诊断文件或临时埋点
 
 ### 8. 交给 do-scoped 实施
 
-用户批准后调用 `do-scoped`，传入完整 `approved-fix` 契约（含 `diagnostic_artifacts`）。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
+用户批准后调用 `do-scoped`，传入 `source_kind: approved-fix`、`source: <完整修复契约>`（含 `diagnostic_artifacts`）、`wiki_target: <已确认目标或 none>`，以及与诊断阶段一致的 `git_state: prepared | unprepared`。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
 
 从此由 `do-scoped` 独占：
 
-- Git `prepare`、`checkpoint`、`finalize`
+- Git 生命周期所有权；仅 `unprepared` 时执行 `prepare`，并负责 `checkpoint`、`finalize`
 - 对话 Todo 和文件所有权
 - TDD 的 RED、GREEN、重构
 - 原始 repro、回归测试和相关测试

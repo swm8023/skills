@@ -108,15 +108,15 @@ description: Scope product or code changes before implementation when requiremen
 2. 写 `docs/scope/<YYYY-MM-DD>-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题。
 3. 按下文清单执行完整自我审查并就地修复。
 4. 请用户审阅；审阅与修改期间沿用第 1 步建立的 Git 上下文。用户要求修改时，修改后重新完整自审；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件。
-5. 用户批准后，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再以 `complete` 调用 `finalize`。
-6. `finalize` 完成后调用 `do-scoped`，传入 `source_kind: approved-spec`、spec 路径和已确认的 wiki 目标；do-scoped 生成 plan 后直接执行，不再二次确认计划。
+5. 用户批准后，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再调用 `checkpoint` 只处理当前 spec。
+6. 调用 `do-scoped`，传入 `source_kind: approved-spec`、`source: <spec 路径>`、已确认的 wiki 目标和 `git_state: prepared`；do-scoped 生成 plan 后直接执行，不再二次确认计划。
 
 **B. 不落 spec**
 
 1. 在对话中生成与 spec 同构的实施契约：目标、决策基线、必要的设计视图、预估改动面、验收与验证。
 2. 按下文清单执行完整自我审查并就地修复。
 3. 请用户确认实施契约。
-4. 用户确认后调用 `do-scoped`，传入 `source_kind: confirmed-conversation`、完整契约和已确认的 wiki 目标；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 do-scoped 直接规划并执行，并独立负责 wiki、实现和 Git 全生命周期。
+4. 用户确认后调用 `do-scoped`，传入 `source_kind: confirmed-conversation`、`source: <完整对话契约>`、已确认的 wiki 目标和 `git_state: unprepared`；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 do-scoped 直接规划并执行。
 
 #### 完成条件
 

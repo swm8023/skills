@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "执行这份 spec：docs/scope/2026-08-09-greet-util.md（fixture 仓库内，spec 头部状态为「待批准」）",
+      "prompt": "调用 do-scoped：source_kind 为 approved-spec，source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared；spec 头部状态为「待批准」。",
       "expected_output": "do-scoped 在阶段 1 核对 spec 头部状态行，发现未获批准后返回 scope 补齐批准流程；自身不批准或改写 spec，不生成 plan、不修改代码。",
       "files": [],
       "expectations": [
@@ -14,8 +14,8 @@
     },
     {
       "id": 2,
-      "prompt": "执行这份 spec：docs/scope/2026-08-09-greet-util.md（fixture 仓库内，spec 头部状态为「已批准 2026-08-09」）",
-      "expected_output": "do-scoped 接受输入，生成 docs/plans/2026-08-09-greet-util/plan-*.md，按 TDD 实现 greet 并通过 node --test，完成 Git 收尾并给出完成报告。",
+      "prompt": "调用 do-scoped：source_kind 为 approved-spec，source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared；spec 头部状态为「已批准 2026-08-09」。",
+      "expected_output": "do-scoped 接受输入并执行 prepare，生成 docs/plans/2026-08-09-greet-util/plan-*.md，按 TDD 实现 greet 并通过 node --test，完成 Git 收尾并给出完成报告。",
       "files": [],
       "expectations": [
         "生成了 docs/plans/2026-08-09-greet-util/ 下的 plan-*.md",
@@ -25,7 +25,7 @@
     },
     {
       "id": 3,
-      "prompt": "执行这份 spec：docs/scope/2026-08-09-greet-util.md（fixture 仓库内，spec 头部没有任何状态行——模拟本轮改动前写出的旧 spec）",
+      "prompt": "调用 do-scoped：source_kind 为 approved-spec，source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared；spec 头部没有任何状态行。",
       "expected_output": "do-scoped 不把「执行这份 spec」当作批准，返回 scope 补齐批准流程；自身不补写状态行，不生成 plan、不修改代码。",
       "files": [],
       "expectations": [
@@ -36,7 +36,7 @@
     },
     {
       "id": 4,
-      "prompt": "执行一份已批准的新模板 spec。spec 包含目标、决策基线（需求边界与技术决策）、设计视图（系统结构、关键结构、关键流程、预估改动面）和带验证证据的验收项。预估改动面只列模块，未穷举文件。",
+      "prompt": "调用 do-scoped 执行一份已批准的新模板 spec：source_kind 为 approved-spec，source 为该 spec 路径，wiki_target 已确认，git_state 为 unprepared。spec 包含目标、决策基线、功能设计、技术设计（整体方案、关键结构、实现流程）、预估改动面和带验证证据的验收项。",
       "expected_output": "do-scoped 把决策基线作为硬约束、设计视图作为可按代码事实细化的基线、预估改动面作为探索起点；无需二次确认 plan，完成后逐项报告验收证据。",
       "files": [],
       "expectations": [
@@ -44,7 +44,40 @@
         "plan 覆盖需求边界、技术决策、关键设计合同和验收项",
         "精确文件可以按代码事实细化，单纯文件清单变化不视为 scope 变化",
         "需要改变需求边界、技术决策、验收或引入实质风险时停止并请求用户决策",
-        "最终报告逐项给出验收结果和验证证据"
+        "最终报告逐项给出 source 中的验收结果和验证证据"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "scope 已在当前任务完成 prepare 并 checkpoint 已批准 spec，随后调用 do-scoped：source_kind 为 approved-spec，source 为该 spec 路径，wiki_target 为 none，git_state 为 prepared。",
+      "expected_output": "do-scoped 校验并继承现有 Git 生命周期，不重复 prepare；生成 plan、执行 source、验证通过后执行唯一一次 finalize。",
+      "files": [],
+      "expectations": [
+        "没有重复调用 prepare，也没有重新选择 branch 或 worktree",
+        "plan 和实施继续使用上游 prepare 建立的文件所有权",
+        "source 验收与验证通过后只执行一次最终 finalize"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "调用 do-scoped：source_kind 为 confirmed-conversation，source 为当前对话已确认的完整实施契约，wiki_target 为 none，git_state 为 unprepared。契约包含边界、设计、验收和验证。",
+      "expected_output": "do-scoped 执行 prepare，以 Todo 直接实施，不生成 scope/plan 文档；最终直接对照 source 完成验收和验证并 finalize。",
+      "files": [],
+      "expectations": [
+        "首次持久化写入前执行 prepare",
+        "没有生成 docs/scope/ 或 docs/plans/ 文档",
+        "Plan/Todo 覆盖 source，最终证据直接对应 source 的验收和验证"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "debug 已通过持久化诊断测试锁定根因并获得修复批准，调用 do-scoped：source_kind 为 approved-fix，source 为完整修复契约，wiki_target 为 none，git_state 为 prepared。",
+      "expected_output": "do-scoped 继承诊断阶段的 Git 生命周期和文件所有权，不生成 spec/plan；按 source 完成根因修复、原始 repro、回归测试和相关测试，处理诊断产物后 finalize。",
+      "files": [],
+      "expectations": [
+        "没有重复 prepare，诊断产物仍属于当前任务",
+        "Todo 覆盖根因、fix scope、原始 repro、回归测试和相关测试",
+        "全部 source 验收与验证通过后才以 complete finalize"
       ]
     }
   ]

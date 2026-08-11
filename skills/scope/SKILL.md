@@ -6,7 +6,7 @@ description: Scope product or code changes before implementation when requiremen
 # scope —— 把需求拷问清楚
 
 ## 概览
-scope 分为三个阶段，必须严格按顺序执行；只有当前阶段达到完成条件，才能进入下一阶段。
+先快速理解项目当前状态与需求规模，然后通过决策树式提问把未决策点拷问清楚。对用户进行不留情面的访谈，直到我们达成共同理解。
 
 ## 硬性关口
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Code"
+  short_description: "Review implemented code against its approved spec"
+  default_prompt: "Use $review-code to statically review this implementation against its spec."

@@ -1,0 +1,141 @@
+---
+name: review-code
+description: Review completed code changes against an implementation spec and surrounding repository context. Use after implementation when the user asks to review, audit, sanity-check, or assess changed code for spec completion, functional bugs, architecture, code structure, code quality, tests, security, compatibility, performance, or release risk. Produce a read-only static review with P0/P1/P2 findings and a conclusion; do not modify files or run verification commands.
+---
+
+# Review Code
+
+依据 spec 和明确的代码变更范围执行实现后静态审查。把 diff 当作入口，不要把 diff 当作全部上下文。
+
+<REVIEWER-SUBAGENT-STOP>
+如果你是主 agent 派遣来执行本次代码审查的 reviewer，跳过“调度 reviewer”，直接从“审查契约”开始执行。不要再次委派 subagent。
+</REVIEWER-SUBAGENT-STOP>
+
+## 审查契约
+
+- 只输出审查意见，不修改代码、spec 或其他文件。
+- 只做静态审查。不要运行测试、lint、type-check、构建、安装、迁移、生成或其他验证命令。
+- 可以使用只读 Git 和文件检查命令确定范围并收集证据。
+- 把输入 spec 作为本次实现的需求基线，不重新审查产生 spec 的原始需求对话。
+- 结论是建议，不自动阻止提交、合并或后续流程。
+- 只报告可能改变功能正确性、spec 完成度、系统行为、维护成本或交付风险的实质问题。忽略纯风格偏好。
+
+## 准备审查输入
+
+主 agent 在委派前确定唯一 spec、仓库和代码范围，并向 reviewer 显式传入：
+
+- `spec_path`：spec 的绝对路径；
+- `repository_root`：仓库的绝对路径；
+- `implementation_commits`：当前会话中 `do-scoped` 或 `git-workflow` 明确记录、属于本次实现的有序 commit 列表；
+- `local_changes`：当前会话明确属于本次实现的 staged、unstaged 和 untracked 文件及其状态；
+- `explicit_range`：没有可靠会话记录时由用户提供的 `base_ref`、`head_ref` 或文件范围；
+- `evidence_limits`：范围归属、spec、代码或上下文中的已知证据缺口。
+
+按以下规则确定范围：
+
+1. 优先使用当前会话明确记录的 `implementation_commits`。
+2. 同时纳入当前会话明确属于本次实现的 `local_changes`；与 commits 重叠时去重，但保留 commit 后的本地变化。
+3. 没有可靠记录时，要求用户提供 `base_ref` / `head_ref` 或文件列表。不要根据最近提交、当前分支名称或修改时间猜测。
+4. 存在多个 spec、跨仓库 commit、文件归属不明或任务外修改混入时，先让用户消除歧义。
+
+## 调度 reviewer
+
+默认把审查委派给一个专用 subagent；主 agent 负责准备输入和返回最终报告，不在 subagent 之外并行执行第二份审查。
+
+1. 根据当前环境实际提供的 agent 工具和参数选择委派方式，不根据模型自称猜测环境：
+   - **Codex**：使用 `spawn_agent`，指定 `model: "gpt-5.6-sol"`、`reasoning_effort: "xhigh"` 和 `fork_turns: "none"`。reviewer 不依赖继承的会话历史，全部审查输入必须写入 prompt。
+   - **非 Codex**：使用当前环境原生的 subagent 机制，不传入 Codex 专用模型名或参数。
+2. reviewer prompt 必须要求：读取 `spec_path`，只审查明确的代码范围，遵循本 skill 的静态审查契约，只返回最终报告，不修改文件，也不进入 scope、修复或实施。
+3. 当前环境没有 subagent 能力、委派失败或无法启动 reviewer 时，由当前 agent 降级执行完整审查。降级报告必须在“审查范围”中明确写出 `执行方式：当前 agent 降级审查（原因：<原因>）`；不要静默降级。
+
+## 收集证据
+
+1. 进入仓库后先读取适用的 `AGENTS.md`、`CLAUDE.md` 或等价指令。
+2. 读取完整 spec，提取目标、需求边界、技术决策和验收，不用实现反向改写 spec 的含义。
+3. 对 commits 检查其 diff；对 staged、unstaged 和 untracked 修改分别读取实际差异或完整新文件。
+4. 把 diff 作为定位入口，按需读取变更符号的调用方、被调用方、类型、状态所有者、配置、迁移、测试和相邻实现。
+5. 区分本次改动引入或暴露的问题与无关的历史问题。除非历史问题使本次 spec 无法成立，否则不要扩展审查范围。
+6. 无法通过静态证据确认时标记为证据缺口或风险推断，不要声称已经复现或由测试证实。
+
+## 按顺序审查
+
+### 1. Spec 完成度
+
+- 将每项需求、约束、技术决策和验收追溯到具体实现与测试代码。
+- 找出缺失功能、部分实现、未经说明的偏离、越界实现和与 spec 冲突的行为。
+- 检查最终用户可观察结果是否成立，而不只检查文件或符号是否存在。
+
+### 2. 功能正确性
+
+- 检查正常路径、边界输入、失败路径、状态转换和恢复行为。
+- 检查空值、错误传播、异步顺序、并发、重试、幂等、资源释放和生命周期问题。
+- 追踪关键数据从入口到持久化或输出的流转，寻找数据丢失、重复、污染或语义变化。
+
+### 3. 架构与系统适配
+
+- 检查职责、状态所有权、接口和依赖方向是否符合现有系统边界。
+- 检查是否绕过已有抽象、重复建设能力、引入不必要耦合或破坏调用约定。
+- 检查协议、存储、配置、迁移和兼容性影响是否被实现完整承接。
+
+### 4. 代码结构与质量
+
+- 检查内聚性、复杂度、重复、抽象层级和可维护性，只报告具有实际成本的问题。
+- 检查错误处理、类型与不变量、非法状态防护、日志和必要的可观测性。
+- 不把个人命名、格式或风格偏好当作 Finding，除非它直接造成歧义或错误风险。
+
+### 5. 交付风险
+
+- 按任务相关性检查安全、权限、隐私、数据完整性、性能、可扩展性和可靠性。
+- 静态检查测试是否覆盖变更行为和关键失败场景，但不要声称测试已经运行或通过。
+- 检查相关文档、配置、迁移、协议和生成物是否与代码保持一致。
+
+## 控制发现质量
+
+仅报告有具体 spec 或代码证据、且会实质影响本次实现的事项。每项 Finding 按实际影响标记：
+
+- **P0 — 必须先解决**：核心目标或关键验收不能成立；必需能力缺失；方案或实现被阻断；存在严重安全、数据损坏或兼容性破坏风险。
+- **P1 — 应当解决**：存在明确缺陷或实质歧义；重要边界或失败路径错误；非核心需求遗漏；存在明显架构、可靠性、数据一致性或测试风险。
+- **P2 — 改进建议**：尚未证明存在错误行为，但调整能实质改善结构、可维护性、清晰度、性能余量或未来风险。
+
+不要按问题类型机械定级：严重 bug 可以是 P0；没有具体影响的代码风格意见不属于 P2。
+
+静态审查结论按 Findings 映射：
+
+- 存在 P0：`必须修改`；
+- 没有 P0，但存在 P1 或 P2：`建议修改`；
+- 没有实质 Finding：`未发现实质问题`。
+
+## 输出报告
+
+按以下结构输出；没有内容的章节直接省略：
+
+```markdown
+# Code review
+
+## 审查范围
+- Spec：<绝对路径>
+- Commits：<commit 列表或无>
+- Local changes：<文件列表或无>
+- 执行方式：<专用 subagent | 当前 agent 降级审查及原因>
+- 验证边界：未运行验证命令；结论仅来自静态代码审查
+
+## Findings
+
+### [P0|P1|P2] <简短标题>
+- 类别：Spec 完成度 | 功能 Bug | 架构/系统适配 | 代码结构 | 代码质量 | 安全/数据 | 兼容/迁移 | 性能/可靠性 | 测试/文档/配置
+- Spec 依据：<spec 章节、行号或验收项>
+- 代码证据：<file:line 和相关行为>
+- 影响：<为什么会改变功能、完成度、维护成本或交付风险>
+- 修改意见：<具体修改方向，不直接修改代码>
+
+## 证据缺口
+- <无法确认的范围、代码上下文或运行时行为>
+
+## 结论
+- 静态审查结论：<未发现实质问题 | 建议修改 | 必须修改>
+- 说明：<最高优先级问题和剩余风险；明确未运行验证命令>
+```
+
+Findings 按 P0、P1、P2 排列，同级内按对 spec 和用户行为的影响排序。引用具体证据；没有证据时不要制造 Finding。
+
+没有实质问题时明确写“未发现实质问题”，仍列出审查范围、验证边界和证据缺口。输出报告后停止，不要自动修改代码、进入 scope 或生成实施计划。

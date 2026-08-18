@@ -15,7 +15,7 @@ description: Use when implementing any feature or bugfix, before writing impleme
 
 ## 调用边界
 
-本 skill 只拥有 RED、GREEN、重构和相关测试，不拥有整个任务的完成状态或 Git 生命周期。完成 TDD 循环后必须把验证结果和修改文件交还调用方；不得自行给出最终任务报告，也不得吞掉调用方后续的 Git checkpoint/finalize。正常功能和已批准 bug 修复由 `do-scoped` 调用并收尾。
+本 skill 只拥有 RED、GREEN、重构和相关测试，不拥有整个任务的完成状态或 Git 生命周期。完成 TDD 循环后必须把验证结果和修改文件交还调用方；不得自行给出最终任务报告，也不得吞掉调用方后续的 Git checkpoint/finalize。正常功能和已批准 bug 修复由 `implement` 调用并收尾。
 
 ## 何时使用
 

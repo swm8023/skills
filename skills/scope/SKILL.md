@@ -1,6 +1,6 @@
 ---
 name: scope
-description: Scope product or code changes before implementation when requirements or material technical decisions remain unresolved, including vague requests to create, change, design, plan, or review behavior. Use debug for bugs and failures; use do-scoped for approved specs and confirmed implementation contracts.
+description: Scope product or code changes before implementation when requirements or material technical decisions remain unresolved, including vague requests to create, change, design, plan, or review behavior. Use debug for bugs and failures; use implement for approved specs and confirmed implementation contracts.
 ---
 
 # scope —— 把需求拷问清楚
@@ -38,7 +38,7 @@ description: Scope product or code changes before implementation when requiremen
 先收敛需求，再收敛技术落地：
 
 - **需求收敛**：明确目标、支持与排除边界、可观察的正常与失败行为，以及必须保持的兼容行为。
-- **技术收敛**：基于已确认需求做针对性只读探索，只确认影响职责、架构、接口、数据、部署、迁移、安全或兼容性的高阶技术决策；局部实现细节留给 do-scoped。
+- **技术收敛**：基于已确认需求做针对性只读探索，只确认影响职责、架构、接口、数据、部署、迁移、安全或兼容性的高阶技术决策；局部实现细节留给 implement。
 
 技术方案与已确认需求冲突时，重新打开对应的需求决策。用户推翻已确认结论时，也重新打开对应项。
 
@@ -85,9 +85,9 @@ description: Scope product or code changes before implementation when requiremen
 ```markdown
 **wiki 更新建议：** <更新 path / 新建 path / 不更新 wiki>
 
-**A. 落 spec** —— 写入 `docs/scope/<日期>-<slug>.md`；批准后交给 do-scoped 规划并执行
+**A. 落 spec** —— 写入 `docs/scope/<日期>-<slug>.md`；批准后交给 implement 规划并执行
 
-**B. 不落 spec** —— 在当前对话中生成实施契约；确认后直接交给 do-scoped 执行，不生成 scope 或 plan 文档；契约只存在于本次对话，会话中断即丢失
+**B. 不落 spec** —— 在当前对话中生成实施契约；确认后直接交给 implement 执行，不生成 scope 或 plan 文档；契约只存在于本次对话，会话中断即丢失
 
 **推荐路径：** <A / B>，<简短理由>
 
@@ -109,25 +109,25 @@ description: Scope product or code changes before implementation when requiremen
 3. 按下文清单执行完整自我审查并就地修复。
 4. 请用户审阅；审阅与修改期间沿用第 1 步建立的 Git 上下文。用户要求修改时，修改后重新完整自审；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件。
 5. 用户批准后，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再调用 `checkpoint` 只处理当前 spec。
-6. 调用 `do-scoped`，传入 `source_kind: approved-spec`、`source: <spec 路径>`、已确认的 wiki 目标和 `git_state: prepared`；do-scoped 生成 plan 后直接执行，不再二次确认计划。
+6. 调用 `implement`，传入 `source_kind: approved-spec`、`source: <spec 路径>`、已确认的 wiki 目标和 `git_state: prepared`；implement 生成 plan 后直接执行，不再二次确认计划。
 
 **B. 不落 spec**
 
 1. 不写 spec 文件；参考下方 spec 模板及通用规则，在对话中生成其精简版，包含目标、决策基线、设计视图（功能设计、技术设计）、预估改动面和验收；只展开本次实施所需内容，关键结构或实现流程按需补充。
 2. 按下文清单执行完整自我审查并就地修复。
 3. 请用户确认实施契约。
-4. 用户确认后调用 `do-scoped`，传入 `source_kind: confirmed-conversation`、`source: <完整对话契约>`、已确认的 wiki 目标和 `git_state: unprepared`；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 do-scoped 直接规划并执行。
+4. 用户确认后调用 `implement`，传入 `source_kind: confirmed-conversation`、`source: <完整对话契约>`、已确认的 wiki 目标和 `git_state: unprepared`；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 implement 直接规划并执行。
 
 #### 完成条件
 
-阶段 3 只允许两种出口：已确认对话契约交给 do-scoped，或已批准 spec 交给 do-scoped。
+阶段 3 只允许两种出口：已确认对话契约交给 implement，或已批准 spec 交给 implement。
 
 ## wiki 落地判断
 
-离开 scope、进入 do-scoped 前，必须完成 wiki 落地判断；这个判断不以是否落 spec 为前提。
+离开 scope、进入 implement 前，必须完成 wiki 落地判断；这个判断不以是否落 spec 为前提。
 
 - **扫描方式**：只读 `docs/wiki/` 路径和每个 `.md` 第一行摘要，不读正文。
-- **确认时机**：阶段 3 询问是否落 spec 时，同时让用户确认 wiki 目标；把结果作为 do-scoped 输入，后续只同步用户确认过的文件。
+- **确认时机**：阶段 3 询问是否落 spec 时，同时让用户确认 wiki 目标；把结果作为 implement 输入，后续只同步用户确认过的文件。
 - **建议类型**：`更新 <path>`、`新建 <path>`、`不更新 wiki`。
 - **落 spec**：大任务默认建议同步 wiki。可更新已有页面；也可在用户确认后新建最小必要目录或页面。
 - **不落 spec**：小任务只建议更新已有 wiki；没有匹配页面时不新建，除非用户明确要求沉淀。
@@ -136,11 +136,11 @@ description: Scope product or code changes before implementation when requiremen
 
 阶段 3 生成建议前必须已有上述摘要扫描结果；阶段 1 已扫描则复用，否则此时补做。没有匹配页面时，小任务默认“不更新 wiki”，中大任务才可建议在用户确认后新建最小必要页面。不要把“建议更新”当成用户已经授权。
 
-wiki 同步是 do-scoped 的第一个实施工作单元，不改变 scope 出口。
+wiki 同步是 implement 的第一个实施工作单元，不改变 scope 出口。
 
 ## spec.md 模板
 
-spec 是 scope 与 do-scoped 之间的设计基线，只保留约束实现或决定验收的结论，不记录访谈过程，也不提前展开 plan。
+spec 是 scope 与 implement 之间的设计基线，只保留约束实现或决定验收的结论，不记录访谈过程，也不提前展开 plan。
 
 尖括号内容是字段说明，生成时替换并移除；标注“按需”的章节不适用时省略。
 
@@ -167,7 +167,7 @@ spec 是 scope 与 do-scoped 之间的设计基线，只保留约束实现或决
 <将需求边界综合为完整功能，说明入口、交互、状态、正常与失败行为及功能间关系；不逐条复述需求>
 
 ### 技术设计
-<将技术决策综合为端到端实现方案，说明系统如何实现功能设计；足以指导 do-scoped 细化实施，但不展开任务步骤>
+<将技术决策综合为端到端实现方案，说明系统如何实现功能设计；足以指导 implement 细化实施，但不展开任务步骤>
 
 #### 整体方案
 <说明系统组成、组件职责、状态与数据所有权、接口边界、依赖关系及协作方式；存在跨模块拓扑、数据流、控制流或状态迁移时，可使用 Mermaid 图辅助，但图不代替关键职责和约束的文字说明>
@@ -179,7 +179,7 @@ spec 是 scope 与 do-scoped 之间的设计基线，只保留约束实现或决
 <从入口到结果写清主要调用、状态变化、异步处理、失败收敛和清理，形成全局实施指导而不是任务清单>
 
 ### 预估改动面
-<按模块或目录说明预计变化、测试范围和已确认的 wiki 目标；作为 do-scoped 的探索起点，不是硬边界>
+<按模块或目录说明预计变化、测试范围和已确认的 wiki 目标；作为 implement 的探索起点，不是硬边界>
 
 ## 验收
 <覆盖正常行为、重要失败场景和兼容性；逐项使用以下格式>
@@ -195,7 +195,7 @@ spec 是 scope 与 do-scoped 之间的设计基线，只保留约束实现或决
 
 1. **覆盖**：所有已确认需求和技术结论都有权威定义，并在功能设计、技术设计和验收中得到完整落实。
 2. **分层**：决策基线定义边界与选择，功能设计说明功能如何工作，技术设计说明系统如何实现，验收验证最终结果；各层没有矛盾或重复定义。
-3. **交接**：功能与技术设计足以让 do-scoped 理解入口、职责、状态、流转、失败收敛和兼容边界，并据此细化文件和任务，无需重新决定核心实现方案。
+3. **交接**：功能与技术设计足以让 implement 理解入口、职责、状态、流转、失败收敛和兼容边界，并据此细化文件和任务，无需重新决定核心实现方案。
 4. **闭合**：验收均有可观察结果和验证证据，文档中不存在占位符、未决项或可产生两种理解的表述。
 
 发现问题就地修复，通过后再交给用户审阅。

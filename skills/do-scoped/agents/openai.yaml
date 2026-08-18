@@ -1,4 +1,7 @@
 interface:
-  display_name: "Do Scoped"
-  short_description: "端到端完成已确认范围或修复方案的实现、验证与 Git 收尾"
-  default_prompt: "使用 $do-scoped 根据已批准的 spec、scope 契约或 debug 修复契约完成实现。"
+  display_name: "Do Scoped (Legacy)"
+  short_description: "历史 plan 显式调用的兼容入口，仅转交给 implement"
+  default_prompt: "使用 $do-scoped 兼容执行一份显式要求旧 skill 名的历史 plan。"
+
+policy:
+  allow_implicit_invocation: false

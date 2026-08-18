@@ -1,13 +1,13 @@
 ---
 name: debug
-description: 调查 bug、测试失败、异常、错误行为、偶发问题、性能退化、构建失败、集成失败或其他非预期行为；复现并确定根因，提交修复方案等待用户批准，获批后把 approved-fix 交给 do-scoped 实施。
+description: 调查 bug、测试失败、异常、错误行为、偶发问题、性能退化、构建失败、集成失败或其他非预期行为；复现并确定根因，提交修复方案等待用户批准，获批后把 approved-fix 交给 implement 实施。
 ---
 
 # debug
 
 ## 概览
 
-debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经用户批准的修复契约；代码实施、验证和 Git 收尾统一交给 `do-scoped`。
+debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经用户批准的修复契约；代码实施、验证和 Git 收尾统一交给 `implement`。
 
 非 bug 的功能、设计、需求澄清走 `scope`。
 
@@ -47,7 +47,7 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 - 如果复现需要把测试、脚本、日志配置或临时埋点写入仓库，首次写入前调用 `git-workflow` 的 `prepare` 阶段。
 - 诊断阶段执行过 `prepare` 后，等待批准和继续调查沿用同一 Git 生命周期，不因内部阶段切换重复 `prepare` 或 `finalize`。
 - 任务取消、阻塞、验证失败或外部 handoff 时，按真实结果调用 `finalize`；不得把诊断产物当成已完成修复提交。
-- 用户批准后把诊断产物列入修复契约；执行过 `prepare` 时向 do-scoped 传递 `git_state: prepared`，纯只读诊断传递 `git_state: unprepared`。
+- 用户批准后把诊断产物列入修复契约；执行过 `prepare` 时向 implement 传递 `git_state: prepared`，纯只读诊断传递 `git_state: unprepared`。
 
 ## 工作流
 
@@ -114,7 +114,7 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 - **证据**：哪个验证信号、日志、断点、diff、trace 或实验支持结论。
 - **修复方案**：准备改哪里、为什么这样改、排除了哪些替代方案。
 - **验证计划**：如何证明修好了；哪些测试、脚本、人工步骤或观察信号会重跑。
-- **Git 计划**：确认后由 `do-scoped` 继承已有 Git 生命周期或执行 `prepare`，并负责后续 `checkpoint`、`finalize` 及 commit/push/merge/cleanup。
+- **Git 计划**：确认后由 `implement` 继承已有 Git 生命周期或执行 `prepare`，并负责后续 `checkpoint`、`finalize` 及 commit/push/merge/cleanup。
 - **风险**：可能影响哪些路径，修复后要检查什么。
 
 没有用户明确确认，不进入修复阶段。如果根因仍是猜测，明确说“还不能修”，回到假设验证。
@@ -136,11 +136,11 @@ diagnostic_artifacts: 已写入仓库的诊断文件或临时埋点
 
 契约缺少根因证据、repro、fix scope、验收或验证计划时不得交接。用户只说“继续看看”不等于批准修复。
 
-### 8. 交给 do-scoped 实施
+### 8. 交给 implement 实施
 
-用户批准后调用 `do-scoped`，传入 `source_kind: approved-fix`、`source: <完整修复契约>`（含 `diagnostic_artifacts`）、`wiki_target: <已确认目标或 none>`，以及与诊断阶段一致的 `git_state: prepared | unprepared`。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
+用户批准后调用 `implement`，传入 `source_kind: approved-fix`、`source: <完整修复契约>`（含 `diagnostic_artifacts`）、`wiki_target: <已确认目标或 none>`，以及与诊断阶段一致的 `git_state: prepared | unprepared`。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
 
-从此由 `do-scoped` 独占：
+从此由 `implement` 独占：
 
 - Git 生命周期所有权；仅 `unprepared` 时执行 `prepare`，并负责 `checkpoint`、`finalize`
 - 对话 Todo 和文件所有权
@@ -149,7 +149,7 @@ diagnostic_artifacts: 已写入仓库的诊断文件或临时埋点
 - 临时诊断产物清理
 - commit、push、merge、cleanup 和最终完成报告
 
-实施发现根因错误或关键假设被推翻时，`do-scoped` 停止并把证据退回 debug；不要在执行阶段重新猜根因。
+实施发现根因错误或关键假设被推翻时，`implement` 停止并把证据退回 debug；不要在执行阶段重新猜根因。
 
 ## 方法准则
 

@@ -41,11 +41,11 @@
     {
       "id": 4,
       "prompt": "一份 spec 已完整描述文件菜单统一：需求边界和技术决策已确认，设计视图包含组件关系、菜单模型、交互流程与预估改动面，验收可验证。用户刚刚明确批准。给出下一步动作。",
-      "expected_output": "回写批准状态并 checkpoint 当前 spec，再以 approved-spec、spec 路径、wiki 目标和 prepared Git 状态交给 do-scoped；不在 Skill 交接处 finalize，也不增加 plan 二次确认。",
+      "expected_output": "回写批准状态并 checkpoint 当前 spec，再以 approved-spec、spec 路径、wiki 目标和 prepared Git 状态交给 implement；不在 Skill 交接处 finalize，也不增加 plan 二次确认。",
       "files": [],
       "expectations": [
         "把 spec 状态回写为已批准并 checkpoint 当前 spec",
-        "调用 do-scoped 时 source 是 spec 路径且 git_state 为 prepared，中间没有 finalize",
+        "调用 implement 时 source 是 spec 路径且 git_state 为 prepared，中间没有 finalize",
         "不要求用户再次批准 plan",
         "不会因为 plan 细化或调整预估文件清单而重新确认",
         "只有需求边界、技术决策、验收或实质风险需要改变时才返回用户"
@@ -89,22 +89,22 @@
     {
       "id": 8,
       "prompt": "一项中大需求已经完成设计确认，用户选择落 spec 并确认了 wiki 目标。请生成待批准 spec 并进入等待审阅状态。",
-      "expected_output": "scope 在一次 prepare 建立的连续 Git 生命周期内写入、自审并等待用户修改或批准；批准前不 checkpoint、不 finalize，也不调用 do-scoped。",
+      "expected_output": "scope 在一次 prepare 建立的连续 Git 生命周期内写入、自审并等待用户修改或批准；批准前不 checkpoint、不 finalize，也不调用 implement。",
       "files": [],
       "expectations": [
         "写 spec 前已执行 Git prepare",
         "完整自审通过后直接请用户审阅",
         "审阅和修改期间沿用首次 prepare 的 Git 上下文，不重复 prepare、checkpoint 或 finalize",
-        "用户批准前没有调用 do-scoped"
+        "用户批准前没有调用 implement"
       ]
     },
     {
       "id": 9,
       "prompt": "一个小需求已经形成完整对话契约，用户确认执行且 wiki 目标为不更新。请给出 scope 的下一步动作。",
-      "expected_output": "scope 以 confirmed-conversation、完整对话契约、wiki_target none 和 git_state unprepared 调用 do-scoped；不生成 scope/plan 文档。",
+      "expected_output": "scope 以 confirmed-conversation、完整对话契约、wiki_target none 和 git_state unprepared 调用 implement；不生成 scope/plan 文档。",
       "files": [],
       "expectations": [
-        "调用 do-scoped 时 source_kind 为 confirmed-conversation，source 是完整对话契约",
+        "调用 implement 时 source_kind 为 confirmed-conversation，source 是完整对话契约",
         "传入 wiki_target none 和 git_state unprepared",
         "未生成 docs/scope/ 或 docs/plans/ 文档"
       ]

@@ -26,7 +26,7 @@ description: Review completed code changes against an implementation spec and su
 
 - `spec_path`：spec 的绝对路径；
 - `repository_root`：仓库的绝对路径；
-- `implementation_commits`：当前会话中 `do-scoped` 或 `git-workflow` 明确记录、属于本次实现的有序 commit 列表；
+- `implementation_commits`：当前会话中 `implement` 或 `git-workflow` 明确记录、属于本次实现的有序 commit 列表；
 - `local_changes`：当前会话明确属于本次实现的 staged、unstaged 和 untracked 文件及其状态；
 - `explicit_range`：没有可靠会话记录时由用户提供的 `base_ref`、`head_ref` 或文件范围；
 - `evidence_limits`：范围归属、spec、代码或上下文中的已知证据缺口。

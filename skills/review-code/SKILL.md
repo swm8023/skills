@@ -46,7 +46,7 @@ description: Review completed code changes against an implementation spec and su
    - **Codex**：使用 `spawn_agent`，指定 `model: "gpt-5.6-sol"`、`reasoning_effort: "xhigh"` 和 `fork_turns: "none"`。reviewer 不依赖继承的会话历史，全部审查输入必须写入 prompt。
    - **非 Codex**：使用当前环境原生的 subagent 机制，不传入 Codex 专用模型名或参数。
 2. reviewer prompt 必须要求：读取 `spec_path`，只审查明确的代码范围，遵循本 skill 的静态审查契约，只返回最终报告，不修改文件，也不进入 scope、修复或实施。
-3. 当前环境没有 subagent 能力、委派失败或无法启动 reviewer 时，由当前 agent 降级执行完整审查。降级报告必须在“审查范围”中明确写出 `执行方式：当前 agent 降级审查（原因：<原因>）`；不要静默降级。
+3. 当前环境没有 subagent 能力、委派失败或无法启动 reviewer 时，由当前 agent 降级执行完整审查。降级报告必须在“审查概览”中明确写出 `执行方式：当前 agent 降级审查（原因：<原因>）`；不要静默降级。
 
 ## 收集证据
 
@@ -112,16 +112,28 @@ description: Review completed code changes against an implementation spec and su
 ```markdown
 # Code review
 
-## 审查范围
-- Spec：<绝对路径>
-- Commits：<commit 列表或无>
-- Local changes：<文件列表或无>
-- 执行方式：<专用 subagent | 当前 agent 降级审查及原因>
-- 验证边界：未运行验证命令；结论仅来自静态代码审查
+## 审查概览
 
-## Findings
+| 项目 | 内容 |
+|---|---|
+| 静态审查结论 | <未发现实质问题 / 建议修改 / 必须修改> |
+| P0 / P1 / P2 | <数量 / 数量 / 数量> |
+| Spec | `<绝对路径>` |
+| Commits | <commit 列表或无> |
+| Local changes | <文件列表或无> |
+| 执行方式 | <专用 subagent / 当前 agent 降级审查及原因> |
+| 验证边界 | 未运行验证命令；结论仅来自静态代码审查 |
+| 证据边界 | <一句话说明关键缺口或“无”> |
 
-### [P0|P1|P2] <简短标题>
+## Findings 摘要
+
+| ID | 优先级 | 类别 | 问题 | 证据位置 | 处理方向 |
+|---|---|---|---|---|---|
+| F1 | P0 | <类别> | <一句话问题> | `<file:line>` | <一句话修改方向> |
+
+## Findings 详情
+
+### F1 [P0|P1|P2] <简短标题>
 - 类别：Spec 完成度 | 功能 Bug | 架构/系统适配 | 代码结构 | 代码质量 | 安全/数据 | 兼容/迁移 | 性能/可靠性 | 测试/文档/配置
 - Spec 依据：<spec 章节、行号或验收项>
 - 代码证据：<file:line 和相关行为>
@@ -136,6 +148,12 @@ description: Review completed code changes against an implementation spec and su
 - 说明：<最高优先级问题和剩余风险；明确未运行验证命令>
 ```
 
-Findings 按 P0、P1、P2 排列，同级内按对 spec 和用户行为的影响排序。引用具体证据；没有证据时不要制造 Finding。
+使用以下格式规则：
 
-没有实质问题时明确写“未发现实质问题”，仍列出审查范围、验证边界和证据缺口。输出报告后停止，不要自动修改代码、进入 scope 或生成实施计划。
+- 在概览中统计 P0、P1、P2 数量。摘要和详情按 P0、P1、P2 排列，同级内按对 spec 和用户行为的影响排序。
+- 为每项 Finding 分配稳定的 `F1`、`F2` 编号；摘要表与详情标题必须一一对应。
+- 摘要表只写单段短文本。证据位置只放最关键的路径、行号或 commit；完整依据、证据、影响和修改意见放在详情中。
+- 表格中的路径、行号和 commit 使用行内代码。单元格中的 `|` 必须写成 `\|`，不要在单元格中放多段文字或列表。
+- 详情不要逐字重复摘要；引用具体证据，没有证据时不要制造 Finding。
+
+没有实质问题时，在概览中写 `P0 / P1 / P2 = 0 / 0 / 0` 和“未发现实质问题”，省略“Findings 摘要”和“Findings 详情”，仍列出验证边界和证据缺口。输出报告后停止，不要自动修改代码、进入 scope 或生成实施计划。

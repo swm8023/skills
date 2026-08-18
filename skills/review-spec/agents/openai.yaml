@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Spec"
+  short_description: "Review specs for hidden requirements and design risks"
+  default_prompt: "Use $review-spec to review this spec against the source conversation and repository context."

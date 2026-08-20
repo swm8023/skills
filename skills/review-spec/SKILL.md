@@ -1,6 +1,6 @@
 ---
 name: review-spec
-description: Review an existing product or engineering spec at a higher level against the source conversation and relevant repository code or wiki. Use when the user asks to review, audit, sanity-check, critique, or validate a spec before planning or implementation, including checking problem definition, confirmed versus inferred requirements, missing decisions, solution quality, architectural fit, and material risks. Produce advisory findings only; do not author or edit the spec.
+description: Manually review an existing spec against conversation and repository evidence. Use only when the user explicitly invokes review-spec by name.
 ---
 
 # Review Spec

@@ -1,6 +1,6 @@
 ---
 name: auto-using-skills
-description: Use when starting any conversation or task so the agent selects the right skill before acting. Routes bug reports to debug and unclear feature/change requests to scope.
+description: Use at the start of every task to select applicable skills. Routes bugs to debug and unclear changes to scope; never auto-selects manual-only review-spec or review-code.
 ---
 
 <SUBAGENT-STOP>
@@ -20,13 +20,14 @@ description: Use when starting any conversation or task so the agent selects the
 按顺序判断：
 
 1. **用户点名 skill**：先调用被点名的 skill。
-2. **执行已确认范围或修复**：用户已批准 spec、scope 已取得对话内实施契约确认，或 debug 已提交证据充分的修复契约且用户明确批准时，调用 `implement`。bug 使用 `source_kind: approved-fix`；此项优先于通用 bug 路由，即使确认消息再次提到“bug”“失败”或“修复”。
-3. **新的 bug / failure**：用户报告坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，且还没有获批修复契约时，调用 `debug`。不要先走 `scope`。
-4. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki`，调用 `wiki`。
-5. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
-6. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow`。首次持久化写入前必须已有 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；任务结束或外部 handoff 前必须调用 `finalize`。同一任务在 Skill 间转交时，`git_state: prepared` 继承现有 Git 生命周期，`git_state: unprepared` 才执行 `prepare`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
-7. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，由 `implement` 在执行阶段调用 `test-driven-development`。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接跳到 TDD。
-8. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它。
+2. **仅限手动触发**：`review-spec` 和 `review-code` 只能通过第 1 条进入。只有 `$review-spec`、`/review-spec`、`$review-code`、`/review-code`，或明确说“使用 review-spec/review-code skill”才算点名；普通的“review”“审查”“audit”请求不算。没有点名时继续执行后续路由，不要因意图或 description 相似而自动选择它们。
+3. **执行已确认范围或修复**：用户已批准 spec、scope 已取得对话内实施契约确认，或 debug 已提交证据充分的修复契约且用户明确批准时，调用 `implement`。bug 使用 `source_kind: approved-fix`；此项优先于通用 bug 路由，即使确认消息再次提到“bug”“失败”或“修复”。
+4. **新的 bug / failure**：用户报告坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，且还没有获批修复契约时，调用 `debug`。不要先走 `scope`。
+5. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki`，调用 `wiki`。
+6. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
+7. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow`。首次持久化写入前必须已有 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；任务结束或外部 handoff 前必须调用 `finalize`。同一任务在 Skill 间转交时，`git_state: prepared` 继承现有 Git 生命周期，`git_state: unprepared` 才执行 `prepare`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
+8. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，由 `implement` 在执行阶段调用 `test-driven-development`。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接跳到 TDD。
+9. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它，但不得绕过第 2 条的手动触发限制。
 
 ## 调用后
 

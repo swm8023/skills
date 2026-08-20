@@ -1,6 +1,6 @@
 ---
 name: review-code
-description: Review completed code changes against an implementation spec and surrounding repository context. Use after implementation when the user asks to review, audit, sanity-check, or assess changed code for spec completion, functional bugs, architecture, code structure, code quality, tests, security, compatibility, performance, or release risk. Produce a read-only static review with P0/P1/P2 findings and a conclusion; do not modify files or run verification commands.
+description: Manually perform a read-only static review of completed code against its implementation spec. Use only when the user explicitly invokes review-code by name.
 ---
 
 # Review Code

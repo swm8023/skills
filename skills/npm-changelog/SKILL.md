@@ -30,6 +30,32 @@ description: 追踪并记录 WheelMaker 通过 Hub 管理的 agent runtime npm �
 - 优先使用公开的正式版本；只有官方发布历史把预发布版本作为当前支持线时才纳入。
 - 没有新版本时保持文件不变，并在运行摘要中报告“无更新”。不要为了填充文件制造版本章节。
 
+## 查询记录
+
+每次运行都必须生成一份查询记录，不论是否发现更新、部分包失败或全部包失败。记录属于 WheelMaker 仓库，不写入本 skill source repo：
+
+- 目录固定为 `docs/changelog/query-records/`；目录不存在时创建。
+- 文件名使用本次运行本地时间的 `YYYY-MM-DD-HHmmss.md`；同一秒已有文件时追加 `-2`、`-3` 等后缀，不覆盖历史记录。
+- 完成 policy 扫描和各包处理后写入记录；即使 policy、registry、Git 或 tarball 处理失败，也要写入记录并说明失败阶段和原因。
+- 以 policy JSON 的活动 `runtime` 包列表为准，为每个包保留一行，不能只记录有更新的包。
+
+记录至少包含以下内容：
+
+```markdown
+# npm changelog query record
+
+- 查询时间：<本地时间和时区>
+- 运行状态：完成 / 部分失败 / 失败
+
+| npm 包 | 上次记录版本 | 本次查询最新版本 | 本次新增版本 | 状态 | 说明 |
+| --- | --- | --- | --- | --- | --- |
+| <package> | <latest ## version 或未记录> | <version 或未查询> | <version list 或无> | 已升级 / 无更新 / 查询失败 | <接入影响或失败原因> |
+```
+
+- “上次记录版本”只读取对应 `docs/changelog/<fileName>` 的最新版本标题；首次记录写 `未记录`，不能把上一次查询记录当作版本事实。
+- “本次新增版本”列出上次记录之后实际研究并写入 changelog 的版本；无更新写 `无`，失败写 `未查询`，不要猜测版本或变更。
+- 记录写入前检查每个 active package 都出现且只出现一次，并确认运行状态能反映成功、部分失败或全失败。
+
 ## 研究流程
 
 ### 1. 建立来源判断
@@ -82,6 +108,7 @@ description: 追踪并记录 WheelMaker 通过 Hub 管理的 agent runtime npm �
 
 - 单个包的 registry、Git、官方 changelog 或 tarball 失败时，保留其他包的成功结果；该包不生成未经确认的版本条目，运行摘要列出失败原因。
 - 已有文件更新采用临时内容并在结构验证通过后写回；失败时保留原文件。
+- 无论处理结果如何，都保留本次 `docs/changelog/query-records/` 记录；记录失败包、无更新包和实际新增版本。
 - 完成后运行：
 
   ```powershell

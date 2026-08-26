@@ -1,0 +1,4 @@
+interface:
+  display_name: "Export Session"
+  short_description: "Export active WheelMaker session trees as diagnostic JSON"
+  default_prompt: "Use $export-session to export a WheelMaker session and its active child sessions as diagnostic JSON."

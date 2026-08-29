@@ -32,7 +32,7 @@ try {
   }
   process.stdout.write("--- end chunk ---\n");
 } catch (error) {
-  process.stderr.write(`handoff-wheel: ${error.message}\n`);
+  process.stderr.write(`handoff: ${error.message}\n`);
   process.exitCode = 1;
 }
 

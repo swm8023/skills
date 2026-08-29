@@ -1,4 +1,0 @@
-interface:
-  display_name: "Handoff Wheel"
-  short_description: "读取 WheelMaker 会话并总结当前状态与下一步工作"
-  default_prompt: "使用 $handoff-wheel 读取指定 WheelMaker session ID，并生成可继续工作的交接摘要。"

@@ -108,6 +108,7 @@ test("reports an unknown session without scanning unrelated project code", async
   ]);
 
   assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /^handoff: Session not found: missing-session/);
   assert.match(result.stderr, /Session not found: missing-session/);
 });
 
@@ -164,7 +165,7 @@ function runExtractor(args) {
 }
 
 async function makeWheelmakerHome(t) {
-  const root = await mkdtemp(join(tmpdir(), "handoff-wheel-"));
+  const root = await mkdtemp(join(tmpdir(), "handoff-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(join(root, "db"), { recursive: true });
   return root;

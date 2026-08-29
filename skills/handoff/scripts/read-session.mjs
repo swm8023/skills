@@ -34,7 +34,7 @@ function main() {
     }
     process.stdout.write(transcript);
   } catch (error) {
-    process.stderr.write(`handoff-wheel: ${error.message}\n`);
+    process.stderr.write(`handoff: ${error.message}\n`);
     process.exitCode = 1;
   }
 }

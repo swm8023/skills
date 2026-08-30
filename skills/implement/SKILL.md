@@ -62,7 +62,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 ## 计划质量标准
 
-计划面向“熟练但对本代码库零上下文”的执行者：写明每个任务涉及的文件、关键代码、测试、文档和验证。DRY。YAGNI。TDD。按 Git 偏好设置 checkpoint。
+计划面向“熟练但对本代码库零上下文”的执行者：写明每个任务涉及的文件、关键代码、测试、文档和验证。遵循 DRY、YAGNI 和下述测试先行契约。按 Git 偏好设置 checkpoint。
 
 ### 计划头部
 
@@ -90,13 +90,15 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 把任务拆成 2-5 分钟可执行动作。每个任务应是自包含变更，单独看也合理；一起变化的文件放在同一任务里。
 
+生产行为变更按下列测试先行步骤展开。纯文档、说明性元数据、文件镜像或搬移、仅同步生成产物，以及经 source 明确确认不改变可执行行为的配置整理，用明确的针对性验证步骤替换 RED/GREEN，不伪造失败测试。
+
 ````markdown
 ### Task N: [Component or Behavior]
 
 **Files:**
 - Create: `exact/path/to/file.ext`
 - Modify: `exact/path/to/existing.ext`
-- Test: `tests/exact/path/to/test.ext`
+- Test/Verify: `tests/exact/path/to/test.ext` or an exact validation command
 
 **Acceptance:** [Specific observable result]
 
@@ -158,12 +160,42 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 
 发现问题就地修复，再进入执行。
 
+## 测试先行执行契约
+
+本 skill 直接拥有测试先行流程，不再转交其他 skill。
+
+### 适用边界
+
+- 新功能、bug 修复、重构或其他可观察生产行为变更必须执行 RED、最小 GREEN、必要重构和相关回归。
+- `approved-fix` 优先复用 debug 已交接的失败测试、repro 或诊断脚本作为 RED；仅在 source 要求的回归覆盖仍缺失时新增测试。
+- 纯文档、说明性元数据、文件镜像或搬移、仅同步生成产物，以及经 source 明确确认不改变可执行行为的配置整理不要求 RED，但必须运行能证明结果正确的针对性验证。
+- 生产行为变更无法建立可靠自动化 RED 时停止并请求用户确认替代验证；不得自行把测试先行降级为事后测试。
+
+### RED
+
+1. 在修改生产代码前写一个聚焦于可观察行为的最小测试，或使用 approved-fix 的原始 repro。
+2. 运行实际测试命令并确认它失败而不是报错；失败信息必须符合预期，原因必须是功能缺失或已证实根因，而不是语法、fixture 或环境错误。
+3. 测试意外通过、错误原因不符或无法解释失败时，先修正测试、repro 或假设，不进入实现。
+
+### GREEN
+
+1. 只写让 RED 通过所需的最小生产改动，不夹带未要求功能或无关重构。
+2. 重跑同一命令并确认通过；失败时修实现，不通过削弱测试来迁就当前代码。若测试暴露 source 或根因假设错误，按停止条件退回用户或 debug。
+
+### REFACTOR 与回归
+
+1. 只在 GREEN 后消除重复、改进命名或提取 helper，不添加新行为。
+2. 重跑聚焦测试保持 GREEN，再运行 source 指定的原始 repro、相关测试和必要回归。
+3. 在 Todo、plan checkbox、checkpoint 或最终验收证据中记录 RED 与 GREEN 的实际命令、关键结果和相关回归结果。
+
+测试应验证真实行为而不是 mock 本身。新增或修改 mock、test double，或考虑给生产代码添加测试专用 API 时，先阅读 [测试反模式](references/testing-anti-patterns.md)。
+
 ## 阶段 3：执行
 
 1. `wiki_target` 不是 `none` 时先调用 `wiki`，只同步该目标；为 `none` 时跳过。
 2. 把 plan 或 `source` 转成 Todo；只允许一个任务处于 `in_progress`。
 3. 每个任务开始前读取相关文件和测试，确认计划仍匹配当前代码。
-4. 写生产代码、重构或改变现有行为前调用 `test-driven-development`：先 RED，再最小 GREEN，再必要重构。不能先改实现再补测试。
+4. 对适用任务执行上面的测试先行契约；不适用时记录原因并执行针对性验证。不能先改生产行为再补测试。
 5. 按任务执行命令，读取实际输出和 exit code。失败时先判断是预期 RED、实现问题、环境问题还是计划错误。
 6. 持久化 plan 存在 checkbox 时，完成一个步骤就更新对应 checkbox；不要等到最后一次性勾完。
 7. 一个独立工作单元验证通过后，调用 `git-workflow` 的 `checkpoint` 阶段。只 stage prepare 后确认属于本任务的文件，不使用会夹带无关修改的命令。
@@ -183,7 +215,7 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 
 1. 确认 Plan/Todo 必须覆盖 `source`，实施结果没有违反其中的硬约束或修复边界。
 2. 回顾实施过程：如果产生了已确认 wiki 目标范围内的新知识（实施中沉淀的决策背景、约定修订、架构事实），调用 `wiki` 补充同步；只写入用户已确认的目标，要新增目标文件先向用户确认。
-3. 执行 `source` 要求的验证，并为每项验收记录结果与证据；存在必需验收或验证失败、未执行时，不得以 `complete` 结束。
+3. 执行 `source` 要求的验证，并为每项验收记录结果与证据；生产行为变更还必须保留 RED、GREEN 和相关回归的实际证据。存在必需验收或验证失败、未执行时，不得以 `complete` 结束。
 4. 检查 `git status -sb` 和实际 diff，区分任务修改与 prepare 前已有修改。
 5. 调用 `git-workflow` 的 `finalize` 阶段，传入 `complete`、`blocked`、`verification_failed` 或 `awaiting_review` 中的真实结果。
 6. finalize 返回前，不得把持久化修改任务报告为完成。

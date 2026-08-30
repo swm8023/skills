@@ -39,7 +39,7 @@ debug 是处理 bug 的调查与决策入口。默认产物是诊断结论和经
 - 已向用户提交根因、证据、修复方案、验证计划和风险。
 - 用户已在看到计划后明确同意继续。
 
-任一项不成立，就停在调查或计划阶段。不要调用 `test-driven-development`，不要修改生产代码。
+任一项不成立，就停在调查或计划阶段，不要修改生产代码。
 
 ## 诊断阶段 Git 边界
 
@@ -138,13 +138,13 @@ diagnostic_artifacts: 已写入仓库的诊断文件或临时埋点
 
 ### 8. 交给 implement 实施
 
-用户批准后调用 `implement`，传入 `source_kind: approved-fix`、`source: <完整修复契约>`（含 `diagnostic_artifacts`）、`wiki_target: <已确认目标或 none>`，以及与诊断阶段一致的 `git_state: prepared | unprepared`。不要直接调用 `test-driven-development`，不要在 debug 内重复实现、checkpoint 或最终汇报。
+用户批准后调用 `implement`，传入 `source_kind: approved-fix`、`source: <完整修复契约>`（含 `diagnostic_artifacts`）、`wiki_target: <已确认目标或 none>`，以及与诊断阶段一致的 `git_state: prepared | unprepared`。不要在 debug 内重复实现、checkpoint 或最终汇报。
 
 从此由 `implement` 独占：
 
 - Git 生命周期所有权；仅 `unprepared` 时执行 `prepare`，并负责 `checkpoint`、`finalize`
 - 对话 Todo 和文件所有权
-- TDD 的 RED、GREEN、重构
+- 测试先行的 RED、最小 GREEN、重构和回归验证；优先复用 debug 交接的失败测试或 repro
 - 原始 repro、回归测试和相关测试
 - 临时诊断产物清理
 - commit、push、merge、cleanup 和最终完成报告

@@ -15,10 +15,11 @@
     {
       "id": 2,
       "prompt": "调用 implement：source_kind 为 approved-spec，source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared；spec 头部状态为「已批准 2026-08-09」。",
-      "expected_output": "implement 接受输入并执行 prepare，生成 docs/plans/2026-08-09-greet-util/plan-*.md，按 TDD 实现 greet 并通过 node --test，完成 Git 收尾并给出完成报告。",
+      "expected_output": "implement 接受输入并执行 prepare，生成 docs/plans/2026-08-09-greet-util/plan-*.md，按内置测试先行契约实现 greet 并通过 node --test，完成 Git 收尾并给出完成报告。",
       "files": [],
       "expectations": [
         "生成了 docs/plans/2026-08-09-greet-util/ 下的 plan-*.md",
+        "plan 和实施证据记录了测试因缺少 greet 而正确失败的 RED，以及实现后的 GREEN 命令和结果",
         "greet 已实现且 node --test 全部通过",
         "最终报告包含验证结果与 commit hash 等 Git 收尾信息"
       ]
@@ -72,12 +73,24 @@
     {
       "id": 7,
       "prompt": "debug 已通过持久化诊断测试锁定根因并获得修复批准，调用 implement：source_kind 为 approved-fix，source 为完整修复契约，wiki_target 为 none，git_state 为 prepared。",
-      "expected_output": "implement 继承诊断阶段的 Git 生命周期和文件所有权，不生成 spec/plan；按 source 完成根因修复、原始 repro、回归测试和相关测试，处理诊断产物后 finalize。",
+      "expected_output": "implement 继承诊断阶段的 Git 生命周期和文件所有权，不生成 spec/plan；优先复用 debug 交接的失败测试或 repro 作为 RED，按 source 完成根因修复、回归测试和相关测试，处理诊断产物后 finalize。",
       "files": [],
       "expectations": [
         "没有重复 prepare，诊断产物仍属于当前任务",
-        "Todo 覆盖根因、fix scope、原始 repro、回归测试和相关测试",
+        "Todo 覆盖根因、fix scope、原始 repro、回归测试和相关测试，并把可复用的原始失败信号作为 RED",
         "全部 source 验收与验证通过后才以 complete finalize"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "调用 implement：source_kind 为 confirmed-conversation，source 是已确认的纯文档与 skill 文件镜像契约，不改变可执行生产行为，wiki_target 为 none，git_state 为 unprepared。",
+      "expected_output": "implement 记录测试先行不适用的具体原因，不伪造失败测试；执行结构、引用、内容一致性或格式等针对性验证，通过后按 Git 偏好 finalize。",
+      "files": [],
+      "expectations": [
+        "没有为了满足流程而创建与生产行为无关的失败测试",
+        "Todo 或验证证据明确说明为什么 RED/GREEN 不适用",
+        "运行了与文档或镜像契约直接对应的结构、引用、内容或格式检查",
+        "只有针对性验证和 source 验收通过后才以 complete finalize"
       ]
     }
   ]

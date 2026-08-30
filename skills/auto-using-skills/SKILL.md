@@ -26,7 +26,7 @@ description: Use at the start of every task to select applicable skills. Routes 
 5. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki`，调用 `wiki`。
 6. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
 7. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow`。首次持久化写入前必须已有 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；任务结束或外部 handoff 前必须调用 `finalize`。同一任务在 Skill 间转交时，`git_state: prepared` 继承现有 Git 生命周期，`git_state: unprepared` 才执行 `prepare`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
-8. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，由 `implement` 在执行阶段调用 `test-driven-development`。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接跳到 TDD。
+8. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，统一由 `implement` 按内置测试先行契约执行。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接开始修改生产代码。
 9. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它，但不得绕过第 2 条的手动触发限制。
 
 ## 调用后
@@ -46,7 +46,7 @@ description: Use at the start of every task to select applicable skills. Routes 
 - "这很简单"：简单任务也可能有适用 skill。
 - "我记得这个 skill"：读取当前版本，不凭记忆执行。
 - "用户说了修 bug，所以直接修"：用户说的是目标，不是允许跳过 debug。
-- "已经 scoped / debug 过了，可以直接写代码"：写生产代码前仍要检查 TDD。
-- "用户确认了 bug 方案，直接调用 TDD"：先把 `approved-fix` 交给 implement，由它建立 Git 所有权。
+- "已经 scoped / debug 过了，可以直接写代码"：先把已确认契约交给 implement，由它建立 Git 所有权并执行测试先行流程。
+- "用户确认了 bug 方案，直接开始修"：先把 `approved-fix` 交给 implement，不在 debug 内实施。
 - "开始时已经调用过 Git skill，结束时不用再调"：prepare 不能替代 finalize。
 - "写一句未提交就可以结束"：如果偏好要求自动提交或推送，必须完成动作或给出明确 blocker。

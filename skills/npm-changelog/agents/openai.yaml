@@ -1,4 +1,0 @@
-interface:
-  display_name: "WheelMaker NPM Changelog"
-  short_description: "跟踪 WheelMaker Agent npm 版本与接入影响"
-  default_prompt: "使用 $npm-changelog 更新 WheelMaker 关注的 agent npm 版本与接入影响。"

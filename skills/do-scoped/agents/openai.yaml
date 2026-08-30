@@ -1,7 +1,0 @@
-interface:
-  display_name: "Do Scoped (Legacy)"
-  short_description: "历史 plan 显式调用的兼容入口，仅转交给 implement"
-  default_prompt: "使用 $do-scoped 兼容执行一份显式要求旧 skill 名的历史 plan。"
-
-policy:
-  allow_implicit_invocation: false

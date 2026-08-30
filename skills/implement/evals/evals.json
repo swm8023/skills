@@ -79,19 +79,6 @@
         "Todo 覆盖根因、fix scope、原始 repro、回归测试和相关测试",
         "全部 source 验收与验证通过后才以 complete finalize"
       ]
-    },
-    {
-      "id": 8,
-      "prompt": "do-scoped 兼容入口因一份历史 plan 的显式 REQUIRED SKILL 指令调用 implement：source_kind 为 legacy-plan，source 为该 plan 路径，wiki_target 为 none，git_state 为 unprepared。",
-      "expected_output": "implement 接受兼容入口转交，读取并沿用现有 plan，把未完成 checkbox 转成 Todo；不生成替代 plan，按 plan 验证后完成 Git 收尾。",
-      "files": [],
-      "expectations": [
-        "确认 legacy-plan 来自 do-scoped 的显式兼容转交",
-        "读取现有 plan，沿用其目标、任务、验收和验证",
-        "不从 plan 正文推断或继承历史 prepared Git 上下文",
-        "没有复制、迁移或生成替代 plan",
-        "首次写入前执行 prepare，验证完成后 finalize"
-      ]
     }
   ]
 }

@@ -11,6 +11,7 @@ import { resolveWikiPaths } from './wiki-state.mjs';
 
 const execFile = promisify(execFileCallback);
 export const QUARTZ_VERSION = 'v4.5.2';
+export const QUARTZ_COMMIT = '4923affa7722dfc751f1074348e6dad214fe0c08';
 export const QUARTZ_REPOSITORY = 'https://github.com/jackyzha0/quartz.git';
 
 async function exists(filename) {
@@ -48,6 +49,9 @@ async function runCommand(command, args, options = {}) {
     return await execFile(command, args, {
       cwd: options.cwd,
       env: { ...process.env, ...(options.env || {}) },
+      // Windows exposes npm as npm.cmd; execFile cannot spawn .cmd directly
+      // without the shell shim. The command and arguments here are constants.
+      shell: process.platform === 'win32' && command.toLowerCase().endsWith('.cmd'),
       windowsHide: true,
       maxBuffer: 4 * 1024 * 1024,
     });
@@ -59,7 +63,11 @@ async function runCommand(command, args, options = {}) {
 
 async function defaultInstaller(stage, { env = process.env } = {}) {
   await runCommand('git', ['clone', '--branch', QUARTZ_VERSION, '--depth', '1', QUARTZ_REPOSITORY, stage], { env });
-  await runCommand('npm', ['ci', '--ignore-scripts'], { cwd: stage, env });
+  const revision = (await runCommand('git', ['-C', stage, 'rev-parse', 'HEAD'], { env })).stdout.trim();
+  if (revision !== QUARTZ_COMMIT) {
+    throw new Error(`Quartz ${QUARTZ_VERSION} resolved to ${revision}, expected ${QUARTZ_COMMIT}.`);
+  }
+  await runCommand(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['ci', '--ignore-scripts'], { cwd: stage, env });
 }
 
 async function materializeAssets(stage) {

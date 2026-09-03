@@ -7,7 +7,7 @@ export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
   header: [],
   afterBody: [],
-  footer: [Component.Footer({ links: {} })],
+  footer: Component.Footer({ links: {} }),
 }
 
 const knowledgeLeft = [

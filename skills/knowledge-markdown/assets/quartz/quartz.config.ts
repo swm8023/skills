@@ -9,7 +9,9 @@ const config: QuartzConfig = {
     enablePopovers: true,
     analytics: { provider: "plausible" },
     locale: "zh-CN",
-    baseUrl: "",
+    // Quartz requires a syntactically valid host for its 404 and sitemap emitters.
+    // WheelMaker serves the generated files below its own /wiki/ route.
+    baseUrl: "localhost",
     ignorePatterns: [".git", ".obsidian", ".index"],
     defaultDateType: "modified",
     theme: {

@@ -22,6 +22,10 @@ test('knowledge-search contains its active instructions and complete upstream ma
     'references/upstream-vault-search/scripts/dataview.py',
     'references/upstream-vault-search/scripts/index.py',
     'references/upstream-vault-search/scripts/search.py',
+    'scripts/wiki-state.mjs',
+    'scripts/index.mjs',
+    'scripts/search.mjs',
+    'scripts/dataview.mjs',
   ];
   await Promise.all(required.map(mustExist));
 

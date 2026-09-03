@@ -35,6 +35,16 @@ and not a Git worktree, stop without deleting, moving, or overwriting anything.
 Without a URL, tell the user to prepare or initialize the Git worktree themselves;
 do not run `git init` automatically.
 
+When a publish operation is planned, synchronize the clean Git worktree before
+the confirmed note write:
+
+```text
+node <this-skill>/scripts/prepare-wiki.mjs --sync
+```
+
+This command refuses to stash or rebase over existing changes. A rebase or remote
+conflict is reported for the user to resolve.
+
 After Git succeeds, the helper creates a commented `knowledge.yaml`,
 `content/`, and `content/assets/` only when they are missing. Existing configuration
 is never silently replaced. The data root is the only content configuration root;
@@ -88,6 +98,11 @@ the public virtual home and folder listings at build time.
    first creation date and must not change on later edits. The title is stored in
    frontmatter.
 
+Use `scripts/normalize-note.mjs` for deterministic frontmatter, summary, tag,
+date, and link-map normalization after the model has prepared the per-file
+placement preview. The script is a formatter and diagnostic helper; the Skill
+still owns classification and the confirmation conversation.
+
 ## Frontmatter and confirmation
 
 Every new or normalized published note starts with frontmatter containing at least:
@@ -131,6 +146,10 @@ Use:
 node <this-skill>/scripts/publish-wiki.mjs --paths <repo-relative-path> ...
 ```
 
+The publish helper commits only those approved paths, performs the configured
+rebase/push phase, and then invokes the existing `wheelmaker wiki publish`
+command. It never calls a separate Hub upload command.
+
 `publish.mode` in `knowledge.yaml` controls whether this final phase runs. With
 the default `auto`, the Skill calls the existing WheelMaker Wiki command. That
 command invokes its built-in `default.mjs`; the MJS calls the Skill-prepared Quartz
@@ -154,4 +173,3 @@ editing and saving in Obsidian does not publish implicitly.
 This Skill does not provide a WheelMaker editor button, an Obsidian URI opener, or
 a second upload protocol. It only maintains plain Markdown data, local runtime
 resources, and the confirmed WheelMaker publish flow.
-

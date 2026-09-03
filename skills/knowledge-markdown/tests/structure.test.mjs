@@ -21,6 +21,15 @@ test('knowledge-markdown contains its active instructions and complete upstream 
     'references/upstream-obsidian-markdown/CALLOUTS.md',
     'references/upstream-obsidian-markdown/EMBEDS.md',
     'references/upstream-obsidian-markdown/PROPERTIES.md',
+    'scripts/wiki-state.mjs',
+    'scripts/prepare-wiki.mjs',
+    'scripts/normalize-note.mjs',
+    'scripts/publish-wiki.mjs',
+    'scripts/ensure-quartz.mjs',
+    'assets/quartz/quartz.config.ts',
+    'assets/quartz/quartz.layout.ts',
+    'assets/quartz/quartz/components/KnowledgeSidebarSwitch.tsx',
+    'assets/quartz/quartz/components/KnowledgeTagSidebar.tsx',
   ];
   await Promise.all(required.map(mustExist));
 

@@ -26,11 +26,16 @@ publishing workflow.
 ## Quartz runtime and local adapter
 
 - Repository: <https://github.com/jackyzha0/quartz>
-- Pinned release: `v4.5.2` (tag object
-  `624b297576877d7feddbbda8ad2b48f1205e4bfa`, peeled commit
-  `4923affa7722dfc751f1074348e6dad214fe0c08`)
+- Pinned release: `v5.0.0` (commit
+  `ab346fa66a895e12d63a308e70ce330ba795822a`)
 - The Skill installs this release into the private
   `~/.wheelmaker/wiki/quartz/` directory when it is absent, then overlays the
-  checked-in `assets/quartz/` configuration, layout, and sidebar components.
+  checked-in `assets/quartz/` YAML configuration, TypeScript entrypoint, and
+  WheelMaker local v5 plugins. The setup helper restores the v5 Community
+  plugins from the upstream `quartz.lock.json` before the runtime is used.
+- Quartz 5 replaces the v4 `quartz.config.ts`/`quartz.layout.ts` pair with
+  `quartz.config.yaml`, plugin manifests, and per-plugin layout declarations.
+  The local home page is a v5 virtual page type, so no `content/index.md` is
+  generated or required.
 - The runtime is a build dependency, not Wiki content. It is never copied into
   `data/` or public output, and Quartz receives no WheelMaker credentials.

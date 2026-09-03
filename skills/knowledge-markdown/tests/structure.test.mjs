@@ -27,10 +27,17 @@ test('knowledge-markdown contains its active instructions and complete upstream 
     'scripts/publish-wiki.mjs',
     'scripts/ensure-quartz.mjs',
     'scripts/yaml.mjs',
-    'assets/quartz/quartz.config.ts',
-    'assets/quartz/quartz.layout.ts',
-    'assets/quartz/quartz/components/KnowledgeSidebarSwitch.tsx',
-    'assets/quartz/quartz/components/KnowledgeTagSidebar.tsx',
+    'assets/quartz/quartz.config.yaml',
+    'assets/quartz/quartz.ts',
+    'assets/quartz/quartz.lock.json',
+    'assets/quartz/quartz/wheelmaker-home/package.json',
+    'assets/quartz/quartz/wheelmaker-home/index.mjs',
+    'assets/quartz/quartz/wheelmaker-sidebar/package.json',
+    'assets/quartz/quartz/wheelmaker-sidebar/index.mjs',
+    'assets/quartz/quartz/wheelmaker-sidebar/components.mjs',
+    'assets/quartz/quartz/wheelmaker-tags/package.json',
+    'assets/quartz/quartz/wheelmaker-tags/index.mjs',
+    'assets/quartz/quartz/wheelmaker-tags/components.mjs',
   ];
   await Promise.all(required.map(mustExist));
 

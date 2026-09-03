@@ -1,0 +1,251 @@
+# yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
+configuration:
+  pageTitle: WheelMaker Knowledge
+  pageTitleSuffix: ""
+  enableSPA: true
+  enablePopovers: true
+  analytics: null
+  locale: zh-CN
+  # The Hub serves this site below /wiki/ and Quartz uses relative URLs where possible.
+  baseUrl: localhost
+  ignorePatterns:
+    - .git
+    - .obsidian
+    - .index
+    - .quartz
+  defaultDateType: modified
+  theme:
+    fontOrigin: local
+    cdnCaching: false
+    typography:
+      header: Inter
+      body: Inter
+      code: IBM Plex Mono
+    colors:
+      lightMode:
+        light: "#fafafa"
+        lightgray: "#e8e8e8"
+        gray: "#b8b8b8"
+        darkgray: "#4a4a4a"
+        dark: "#222222"
+        secondary: "#405a72"
+        tertiary: "#738ca3"
+        highlight: "rgba(64, 90, 114, 0.12)"
+        textHighlight: "#fff23688"
+      darkMode:
+        light: "#1e1e20"
+        lightgray: "#3b3b3e"
+        gray: "#747478"
+        darkgray: "#d0d0d4"
+        dark: "#eeeeef"
+        secondary: "#91abc1"
+        tertiary: "#9aaebd"
+        highlight: "rgba(145, 171, 193, 0.16)"
+        textHighlight: "#b3aa0288"
+
+plugins:
+  # Markdown and Obsidian processing is supplied by Quartz Community plugins in v5.
+  - source: github:quartz-community/created-modified-date
+    enabled: true
+    options:
+      priority:
+        - frontmatter
+        - git
+        - filesystem
+    order: 10
+  - source: github:quartz-community/syntax-highlighting
+    enabled: true
+    options:
+      theme:
+        light: github-light
+        dark: github-dark
+      keepBackground: false
+    order: 20
+  - source: github:quartz-community/obsidian-flavored-markdown
+    enabled: true
+    options:
+      enableInHtmlEmbed: false
+      enableCheckbox: true
+    order: 30
+  - source: github:quartz-community/github-flavored-markdown
+    enabled: true
+    order: 40
+  - source: github:quartz-community/table-of-contents
+    enabled: true
+    order: 50
+    layout:
+      position: right
+      priority: 30
+  - source: github:quartz-community/crawl-links
+    enabled: true
+    options:
+      markdownLinkResolution: shortest
+    order: 60
+  - source: github:quartz-community/description
+    enabled: true
+    order: 70
+  - source: github:quartz-community/latex
+    enabled: true
+    options:
+      renderEngine: katex
+    order: 80
+
+  - source: github:quartz-community/remove-draft
+    enabled: true
+
+  # Public-site emitters. Assets, Static, and ComponentResources are built into Quartz.
+  - source: github:quartz-community/alias-redirects
+    enabled: true
+  - source: github:quartz-community/content-index
+    enabled: true
+    options:
+      enableSiteMap: true
+      enableRSS: true
+  - source: github:quartz-community/favicon
+    enabled: true
+  - source: github:quartz-community/og-image
+    enabled: true
+  - source: github:quartz-community/canvas-page
+    enabled: true
+  - source: github:quartz-community/content-page
+    enabled: true
+  - source: github:quartz-community/folder-page
+    enabled: true
+  - source: github:quartz-community/tag-page
+    enabled: true
+
+  # Page type that generates the public home page; there is deliberately no content/index.md.
+  - source: ./quartz/wheelmaker-home
+    enabled: true
+    order: 1000
+
+  # Directory and tag navigation used by the WheelMaker Wiki.
+  - source: github:quartz-community/explorer
+    enabled: true
+    options:
+      title: 目录
+    layout:
+      position: left
+      priority: 50
+  - source: ./quartz/wheelmaker-sidebar
+    enabled: true
+    layout:
+      position: left
+      priority: 40
+  - source: ./quartz/wheelmaker-tags
+    enabled: true
+    layout:
+      position: left
+      priority: 60
+  - source: github:quartz-community/search
+    enabled: true
+    layout:
+      position: left
+      priority: 20
+      group: toolbar
+      groupOptions:
+        grow: true
+  - source: github:quartz-community/backlinks
+    enabled: true
+    layout:
+      position: right
+      priority: 50
+  - source: github:quartz-community/graph
+    enabled: true
+    layout:
+      position: right
+      priority: 10
+
+  - source: github:quartz-community/article-title
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 10
+  - source: github:quartz-community/content-meta
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 20
+  - source: github:quartz-community/tag-list
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 30
+  - source: github:quartz-community/note-properties
+    enabled: true
+    options:
+      includeAll: false
+      includedProperties:
+        - description
+        - tags
+        - aliases
+      excludedProperties: []
+      hidePropertiesView: false
+      delimiters: ---
+      language: yaml
+    order: 5
+    layout:
+      position: beforeBody
+      priority: 15
+  - source: github:quartz-community/page-title
+    enabled: true
+    layout:
+      position: left
+      priority: 10
+  - source: github:quartz-community/darkmode
+    enabled: true
+    layout:
+      position: left
+      priority: 30
+      group: toolbar
+  - source: github:quartz-community/reader-mode
+    enabled: true
+    layout:
+      position: left
+      priority: 35
+      group: toolbar
+  - source: github:quartz-community/breadcrumbs
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 5
+      condition: not-index
+  - source: github:quartz-community/footer
+    enabled: true
+    options:
+      links: {}
+  - source: github:quartz-community/spacer
+    enabled: true
+    layout:
+      position: left
+      priority: 25
+      display: mobile-only
+
+layout:
+  groups:
+    toolbar:
+      priority: 35
+      direction: row
+      gap: 0.5rem
+  byPageType:
+    "404":
+      positions:
+        beforeBody: []
+        left: []
+        right: []
+    home:
+      exclude:
+        - graph
+        - backlinks
+        - table-of-contents
+    folder:
+      exclude:
+        - reader-mode
+      positions:
+        right: []
+    tag:
+      exclude:
+        - reader-mode
+      positions:
+        right: []
+    canvas: {}

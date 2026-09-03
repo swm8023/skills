@@ -1,19 +1,33 @@
-import { QuartzComponent, QuartzComponentConstructor } from "./types"
+import { h } from "preact"
 
-const KnowledgeSidebarSwitch: QuartzComponent = () => {
-  return (
-    <div class="knowledge-sidebar-switch" role="tablist" aria-label="侧栏分类">
-      <button type="button" class="knowledge-sidebar-button active" data-knowledge-view="directory" role="tab" aria-selected="true">
-        目录
-      </button>
-      <button type="button" class="knowledge-sidebar-button" data-knowledge-view="tags" role="tab" aria-selected="false">
-        Tags
-      </button>
-    </div>
-  )
-}
+export const KnowledgeSidebarSwitch = () => {
+  const Component = () =>
+    h("div", { class: "knowledge-sidebar-switch", role: "tablist", "aria-label": "侧栏分类" }, [
+      h(
+        "button",
+        {
+          type: "button",
+          class: "knowledge-sidebar-button active",
+          "data-knowledge-view": "directory",
+          role: "tab",
+          "aria-selected": "true",
+        },
+        "目录",
+      ),
+      h(
+        "button",
+        {
+          type: "button",
+          class: "knowledge-sidebar-button",
+          "data-knowledge-view": "tags",
+          role: "tab",
+          "aria-selected": "false",
+        },
+        "Tags",
+      ),
+    ])
 
-KnowledgeSidebarSwitch.css = `
+  Component.css = `
 .knowledge-sidebar-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -51,46 +65,9 @@ KnowledgeSidebarSwitch.css = `
 .explorer[data-knowledge-visible="false"] {
   display: none;
 }
-
-.knowledge-tag-tree,
-.knowledge-tag-tree ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.knowledge-tag-tree ul {
-  margin-left: 0.8rem;
-}
-
-.knowledge-tag-item {
-  margin: 0.15rem 0;
-}
-
-.knowledge-tag-link {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.25rem 0.35rem;
-  border-radius: 0.25rem;
-  color: var(--darkgray);
-  font-size: 0.8rem;
-  text-decoration: none;
-}
-
-.knowledge-tag-link:hover {
-  background: var(--highlight);
-  color: var(--dark);
-}
-
-.knowledge-tag-count {
-  color: var(--gray);
-  font-size: 0.7rem;
-}
 `
 
-KnowledgeSidebarSwitch.afterDOMLoaded = `
+  Component.afterDOMLoaded = `
 (() => {
   const root = document.querySelector(".knowledge-sidebar-switch")
   if (!root) return
@@ -119,4 +96,5 @@ KnowledgeSidebarSwitch.afterDOMLoaded = `
 })()
 `
 
-export default (() => KnowledgeSidebarSwitch) satisfies QuartzComponentConstructor
+  return Component
+}

@@ -167,8 +167,13 @@ node <this-skill>/scripts/ensure-quartz.mjs
 ```
 
 This installs or verifies the private runtime under `~/.wheelmaker/wiki/quartz/`
-and keeps its configuration outside the Git data root. There is no file watcher;
-editing and saving in Obsidian does not publish implicitly.
+and keeps its configuration outside the Git data root. The runtime is Quartz
+`v5.0.0`: its YAML configuration, `quartz.ts` entrypoint, plugin lockfile, and
+WheelMaker local plugins are checked as one pinned runtime. The setup helper
+restores Quartz Community plugins from that lockfile before a build; it does not
+leave those generated plugin directories in Wiki `data/`. There is no file
+watcher; editing and saving in Obsidian does not publish implicitly. Quartz 5
+requires Node.js 22 or newer.
 
 ## Scope boundary
 

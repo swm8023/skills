@@ -1,0 +1,29 @@
+{
+  "name": "wheelmaker-tags",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs",
+    "./components": "./components.mjs"
+  },
+  "quartz": {
+    "name": "wheelmaker-tags",
+    "displayName": "WheelMaker tag sidebar",
+    "description": "Renders hierarchical multi-level tags in the left sidebar.",
+    "version": "1.0.0",
+    "quartzVersion": "5.0.0",
+    "category": "component",
+    "components": {
+      "KnowledgeTagSidebar": {
+        "name": "KnowledgeTagSidebar",
+        "displayName": "Knowledge tag sidebar",
+        "description": "Renders nested tag paths such as project/frontend.",
+        "version": "1.0.0",
+        "quartzVersion": "5.0.0",
+        "defaultPosition": "left",
+        "defaultPriority": 60
+      }
+    }
+  }
+}

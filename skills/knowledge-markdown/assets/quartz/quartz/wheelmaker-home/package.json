@@ -1,0 +1,17 @@
+{
+  "name": "wheelmaker-home",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "quartz": {
+    "name": "wheelmaker-home",
+    "displayName": "WheelMaker home page",
+    "description": "Generates the WheelMaker knowledge home page as a Quartz virtual page.",
+    "version": "1.0.0",
+    "quartzVersion": "5.0.0",
+    "category": "pageType"
+  }
+}

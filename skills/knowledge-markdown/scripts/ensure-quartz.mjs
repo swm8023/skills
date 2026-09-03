@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { execFile as execFileCallback } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readdir, rename, rm, stat } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -13,6 +14,12 @@ const execFile = promisify(execFileCallback);
 export const QUARTZ_VERSION = 'v4.5.2';
 export const QUARTZ_COMMIT = '4923affa7722dfc751f1074348e6dad214fe0c08';
 export const QUARTZ_REPOSITORY = 'https://github.com/jackyzha0/quartz.git';
+export const QUARTZ_RELEASE_FILE = '.wheelmaker-quartz-release.json';
+const CUSTOM_ASSETS = [
+  ['quartz', 'emitters', 'KnowledgeHomePage.tsx'],
+  ['quartz', 'components', 'KnowledgeSidebarSwitch.tsx'],
+  ['quartz', 'components', 'KnowledgeTagSidebar.tsx'],
+];
 
 async function exists(filename) {
   try {
@@ -36,12 +43,40 @@ function expectedFiles(runtime) {
     cli: path.join(runtime, 'quartz', 'bootstrap-cli.mjs'),
     config: path.join(runtime, 'quartz.config.ts'),
     layout: path.join(runtime, 'quartz.layout.ts'),
+    dependencies: path.join(runtime, 'node_modules'),
+    release: path.join(runtime, QUARTZ_RELEASE_FILE),
+    assets: CUSTOM_ASSETS.map((segments) => path.join(runtime, ...segments)),
   };
+}
+
+async function isDirectory(filename) {
+  try { return (await stat(filename)).isDirectory(); } catch (error) {
+    if (error?.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+async function digest(filename) {
+  return createHash('sha256').update(await readFile(filename)).digest('hex');
 }
 
 async function expectedRuntime(runtime) {
   const files = expectedFiles(runtime);
-  return (await Promise.all(Object.values(files).map(exists))).every(Boolean);
+  if (!(await Promise.all([files.cli, files.config, files.layout, files.release, ...files.assets].map(exists))).every(Boolean)) return false;
+  if (!(await isDirectory(files.dependencies))) return false;
+  try {
+    const release = JSON.parse(await readFile(files.release, 'utf8'));
+    return release?.version === QUARTZ_VERSION
+      && release?.commit === QUARTZ_COMMIT
+      && release?.repository === QUARTZ_REPOSITORY
+      && release?.configDigest === await digest(files.config)
+      && release?.layoutDigest === await digest(files.layout)
+      && JSON.stringify(release?.assetDigests || {}) === JSON.stringify(Object.fromEntries(await Promise.all(
+        files.assets.map(async (filename, index) => [CUSTOM_ASSETS[index].join('/'), await digest(filename)]),
+      )));
+  } catch {
+    return false;
+  }
 }
 
 async function runCommand(command, args, options = {}) {
@@ -76,6 +111,20 @@ async function materializeAssets(stage) {
   await cp(assets, stage, { recursive: true, force: true });
 }
 
+async function writeReleaseMetadata(stage) {
+  const files = expectedFiles(stage);
+  await writeFile(files.release, `${JSON.stringify({
+    version: QUARTZ_VERSION,
+    commit: QUARTZ_COMMIT,
+    repository: QUARTZ_REPOSITORY,
+    configDigest: await digest(files.config),
+    layoutDigest: await digest(files.layout),
+    assetDigests: Object.fromEntries(await Promise.all(
+      files.assets.map(async (filename, index) => [CUSTOM_ASSETS[index].join('/'), await digest(filename)]),
+    )),
+  }, null, 2)}\n`, 'utf8');
+}
+
 export async function ensureQuartz({ env = process.env, refresh = false, installer = defaultInstaller } = {}) {
   const paths = resolveWikiPaths({ env });
   const runtime = paths.quartz;
@@ -96,7 +145,8 @@ export async function ensureQuartz({ env = process.env, refresh = false, install
   try {
     await installer(stage, { env, version: QUARTZ_VERSION, repository: QUARTZ_REPOSITORY });
     await materializeAssets(stage);
-    if (!(await expectedRuntime(stage))) throw new Error('Pinned Quartz installer did not produce the expected CLI/configuration files.');
+    await writeReleaseMetadata(stage);
+    if (!(await expectedRuntime(stage))) throw new Error('Pinned Quartz installer did not produce the expected CLI, dependencies, configuration, or release metadata.');
     if (await exists(runtime)) {
       if (refresh) {
         backup = `${runtime}.previous-${Date.now()}`;

@@ -6,6 +6,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
+import { parseKnowledgeConfig } from './yaml.mjs';
+
 const execFile = promisify(execFileCallback);
 
 export const DEFAULT_KNOWLEDGE_YAML = `# Content configuration only; data and index roots are fixed by the Skill.
@@ -171,20 +173,7 @@ async function ensureDefaultConfig(config) {
 
 export async function validateKnowledgeConfig(config) {
   const source = await readFile(config, 'utf8');
-  const lines = source.replace(/^\uFEFF/u, '').split(/\r?\n/u);
-  let lastIndent = 0;
-  for (const [index, raw] of lines.entries()) {
-    if (!raw.trim() || raw.trimStart().startsWith('#')) continue;
-    if (/\t/u.test(raw)) throw new Error(`knowledge.yaml line ${index + 1} uses tabs for indentation`);
-    const indent = raw.length - raw.trimStart().length;
-    const text = raw.trim();
-    if (text.startsWith('- ')) {
-      if (indent === 0 || lastIndent < indent) lastIndent = indent;
-      continue;
-    }
-    if (!/^[^:#][^:]*:\s*(?:.*)$/u.test(text)) throw new Error(`knowledge.yaml line ${index + 1} is not a YAML mapping`);
-    lastIndent = indent;
-  }
+  parseKnowledgeConfig(source, config);
   return true;
 }
 

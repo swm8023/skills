@@ -49,7 +49,7 @@ test('uses Obsidian first and does not build the fallback index after a valid na
 
 test('falls back to a fresh local lexical index for unavailable or structured native search', async (t) => {
   const value = await fixture(t);
-  await note(value.paths, 'content/repo/normal.md', '---\ntitle: Quartz Guide\ntags: [system/runtime]\n---\n\nQuartz local search #docs\n');
+  await note(value.paths, 'content/repo/normal.md', '---\ntitle: Quartz Guide\ntags: [system/runtime]\nstatus: open\n---\n\nQuartz local search #docs\n');
   await note(value.paths, 'content/repo/draft.md', '---\ntitle: Private Draft\ndraft: true\n---\n\nQuartz draft\n');
   await note(value.paths, 'content/assets/ignored.md', 'Quartz ignored\n');
   await note(value.paths, 'content/.obsidian/ignored.md', 'Quartz ignored\n');
@@ -70,4 +70,23 @@ test('falls back to a fresh local lexical index for unavailable or structured na
   assert.equal(structured.mode, 'lexical');
   assert.deepEqual(structured.results.map((item) => item.path), ['content/repo/normal.md']);
   assert.equal(nativeCalls, 1);
+
+  const property = await searchKnowledge({ query: 'status:open', structured: true, env: value.env, runNative });
+  assert.equal(property.mode, 'lexical');
+  assert.deepEqual(property.results.map((item) => item.path), ['content/repo/normal.md']);
+});
+
+test('returns the previous local results when refreshing the index fails', async (t) => {
+  const value = await fixture(t);
+  const filename = path.join(value.paths.data, 'content', 'repo', 'normal.md');
+  await note(value.paths, 'content/repo/normal.md', '---\ntitle: Stable Note\n---\n\nStable body\n');
+  const first = await searchKnowledge({ query: 'Stable', structured: true, env: value.env });
+  assert.equal(first.mode, 'lexical');
+  await writeFile(filename, '---\ntitle: [\n---\n\nBroken\n');
+
+  const stale = await searchKnowledge({ query: 'Stable', structured: true, env: value.env });
+  assert.equal(stale.mode, 'lexical');
+  assert.equal(stale.stale, true);
+  assert.match(stale.warning, /previous index|refreshed/iu);
+  assert.deepEqual(stale.results.map((item) => item.path), ['content/repo/normal.md']);
 });

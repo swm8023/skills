@@ -1,6 +1,6 @@
 ---
 name: knowledge-search
-description: Search the fixed local WheelMaker Obsidian Vault using Obsidian first and an automatically maintained local index second. Use for semantic or keyword note search, tag/folder/property lookup, related knowledge, and Dataview-style queries.
+description: Search the fixed local WheelMaker Obsidian Vault using Obsidian first and an automatically maintained local index second. Use for keyword or metadata note search, tag/folder/property lookup, related knowledge, and Dataview-style queries.
 ---
 
 # knowledge-search
@@ -9,7 +9,9 @@ This Skill incorporates the complete copied `vault-search` Skill, README, and
 scripts under `references/upstream-vault-search/`. Read that material when the
 request needs its semantic-search or Dataview examples. The active implementation
 below extends it with fixed local discovery, Obsidian-first lookup, automatic
-freshness, and a dependency-free local fallback.
+freshness, and a dependency-free local fallback. The active local fallback is
+lexical and metadata-based in this release; it does not install or invoke an
+embedding model.
 
 ## Fixed target and safety
 
@@ -46,7 +48,8 @@ Never put this index, a Quartz runtime, credentials, or generated site files int
    fallback. The fallback automatically runs `ensureFresh` before querying.
 3. Do not ask the user to create, rebuild, or repair the index as a normal search
    step. Report an actionable error only when both native search and the local
-   fallback cannot operate.
+   fallback cannot operate. If refresh fails but a previous local index is valid,
+   return its results with an explicit stale warning.
 
 Use the active scripts from this Skill directory:
 
@@ -67,24 +70,25 @@ description, date, draft state, tags, frontmatter, body text, size, modification
 time, and content digest.
 
 The indexer stores a SQLite FTS5 text index when the local Node runtime supports
-it, with a pure local lexical fallback if it does not. A local embedding provider
-may add semantic vectors, but it is optional: absent models or native vector
-dependencies never disable keyword, tag, folder, property, or full-text search.
-Queries never download a model or call a remote API.
+it, with a pure local lexical fallback if it does not. Keyword, tag, folder,
+property, and full-text search are supported locally; embedding/semantic vectors
+are an explicit future extension, not an implicit dependency. Queries never
+download a model or call a remote API.
 
 `manifest.json` records `sourceRoot`, `relativePath`, `size`, `modified`,
 `contentDigest`, `parserVersion`, `indexVersion`, and `modelVersion`. On each
 query, `ensureFresh` detects additions, changes, deletions, renames, and version
-changes. It processes only changed files, removes deleted records, and rebuilds
-internally when a version change requires it. A single-root lock, SQLite transaction,
+changes. It updates only changed records after scanning the fixed content root,
+removes deleted records, and rebuilds internally when a version change requires it.
+A single-root lock, SQLite transaction,
 and atomic manifest replacement preserve the last valid result after interruption.
 
 ## Result contract
 
 Return paths relative to the fixed `data/` root together with title, folder, tags,
 matching text, and relevance when available. Native Obsidian results retain their
-native match information. Local results explicitly identify lexical/degraded mode
-when semantic vectors are unavailable. Local drafts may appear; public Quartz
+native match information. Local results explicitly identify lexical/degraded mode.
+Local drafts may appear; public Quartz
 content and its `contentIndex.json` must never be treated as the local AI index.
 
 ## Dataview-compatible queries
@@ -100,4 +104,3 @@ Vault or index.
 This Skill is read-only with respect to notes and Git content. It may create or
 update only its private derived index. It does not publish, open an editor, modify
 WheelMaker UI, or call Registry upload APIs.
-

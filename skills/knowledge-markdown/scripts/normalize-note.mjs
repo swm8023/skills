@@ -370,48 +370,86 @@ function relativeTarget(targetPath, mappedPath, preserveExtension) {
   return clean;
 }
 
+function rewriteOutsideInlineCode(source, rewrite) {
+  let result = '';
+  let cursor = 0;
+  const codeSpan = /(`+)[\s\S]*?\1/gu;
+  for (const match of source.matchAll(codeSpan)) {
+    const start = match.index ?? 0;
+    result += rewrite(source.slice(cursor, start));
+    result += match[0];
+    cursor = start + match[0].length;
+  }
+  return result + rewrite(source.slice(cursor));
+}
+
+function rewriteOutsideCode(markdown, rewrite) {
+  const lines = String(markdown || '').match(/[^\n]*\n|[^\n]+$/gu) || [];
+  let result = '';
+  let fence = null;
+  for (const line of lines) {
+    const content = line.replace(/\n$/u, '');
+    const marker = content.match(/^ {0,3}(`{3,}|~{3,})/u)?.[1] || null;
+    if (fence) {
+      result += line;
+      if (marker && marker[0] === fence[0] && marker.length >= fence.length) fence = null;
+      continue;
+    }
+    if (marker) {
+      result += line;
+      fence = marker;
+      continue;
+    }
+    result += rewriteOutsideInlineCode(line, rewrite);
+  }
+  return result;
+}
+
 export function rewriteLinks(markdown, pathMap, { sourcePath = '', targetPath = sourcePath } = {}) {
   const unresolved = [];
   const noteUnresolved = (kind, target) => unresolved.push({ kind, target, sourcePath });
-  let content = String(markdown || '');
-  content = content.replace(/(!?)\[\[([^\]]+)\]\]/gu, (whole, embed, inner) => {
-    const separator = inner.indexOf('|');
-    const raw = separator >= 0 ? inner.slice(0, separator).trim() : inner.trim();
-    const alias = separator >= 0 ? inner.slice(separator) : '';
-    const split = splitLinkTarget(raw);
-    const mapped = mappingFor(split.path, sourcePath, pathMap);
-    if (mapped === null) return whole;
-    if (!mapped) {
-      noteUnresolved(embed ? 'embed' : 'wikilink', raw);
-      return whole;
-    }
-    const preserve = embed && !/\.md$/iu.test(mapped);
-    return `${embed ? '!' : ''}[[${relativeTarget(targetPath, mapped, preserve)}${split.suffix}${alias}]]`;
-  });
-  content = content.replace(/(!?\[[^\]]*\])\(([^)]+)\)/gu, (whole, label, rawDestination) => {
-    const destination = rawDestination.trim();
-    if (destination.startsWith('<') && destination.includes('>')) {
-      const close = destination.indexOf('>');
-      const target = destination.slice(1, close);
-      const rest = destination.slice(close + 1);
-      const split = splitLinkTarget(target);
+  const rewrite = (segment) => {
+    let content = String(segment || '');
+    content = content.replace(/(!?)\[\[([^\]]+)\]\]/gu, (whole, embed, inner) => {
+      const separator = inner.indexOf('|');
+      const raw = separator >= 0 ? inner.slice(0, separator).trim() : inner.trim();
+      const alias = separator >= 0 ? inner.slice(separator) : '';
+      const split = splitLinkTarget(raw);
       const mapped = mappingFor(split.path, sourcePath, pathMap);
       if (mapped === null) return whole;
       if (!mapped) {
-        noteUnresolved(label.startsWith('!') ? 'asset' : 'markdown', target);
+        noteUnresolved(embed ? 'embed' : 'wikilink', raw);
         return whole;
       }
-      return `${label}(<${relativeTarget(targetPath, mapped, true)}${split.suffix}>${rest})`;
-    }
-    const split = splitLinkTarget(destination);
-    const mapped = mappingFor(split.path, sourcePath, pathMap);
-    if (mapped === null) return whole;
-    if (!mapped) {
-      noteUnresolved(label.startsWith('!') ? 'asset' : 'markdown', split.path);
-      return whole;
-    }
-    return `${label}(${relativeTarget(targetPath, mapped, true)}${split.suffix})`;
-  });
+      const preserve = embed && !/\.md$/iu.test(mapped);
+      return `${embed ? '!' : ''}[[${relativeTarget(targetPath, mapped, preserve)}${split.suffix}${alias}]]`;
+    });
+    return content.replace(/(!?\[[^\]]*\])\(([^)]+)\)/gu, (whole, label, rawDestination) => {
+      const destination = rawDestination.trim();
+      if (destination.startsWith('<') && destination.includes('>')) {
+        const close = destination.indexOf('>');
+        const target = destination.slice(1, close);
+        const rest = destination.slice(close + 1);
+        const split = splitLinkTarget(target);
+        const mapped = mappingFor(split.path, sourcePath, pathMap);
+        if (mapped === null) return whole;
+        if (!mapped) {
+          noteUnresolved(label.startsWith('!') ? 'asset' : 'markdown', target);
+          return whole;
+        }
+        return `${label}(<${relativeTarget(targetPath, mapped, true)}${split.suffix}>${rest})`;
+      }
+      const split = splitLinkTarget(destination);
+      const mapped = mappingFor(split.path, sourcePath, pathMap);
+      if (mapped === null) return whole;
+      if (!mapped) {
+        noteUnresolved(label.startsWith('!') ? 'asset' : 'markdown', split.path);
+        return whole;
+      }
+      return `${label}(${relativeTarget(targetPath, mapped, true)}${split.suffix})`;
+    });
+  };
+  const content = rewriteOutsideCode(markdown, rewrite);
   return { content, unresolved };
 }
 

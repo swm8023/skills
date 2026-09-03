@@ -52,6 +52,28 @@ test('stages and commits only the approved paths before invoking WheelMaker publ
   assert.equal((await run('git', ['-C', value.paths.data, 'show', '--stat', '--oneline', '-1'])).stdout.includes('note.md'), true);
 });
 
+test('does not create Git or WheelMaker side effects when publishing is disabled', async (t) => {
+  const value = await fixture(t);
+  await writeFile(value.paths.config, `version: 1
+content:
+  root: content
+  assets: content/assets
+  directories:
+    mode: ai
+publish:
+  mode: off
+`);
+  const note = path.join(value.paths.data, 'content', 'repo', 'note.md');
+  await mkdir(path.dirname(note), { recursive: true });
+  await writeFile(note, 'note\n');
+
+  const { result, calls } = await callPublish(value);
+  assert.equal(result.status, 'skipped', result.message);
+  assert.equal(result.mode, 'off');
+  assert.deepEqual(calls, []);
+  assert.equal((await readGitStatus(value.paths.data, { env: value.env })).some((entry) => entry.relativePath === 'content/repo/note.md'), true);
+});
+
 test('stops when an existing staged entry is present', async (t) => {
   const value = await fixture(t);
   const note = path.join(value.paths.data, 'content', 'repo', 'note.md');
@@ -80,6 +102,21 @@ test('stops when a dirty data path is outside the approved path list', async (t)
   assert.match(result.message, /outside the approved path list/u);
   assert.deepEqual(calls, []);
   assert.equal(await readFile(unrelated, 'utf8'), 'unrelated\n');
+});
+
+test('rejects directory pathspecs instead of staging every file below them', async (t) => {
+  const value = await fixture(t);
+  const first = path.join(value.paths.data, 'content', 'repo', 'first.md');
+  const second = path.join(value.paths.data, 'content', 'repo', 'second.md');
+  await mkdir(path.dirname(first), { recursive: true });
+  await writeFile(first, 'first\n');
+  await writeFile(second, 'second\n');
+
+  const { result, calls } = await callPublish(value, { requestedPaths: ['content/repo'] });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /outside|exact|directory/iu);
+  assert.deepEqual(calls, []);
+  assert.equal((await readGitStatus(value.paths.data, { env: value.env })).length, 2);
 });
 
 test('refuses a force-push request', async (t) => {

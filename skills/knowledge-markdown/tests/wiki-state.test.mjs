@@ -92,3 +92,15 @@ test('a malformed existing knowledge.yaml stops before content initialization', 
   assert.match(result.message, /malformed/u);
   await assert.rejects(() => stat(paths.content), { code: 'ENOENT' });
 });
+
+test('rejects syntactically invalid YAML instead of accepting any line with a colon', async (t) => {
+  const home = await makeHome(t);
+  const paths = resolveWikiPaths({ env: { USERPROFILE: home, HOME: home } });
+  await initGit(paths.data);
+  await writeFile(paths.config, 'publish: [\n');
+
+  const result = await ensureWikiState({ env: { USERPROFILE: home, HOME: home } });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /malformed|YAML|bracket/iu);
+  await assert.rejects(() => stat(paths.content), { code: 'ENOENT' });
+});

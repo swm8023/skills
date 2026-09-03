@@ -26,6 +26,7 @@ test('knowledge-search contains its active instructions and complete upstream ma
     'scripts/index.mjs',
     'scripts/search.mjs',
     'scripts/dataview.mjs',
+    'scripts/yaml.mjs',
   ];
   await Promise.all(required.map(mustExist));
 

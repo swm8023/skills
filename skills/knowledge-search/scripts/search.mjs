@@ -50,27 +50,53 @@ export async function runObsidianSearch(query, { data, env = process.env, timeou
 
 function queryParts(query) {
   const raw = String(query || '').trim();
-  const filters = { tags: [], folder: '', draft: null, title: '' };
+  const filters = { tags: [], folder: '', draft: null, title: '', properties: {} };
   const text = [];
   for (const token of raw.split(/\s+/u).filter(Boolean)) {
     const tag = token.match(/^tag:(.+)$/iu);
     const folder = token.match(/^folder:(.+)$/iu);
     const draft = token.match(/^draft:(true|false)$/iu);
     const title = token.match(/^title:(.+)$/iu);
+    const property = token.match(/^([A-Za-z_][\w.-]*):(.+)$/u);
     if (tag) filters.tags.push(tag[1].toLowerCase());
     else if (folder) filters.folder = folder[1].replace(/\\/gu, '/').toLowerCase();
     else if (draft) filters.draft = draft[1].toLowerCase() === 'true';
     else if (title) filters.title = title[1].toLowerCase();
+    else if (property && !/^(?:https?|file|mailto)$/iu.test(property[1])) filters.properties[property[1]] = queryValue(property[2]);
     else text.push(token.toLowerCase());
   }
   return { raw, filters, terms: text };
+}
+
+function queryValue(value) {
+  const clean = String(value || '').replace(/^['"]|['"]$/gu, '');
+  if (/^(?:true|false)$/iu.test(clean)) return clean.toLowerCase() === 'true';
+  if (/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/u.test(clean)) return Number(clean);
+  return clean.toLowerCase();
+}
+
+function propertyValue(row, key) {
+  const metadata = row.frontmatter;
+  if (!metadata || typeof metadata !== 'object') return undefined;
+  if (Object.prototype.hasOwnProperty.call(metadata, key)) return metadata[key];
+  return key.split('.').reduce((value, segment) => (
+    value && typeof value === 'object' ? value[segment] : undefined
+  ), metadata);
+}
+
+function propertyMatches(actual, expected) {
+  if (Array.isArray(actual)) return actual.some((value) => propertyMatches(value, expected));
+  if (actual && typeof actual === 'object') return JSON.stringify(actual).toLowerCase() === String(expected).toLowerCase();
+  if (typeof expected === 'boolean' || typeof expected === 'number') return actual === expected;
+  return String(actual ?? '').toLowerCase() === String(expected).toLowerCase();
 }
 
 function matchesFilter(row, filters) {
   if (filters.draft !== null && row.draft !== filters.draft) return false;
   if (filters.folder && !row.folder.toLowerCase().startsWith(filters.folder)) return false;
   if (filters.title && !row.title.toLowerCase().includes(filters.title)) return false;
-  return filters.tags.every((tag) => row.tags.some((value) => value.toLowerCase() === tag || value.toLowerCase().startsWith(`${tag}/`)));
+  if (!filters.tags.every((tag) => row.tags.some((value) => value.toLowerCase() === tag || value.toLowerCase().startsWith(`${tag}/`)))) return false;
+  return Object.entries(filters.properties).every(([key, expected]) => propertyMatches(propertyValue(row, key), expected));
 }
 
 function snippet(row, terms) {
@@ -94,17 +120,30 @@ function score(row, terms, filters) {
     + (description.includes(term) ? 30 : 0)
     + (body.includes(term) ? 10 : 0), 0)
     + filters.tags.length * 25
+    + Object.keys(filters.properties).length * 25
     + (filters.folder ? 15 : 0);
 }
 
 export async function searchFallback({ query, env = process.env, gitUrl = '', limit = 50 } = {}) {
-  const index = await ensureFresh({ env, gitUrl });
+  let index;
+  let stale = false;
+  let warning = '';
+  try {
+    index = await ensureFresh({ env, gitUrl });
+  } catch (error) {
+    const existing = await readIndexRows({ env });
+    if (!existing.length) throw error;
+    stale = true;
+    warning = `The local knowledge index could not be refreshed; showing the previous index: ${error.message}`;
+    const paths = resolveWikiPaths({ env });
+    index = { backend: 'stale', paths };
+  }
   const rows = await readIndexRows({ env });
   const parts = queryParts(query);
   const results = rows.filter((row) => {
     if (!matchesFilter(row, parts.filters)) return false;
     if (!parts.terms.length) return true;
-    const haystack = `${row.title} ${row.description || ''} ${row.tags.join(' ')} ${row.body || ''}`.toLowerCase();
+    const haystack = `${row.title} ${row.description || ''} ${row.tags.join(' ')} ${row.body || ''} ${JSON.stringify(row.frontmatter || {})}`.toLowerCase();
     return parts.terms.every((term) => haystack.includes(term));
   }).map((row) => ({
     path: row.path,
@@ -121,6 +160,8 @@ export async function searchFallback({ query, env = process.env, gitUrl = '', li
     degraded: true,
     backend: index.backend,
     index: index.paths.indexDir,
+    stale,
+    ...(warning ? { warning } : {}),
     results,
   };
 }

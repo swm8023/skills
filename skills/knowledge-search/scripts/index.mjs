@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto';
-import { mkdir, open, readdir, readFile, rename, rm, stat, writeFile, lstat } from 'node:fs/promises';
+import { copyFile, mkdir, open, readdir, readFile, rename, rm, stat, writeFile, lstat } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { setTimeout as delay } from 'node:timers/promises';
 
 import { ensureWikiState, resolveWikiPaths } from './wiki-state.mjs';
+import { parseYamlDocument } from './yaml.mjs';
 
 let DatabaseSync;
 try {
@@ -17,7 +18,7 @@ try {
 
 export const PARSER_VERSION = 'knowledge-search-parser-1';
 export const INDEX_VERSION = 'knowledge-search-index-1';
-export const MODEL_VERSION = 'none';
+export const MODEL_VERSION = 'lexical-only-1';
 
 function normalizePath(value) {
   return String(value || '').replace(/\\/gu, '/').replace(/^\.\//u, '');
@@ -37,70 +38,16 @@ async function optionalRead(filename) {
   }
 }
 
-function stripYamlComment(value) {
-  const source = String(value || '').trim();
-  let quote = '';
-  for (let index = 0; index < source.length; index += 1) {
-    const character = source[index];
-    if (quote) {
-      if (character === quote && (quote !== '"' || source[index - 1] !== '\\')) quote = '';
-    } else if (character === '"' || character === "'") quote = character;
-    else if (character === '#' && (index === 0 || /\s/u.test(source[index - 1]))) return source.slice(0, index).trim();
-  }
-  return source;
-}
-
-function splitList(source) {
-  const inner = source.slice(1, -1).trim();
-  if (!inner) return [];
-  return inner.split(',').map((item) => parseScalar(item)).filter((item) => item !== null && item !== undefined);
-}
-
-function parseScalar(value) {
-  const clean = stripYamlComment(value);
-  if (!clean || clean === 'null' || clean === '~') return null;
-  if (clean === 'true') return true;
-  if (clean === 'false') return false;
-  if (/^-?\d+(?:\.\d+)?$/u.test(clean)) return Number(clean);
-  if (clean.startsWith('[') && clean.endsWith(']')) return splitList(clean);
-  if (clean.startsWith('"') && clean.endsWith('"')) {
-    try { return JSON.parse(clean); } catch { return clean.slice(1, -1); }
-  }
-  if (clean.startsWith("'") && clean.endsWith("'")) return clean.slice(1, -1).replace(/''/gu, "'");
-  return clean;
-}
-
 function parseNote(source, filename) {
   const normalized = String(source || '').replace(/^\uFEFF/u, '').replace(/\r\n/gu, '\n');
   let metadata = {};
   let body = normalized;
   if (normalized.startsWith('---\n')) {
     const boundary = normalized.indexOf('\n---\n', 4);
-    if (boundary >= 0) {
-      const lines = normalized.slice(4, boundary).split('\n');
-      let currentList = '';
-      for (const line of lines) {
-        if (!line.trim() || line.trimStart().startsWith('#')) continue;
-        const listItem = line.match(/^\s+-\s+(.+)$/u);
-        if (listItem && currentList) {
-          if (!Array.isArray(metadata[currentList])) metadata[currentList] = [];
-          metadata[currentList].push(parseScalar(listItem[1]));
-          continue;
-        }
-        const separator = line.indexOf(':');
-        if (separator <= 0) continue;
-        const key = line.slice(0, separator).trim();
-        const raw = line.slice(separator + 1).trim();
-        if (raw === '') {
-          currentList = key;
-          metadata[key] = [];
-        } else {
-          currentList = '';
-          metadata[key] = parseScalar(raw);
-        }
-      }
-      body = normalized.slice(boundary + '\n---\n'.length).replace(/^\n/u, '');
-    }
+    if (boundary < 0) throw new Error(`${filename}: unterminated YAML frontmatter`);
+    metadata = parseYamlDocument(normalized.slice(4, boundary), `${filename} frontmatter`) ?? {};
+    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error(`${filename}: frontmatter must be a YAML mapping`);
+    body = normalized.slice(boundary + '\n---\n'.length).replace(/^\n/u, '');
   }
   const heading = body.match(/^#{1,6}\s+(.+?)\s*#*$/mu);
   const title = typeof metadata.title === 'string' && metadata.title.trim()
@@ -238,9 +185,55 @@ async function acquireLock(filename) {
   throw new Error(`Timed out waiting for the local knowledge index lock: ${filename}`);
 }
 
+const SQLITE_BASE_COLUMNS = new Set([
+  'path', 'folder', 'filename', 'title', 'description', 'date', 'draft',
+  'tags', 'frontmatter', 'body', 'size', 'modified', 'content_digest',
+]);
+
+function quoteIdentifier(value) {
+  return `"${String(value).replace(/"/gu, '""')}"`;
+}
+
+function jsonPath(value) {
+  return `$."${String(value).replace(/"/gu, '""')}"`;
+}
+
+function quoteSqlString(value) {
+  return String(value).replace(/'/gu, "''");
+}
+
+function sqliteObjectType(db, name) {
+  return db.prepare('SELECT type FROM sqlite_master WHERE name = ?').get(name)?.type || null;
+}
+
+function frontmatterKeys(db) {
+  const keys = new Set();
+  for (const row of db.prepare('SELECT frontmatter FROM notes_base').all()) {
+    try {
+      const metadata = JSON.parse(row.frontmatter || '{}');
+      if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+        for (const key of Object.keys(metadata)) if (!SQLITE_BASE_COLUMNS.has(key)) keys.add(key);
+      }
+    } catch { /* an indexed row will still remain searchable through its base fields */ }
+  }
+  return [...keys].sort((left, right) => left.localeCompare(right));
+}
+
+function refreshNotesView(db) {
+  const extra = frontmatterKeys(db)
+    .map((key) => `json_extract(b.frontmatter, '${quoteSqlString(jsonPath(key))}') AS ${quoteIdentifier(key)}`)
+    .join(', ');
+  db.exec('DROP VIEW IF EXISTS notes');
+  db.exec(`CREATE VIEW notes AS SELECT b.*${extra ? `, ${extra}` : ''} FROM notes_base AS b`);
+}
+
 function sqliteSchema(db) {
+  const notesType = sqliteObjectType(db, 'notes');
+  const baseType = sqliteObjectType(db, 'notes_base');
+  if (notesType === 'table' && !baseType) db.exec('ALTER TABLE notes RENAME TO notes_base');
+  else if (notesType === 'table' && baseType) throw new Error('SQLite index contains both legacy and current notes tables.');
   db.exec(`
-    CREATE TABLE IF NOT EXISTS notes (
+    CREATE TABLE IF NOT EXISTS notes_base (
       path TEXT PRIMARY KEY,
       folder TEXT NOT NULL,
       filename TEXT NOT NULL,
@@ -263,6 +256,7 @@ function sqliteSchema(db) {
       body
     );
   `);
+  refreshNotesView(db);
 }
 
 function sqliteConnection(paths) {
@@ -292,7 +286,7 @@ function rowValues(candidate) {
 
 function upsertSqlite(db, candidate) {
   db.prepare(`
-    INSERT INTO notes (path, folder, filename, title, description, date, draft, tags, frontmatter, body, size, modified, content_digest)
+    INSERT INTO notes_base (path, folder, filename, title, description, date, draft, tags, frontmatter, body, size, modified, content_digest)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(path) DO UPDATE SET
       folder=excluded.folder, filename=excluded.filename, title=excluded.title,
@@ -311,7 +305,7 @@ function upsertSqlite(db, candidate) {
 }
 
 function deleteSqlite(db, relativePath) {
-  db.prepare('DELETE FROM notes WHERE path = ?').run(relativePath);
+  db.prepare('DELETE FROM notes_base WHERE path = ?').run(relativePath);
   db.prepare('DELETE FROM notes_fts WHERE path = ?').run(relativePath);
 }
 
@@ -337,11 +331,11 @@ function rowToNote(row) {
 async function updateSqlite(paths, candidates, previous, nextManifest, changedPaths, rebuild, replaceManifest = atomicReplace) {
   const oldManifest = await optionalRead(paths.manifest);
   const db = sqliteConnection(paths);
-  let manifestReplaced = false;
+  let committed = false;
   try {
     db.exec('BEGIN IMMEDIATE');
     if (rebuild) {
-      db.exec('DELETE FROM notes');
+      db.exec('DELETE FROM notes_base');
       db.exec('DELETE FROM notes_fts');
     } else {
       for (const relativePath of changedPaths.deleted) deleteSqlite(db, relativePath);
@@ -349,14 +343,15 @@ async function updateSqlite(paths, candidates, previous, nextManifest, changedPa
     for (const candidate of candidates) {
       if (rebuild || changedPaths.changed.has(candidate.relativePath)) upsertSqlite(db, candidate);
     }
-    await replaceManifest(paths.manifest, `${JSON.stringify(nextManifest, null, 2)}\n`);
-    manifestReplaced = true;
+    refreshNotesView(db);
     db.exec('COMMIT');
+    committed = true;
+    await replaceManifest(paths.manifest, `${JSON.stringify(nextManifest, null, 2)}\n`);
   } catch (error) {
-    try { db.exec('ROLLBACK'); } catch { /* preserve the original failure */ }
-    if (manifestReplaced) {
-      try { await restoreFile(paths.manifest, oldManifest); } catch { /* preserve the original failure */ }
+    if (!committed) {
+      try { db.exec('ROLLBACK'); } catch { /* preserve the original failure */ }
     }
+    try { await restoreFile(paths.manifest, oldManifest); } catch { /* preserve the original failure */ }
     throw error;
   } finally {
     db.close();
@@ -402,6 +397,41 @@ async function readManifest(paths) {
   } catch { return null; }
 }
 
+async function databaseFormat(filename) {
+  let raw;
+  try { raw = await readFile(filename); } catch (error) {
+    if (error?.code === 'ENOENT') return 'missing';
+    throw error;
+  }
+  if (raw.subarray(0, 16).equals(Buffer.from('SQLite format 3\0'))) return 'sqlite';
+  try {
+    const parsed = JSON.parse(raw.toString('utf8'));
+    if (parsed?.backend === 'lexical-json' && parsed.notes && typeof parsed.notes === 'object') return 'json';
+  } catch { /* classify malformed or foreign files as incompatible */ }
+  return 'unknown';
+}
+
+async function prepareDatabase(paths, backend, shouldBackup) {
+  const format = await databaseFormat(paths.database);
+  if (format === 'missing') return null;
+  const expected = backend === 'sqlite-fts5' ? 'sqlite' : 'json';
+  const backup = `${paths.database}.previous-${process.pid}-${Math.random().toString(16).slice(2)}`;
+  if (format === expected && !(backend === 'sqlite-fts5' && shouldBackup)) return null;
+  if (format === expected) await copyFile(paths.database, backup);
+  else await rename(paths.database, backup);
+  return { backup };
+}
+
+async function finishDatabaseBackup(paths, state, restore) {
+  if (!state) return;
+  if (restore) {
+    await rm(paths.database, { force: true });
+    await rename(state.backup, paths.database);
+  } else {
+    await rm(state.backup, { force: true });
+  }
+}
+
 export async function ensureFresh({ env = process.env, gitUrl = '', parserVersion = PARSER_VERSION, indexVersion = INDEX_VERSION, modelVersion = MODEL_VERSION, atomicReplaceFn = atomicReplace } = {}) {
   const state = await ensureWikiState({ env, gitUrl });
   if (state.status !== 'ready') throw new Error(state.message || `Wiki state is not ready: ${state.status}`);
@@ -412,13 +442,15 @@ export async function ensureFresh({ env = process.env, gitUrl = '', parserVersio
     const candidates = await scanMarkdown(paths);
     const previous = await readManifest(paths);
     const backend = DatabaseSync ? 'sqlite-fts5' : 'lexical-json';
+    const currentDatabaseFormat = await databaseFormat(paths.database);
+    const compatibleDatabase = currentDatabaseFormat === (backend === 'sqlite-fts5' ? 'sqlite' : 'json');
     const rebuild = !previous
       || previous.sourceRoot !== paths.data
       || previous.parserVersion !== parserVersion
       || previous.indexVersion !== indexVersion
       || previous.modelVersion !== modelVersion
       || previous.backend !== backend
-      || !(await exists(paths.database));
+      || !compatibleDatabase;
     const previousFiles = new Map((previous?.files || []).map((entry) => [entry.relativePath, entry]));
     const currentFiles = new Map(candidates.map(manifestFile).map((entry) => [entry.relativePath, entry]));
     const changed = new Set();
@@ -437,8 +469,15 @@ export async function ensureFresh({ env = process.env, gitUrl = '', parserVersio
       backend,
       files: candidates.map(manifestFile),
     };
-    if (backend === 'sqlite-fts5') await updateSqlite(paths, candidates, previous, nextManifest, changedPaths, rebuild, atomicReplaceFn);
-    else await updateFallback(paths, candidates, nextManifest, changedPaths, rebuild, atomicReplaceFn);
+    const databaseBackup = await prepareDatabase(paths, backend, rebuild || changed.size > 0 || deleted.length > 0);
+    try {
+      if (backend === 'sqlite-fts5') await updateSqlite(paths, candidates, previous, nextManifest, changedPaths, rebuild, atomicReplaceFn);
+      else await updateFallback(paths, candidates, nextManifest, changedPaths, rebuild, atomicReplaceFn);
+      await finishDatabaseBackup(paths, databaseBackup, false);
+    } catch (error) {
+      try { await finishDatabaseBackup(paths, databaseBackup, true); } catch { /* preserve the original failure */ }
+      throw error;
+    }
     return {
       status: 'ready',
       backend,
@@ -454,7 +493,7 @@ export async function ensureFresh({ env = process.env, gitUrl = '', parserVersio
 
 export async function readIndexRows({ env = process.env } = {}) {
   const paths = resolveWikiPaths({ env });
-  if (DatabaseSync && await exists(paths.database)) {
+  if (DatabaseSync && await databaseFormat(paths.database) === 'sqlite') {
     const db = sqliteConnection(paths);
     try { return db.prepare('SELECT * FROM notes ORDER BY path').all().map(rowToNote); } finally { db.close(); }
   }
@@ -476,6 +515,21 @@ function assertReadOnlyQuery(sql) {
   return normalized;
 }
 
+function frontmatterValue(row, column) {
+  if (Object.prototype.hasOwnProperty.call(row, column)) return row[column];
+  const metadata = row.frontmatter;
+  if (!metadata || typeof metadata !== 'object') return undefined;
+  if (Object.prototype.hasOwnProperty.call(metadata, column)) return metadata[column];
+  return column.split('.').reduce((value, segment) => (
+    value && typeof value === 'object' ? value[segment] : undefined
+  ), metadata);
+}
+
+function fallbackValue(row, column) {
+  const value = frontmatterValue(row, column);
+  return value && typeof value === 'object' ? JSON.stringify(value) : value;
+}
+
 function fallbackQuery(sql, rows) {
   const match = sql.match(/^SELECT\s+(.+?)\s+FROM\s+notes(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+([\w]+)(?:\s+(ASC|DESC))?)?(?:\s+LIMIT\s+(\d+))?\s*$/iu);
   if (!match) throw new Error('SQLite is unavailable and this Dataview query is outside the local fallback subset.');
@@ -487,26 +541,26 @@ function fallbackQuery(sql, rows) {
     const [, column, operator, quoted, literal] = condition;
     const expected = (quoted ?? literal).toLowerCase();
     selected = selected.filter((row) => {
-      const value = String(row[column] ?? '').toLowerCase();
+      const value = String(fallbackValue(row, column) ?? '').toLowerCase();
       return operator.toUpperCase() === 'LIKE' ? value.includes(expected.replace(/%/gu, '')) : value === expected;
     });
   }
   if (match[3]) {
     const column = match[3];
-    selected.sort((left, right) => String(left[column] ?? '').localeCompare(String(right[column] ?? '')));
+    selected.sort((left, right) => String(fallbackValue(left, column) ?? '').localeCompare(String(fallbackValue(right, column) ?? '')));
     if (match[4]?.toUpperCase() === 'DESC') selected.reverse();
   }
   if (match[5]) selected = selected.slice(0, Number(match[5]));
   return selected.map((row) => {
     if (!columns) return row;
-    return Object.fromEntries(columns.map((column) => [column, row[column]]));
+    return Object.fromEntries(columns.map((column) => [column, fallbackValue(row, column)]));
   });
 }
 
 export async function queryIndex(sql, { env = process.env } = {}) {
   const normalized = assertReadOnlyQuery(sql);
   const paths = resolveWikiPaths({ env });
-  if (DatabaseSync && await exists(paths.database)) {
+  if (DatabaseSync && await databaseFormat(paths.database) === 'sqlite') {
     const db = sqliteConnection(paths);
     try {
       return { mode: 'sqlite', rows: db.prepare(normalized).all().map((row) => Object.fromEntries(Object.entries(row))) };

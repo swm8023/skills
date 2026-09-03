@@ -151,7 +151,9 @@ rebase/push phase, and then invokes the existing `wheelmaker wiki publish`
 command. It never calls a separate Hub upload command.
 
 `publish.mode` in `knowledge.yaml` controls whether this final phase runs. With
-the default `auto`, the Skill calls the existing WheelMaker Wiki command. That
+the default `auto`, the Skill calls the existing WheelMaker Wiki command. Values
+`off`, `disabled`, `manual`, and `false` return `skipped` before staging, commit,
+pull, push, or WheelMaker invocation. That
 command invokes its built-in `default.mjs`; the MJS calls the Skill-prepared Quartz
 runtime with `data/content/` as input and the Hub output directory as output. The
 same WheelMaker command validates, archives, authenticates, and uploads the static

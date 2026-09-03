@@ -78,3 +78,18 @@ test('reports unresolved local links and target collisions', () => {
   });
   assert.equal(rewritten.unresolved.length, 2);
 });
+
+test('does not rewrite link-shaped text inside fenced code', () => {
+  const map = buildPathMap([
+    { sourcePath: 'legacy/two.md', targetPath: 'repo/reference/two.md' },
+  ]).map;
+  const rewritten = rewriteLinks(
+    '```md\n[[two]]\n[guide](two.md)\n```\n\n`[[two]]` and [[two]]\n[guide](two.md)\n',
+    map,
+    { sourcePath: 'legacy/one.md', targetPath: 'repo/guide/one.md' },
+  );
+  assert.match(rewritten.content, /```md\n\[\[two\]\]\n\[guide\]\(two\.md\)\n```/u);
+  assert.match(rewritten.content, /`\[\[two\]\]`/u);
+  assert.match(rewritten.content, /\[\[\.\.\/reference\/two\]\]/u);
+  assert.match(rewritten.content, /\[guide\]\(\.\.\/reference\/two\.md\)/u);
+});

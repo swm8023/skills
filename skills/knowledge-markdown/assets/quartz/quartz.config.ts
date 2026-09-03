@@ -1,5 +1,6 @@
 import { QuartzConfig } from "./quartz/cfg"
 import * as Plugin from "./quartz/plugins"
+import { KnowledgeHomePage } from "./quartz/emitters/KnowledgeHomePage"
 
 const config: QuartzConfig = {
   configuration: {
@@ -68,6 +69,7 @@ const config: QuartzConfig = {
       Plugin.AliasRedirects(),
       Plugin.ComponentResources(),
       Plugin.ContentPage(),
+      KnowledgeHomePage(),
       Plugin.FolderPage(),
       Plugin.TagPage(),
       Plugin.ContentIndex({ enableSiteMap: true, enableRSS: true }),

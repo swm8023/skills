@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 import { ensureWikiState, readGitStatus, runGit } from './wiki-state.mjs';
+import { parseKnowledgeConfig } from './yaml.mjs';
 
 const execFile = promisify(execFileCallback);
 
@@ -18,20 +19,17 @@ function normalizePath(value) {
 }
 
 function allowedPath(relativePath, requestedPaths) {
-  return requestedPaths.some((requested) => relativePath === requested || relativePath.startsWith(`${requested}/`));
+  return requestedPaths.some((requested) => relativePath === requested);
 }
 
 function parseNameList(output) {
   return String(output || '').split('\0').map(normalizePath).filter(Boolean);
 }
 
-function publishMode(source) {
-  for (const line of String(source || '').split(/\r?\n/u)) {
-    const clean = line.replace(/\s+#.*$/u, '').trim();
-    const match = clean.match(/^(?:publish\.mode|mode):\s*([a-z-]+)/iu);
-    if (match) return match[1].toLowerCase();
-  }
-  return 'auto';
+function publishMode(config) {
+  if (config?.publish === false) return 'false';
+  if (typeof config?.publish?.mode === 'boolean') return config.publish.mode ? 'auto' : 'false';
+  return typeof config?.publish?.mode === 'string' ? config.publish.mode.toLowerCase() : 'auto';
 }
 
 async function invokeWheelmaker(args = ['wiki', 'publish'], { env = process.env } = {}) {
@@ -96,6 +94,15 @@ export async function publishWiki({
     return { status: 'blocked', message: error.message };
   }
   if (state.status !== 'ready') return { status: 'blocked', ...state };
+  let mode;
+  try {
+    mode = publishMode(parseKnowledgeConfig(await readFile(state.paths.config, 'utf8'), state.paths.config));
+  } catch (error) {
+    return { status: 'blocked', paths: state.paths, message: `knowledge.yaml is malformed: ${error.message}` };
+  }
+  if (mode === 'manual' || mode === 'disabled' || mode === 'off' || mode === 'false') {
+    return { status: 'skipped', paths: state.paths, mode, pushed: false };
+  }
   const requested = [...requestedPaths];
   if (state.configCreated) requested.push('knowledge.yaml');
   let preflight;
@@ -120,13 +127,8 @@ export async function publishWiki({
     await runGit(['-C', state.paths.data, 'commit', '-m', String(message || 'knowledge: update Wiki')], { env });
     if (pull) await runGit(['-C', state.paths.data, 'pull', '--rebase'], { env });
     if (push) await runGit(['-C', state.paths.data, 'push'], { env });
-    const config = await readFile(state.paths.config, 'utf8');
-    const mode = publishMode(config);
-    if (mode === 'manual' || mode === 'disabled' || mode === 'off' || mode === 'false') {
-      return { status: 'committed', paths: state.paths, staged, pushed: push, mode };
-    }
     await invoke(['wiki', 'publish'], { env, paths: state.paths });
-    return { status: 'published', paths: state.paths, staged, pushed: push, mode: 'auto' };
+    return { status: 'published', paths: state.paths, staged, pushed: push, mode };
   } catch (error) {
     return { status: 'blocked', paths: state.paths, message: `Wiki Git/publish phase failed: ${error.message}` };
   }

@@ -15,6 +15,7 @@ async function makeHome(t) {
 
 async function fakeInstaller(stage) {
   await mkdir(path.join(stage, 'quartz'), { recursive: true });
+  await mkdir(path.join(stage, 'node_modules'), { recursive: true });
   await writeFile(path.join(stage, 'quartz', 'bootstrap-cli.mjs'), 'export {};\n');
 }
 
@@ -28,6 +29,22 @@ test('installs the pinned Quartz runtime atomically into the private Wiki root',
   assert.equal(await stat(path.join(paths.quartz, 'quartz', 'bootstrap-cli.mjs')).then((info) => info.isFile()), true);
   assert.equal(await stat(path.join(paths.quartz, 'quartz.config.ts')).then((info) => info.isFile()), true);
   assert.equal((await readdir(paths.wiki)).some((entry) => entry.startsWith('.quartz-stage-')), false);
+});
+
+test('refuses an existing runtime whose release metadata is not the pinned version', async (t) => {
+  const home = await makeHome(t);
+  const env = { USERPROFILE: home, HOME: home };
+  const paths = resolveWikiPaths({ env });
+  await mkdir(path.join(paths.quartz, 'quartz'), { recursive: true });
+  await mkdir(path.join(paths.quartz, 'node_modules'), { recursive: true });
+  await writeFile(path.join(paths.quartz, 'quartz', 'bootstrap-cli.mjs'), 'export {};\n');
+  await writeFile(path.join(paths.quartz, 'quartz.config.ts'), 'export default {};\n');
+  await writeFile(path.join(paths.quartz, 'quartz.layout.ts'), 'export default {};\n');
+  await writeFile(path.join(paths.quartz, '.wheelmaker-quartz-release.json'), JSON.stringify({ version: 'v4.5.1', commit: 'wrong' }));
+
+  const result = await ensureQuartz({ env, installer: fakeInstaller });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /pinned|version|metadata/iu);
 });
 
 test('refuses to overwrite a nonempty unexpected runtime directory', async (t) => {

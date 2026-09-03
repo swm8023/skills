@@ -26,6 +26,7 @@ test('knowledge-markdown contains its active instructions and complete upstream 
     'scripts/normalize-note.mjs',
     'scripts/publish-wiki.mjs',
     'scripts/ensure-quartz.mjs',
+    'scripts/yaml.mjs',
     'assets/quartz/quartz.config.ts',
     'assets/quartz/quartz.layout.ts',
     'assets/quartz/quartz/components/KnowledgeSidebarSwitch.tsx',

@@ -14,9 +14,11 @@ This Skill incorporates and extends the following pinned open-source material.
   retained here.
 
 The active `knowledge-search/SKILL.md` preserves the upstream semantic-search and
-Dataview workflows while replacing manual rebuilds, arbitrary personal paths, and
-required Python/vector dependencies with the fixed local automatic index and
-Obsidian-first adapter.
+Dataview workflow as reference material while replacing manual rebuilds, arbitrary
+personal paths, and required Python/vector dependencies with the fixed local
+automatic index and Obsidian-first adapter. The active implementation currently
+provides lexical and metadata search only; the upstream embedding examples are not
+silently activated or installed.
 
 ## Local extension boundary
 

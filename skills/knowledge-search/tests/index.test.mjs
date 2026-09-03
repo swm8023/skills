@@ -96,3 +96,23 @@ test('retains the previous valid manifest and rows when an index update fails', 
   assert.equal(await readFile(value.paths.manifest, 'utf8'), previousManifest);
   assert.equal((await readIndexRows({ env: value.env }))[0].body.includes('old'), true);
 });
+
+test('rebuilds when an old fallback database file is present on a SQLite runtime', async (t) => {
+  const value = await fixture(t);
+  await note(value.paths, 'content/repo/one.md', '---\ntitle: One\n---\n\nnew\n');
+  await mkdir(value.paths.indexDir, { recursive: true });
+  await writeFile(value.paths.database, JSON.stringify({ schema: 1, backend: 'lexical-json', notes: {} }));
+  await writeFile(value.paths.manifest, JSON.stringify({
+    schema: 1,
+    sourceRoot: value.paths.data,
+    parserVersion: 'knowledge-search-parser-1',
+    indexVersion: 'knowledge-search-index-1',
+    modelVersion: 'lexical-only-1',
+    backend: 'lexical-json',
+    files: [],
+  }));
+
+  const result = await ensureFresh({ env: value.env });
+  assert.equal(result.status, 'ready');
+  assert.equal((await readIndexRows({ env: value.env }))[0].title, 'One');
+});

@@ -21,7 +21,7 @@ async function fixture(t) {
   await run('git', ['-C', paths.data, 'config', 'user.email', 'test@example.invalid']);
   await run('git', ['-C', paths.data, 'config', 'user.name', 'Knowledge Test']);
   await mkdir(path.join(paths.data, 'content', 'repo'), { recursive: true });
-  await writeFile(path.join(paths.data, 'content', 'repo', 'draft.md'), '---\ntitle: Draft\ndraft: true\n---\n\nDraft\n');
+  await writeFile(path.join(paths.data, 'content', 'repo', 'draft.md'), '---\ntitle: Draft\ndraft: true\nstatus: open\npriority: 2\ncustom:\n  owner: wheelmaker\nitems:\n  - name: wheelmaker\n    enabled: true\n---\n\nDraft\n');
   return { env, paths };
 }
 
@@ -43,3 +43,27 @@ test('does not allow a Dataview query to mutate the local index', async (t) => {
   );
 });
 
+test('supports arbitrary stored Frontmatter properties in Dataview queries', async (t) => {
+  const value = await fixture(t);
+  const result = await dataviewQuery({
+    sql: "SELECT path, status, priority, custom FROM notes WHERE status = 'open' ORDER BY priority",
+    env: value.env,
+  });
+  assert.deepEqual(result.rows, [{
+    path: 'content/repo/draft.md',
+    status: 'open',
+    priority: 2,
+    custom: '{"owner":"wheelmaker"}',
+  }]);
+});
+
+test('supports sequence-of-mapping Frontmatter properties', async (t) => {
+  const value = await fixture(t);
+  const result = await dataviewQuery({
+    sql: 'SELECT items FROM notes ORDER BY path',
+    env: value.env,
+  });
+  assert.deepEqual(result.rows, [{
+    items: '[{"name":"wheelmaker","enabled":true}]',
+  }]);
+});

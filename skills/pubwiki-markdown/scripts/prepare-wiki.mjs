@@ -4,7 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-import { ensureWikiState, syncCleanWiki } from './wiki-state.mjs';
+import { ensureWikiState, syncCleanWiki } from './pubwiki-core.mjs';
 
 function parseCli(argv) {
   let gitUrl = '';

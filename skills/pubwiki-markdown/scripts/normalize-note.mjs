@@ -3,185 +3,11 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+
+import { normalizeRelativePath, parseYamlDocument } from './pubwiki-core.mjs';
 import { pathToFileURL } from 'node:url';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/u;
-
-function stripYamlComment(source) {
-  let quote = '';
-  let depth = 0;
-  for (let index = 0; index < source.length; index += 1) {
-    const character = source[index];
-    if (quote) {
-      if (character === quote && (quote !== '"' || source[index - 1] !== '\\')) quote = '';
-      continue;
-    }
-    if (character === '"' || character === "'") {
-      quote = character;
-    } else if (character === '[' || character === '{' || character === '(') {
-      depth += 1;
-    } else if (character === ']' || character === '}' || character === ')') {
-      depth = Math.max(0, depth - 1);
-    } else if (character === '#' && depth === 0 && (index === 0 || /\s/u.test(source[index - 1]))) {
-      return source.slice(0, index).trimEnd();
-    }
-  }
-  return source.trimEnd();
-}
-
-function splitTopLevel(source, separator = ',') {
-  const values = [];
-  let start = 0;
-  let quote = '';
-  let depth = 0;
-  for (let index = 0; index < source.length; index += 1) {
-    const character = source[index];
-    if (quote) {
-      if (character === quote && (quote !== '"' || source[index - 1] !== '\\')) quote = '';
-      continue;
-    }
-    if (character === '"' || character === "'") quote = character;
-    else if ('[{('.includes(character)) depth += 1;
-    else if (']})'.includes(character)) depth = Math.max(0, depth - 1);
-    else if (character === separator && depth === 0) {
-      values.push(source.slice(start, index).trim());
-      start = index + 1;
-    }
-  }
-  values.push(source.slice(start).trim());
-  return values.filter(Boolean);
-}
-
-function splitPair(source) {
-  let quote = '';
-  let depth = 0;
-  for (let index = 0; index < source.length; index += 1) {
-    const character = source[index];
-    if (quote) {
-      if (character === quote && (quote !== '"' || source[index - 1] !== '\\')) quote = '';
-      continue;
-    }
-    if (character === '"' || character === "'") quote = character;
-    else if ('[{('.includes(character)) depth += 1;
-    else if (']})'.includes(character)) depth = Math.max(0, depth - 1);
-    else if (character === ':' && depth === 0
-      && (index + 1 === source.length || /\s/u.test(source[index + 1]))) {
-      const key = source.slice(0, index).trim();
-      if (key) return { key, value: source.slice(index + 1).trim() };
-    }
-  }
-  return null;
-}
-
-function parseScalar(source) {
-  const value = stripYamlComment(String(source || '').trim());
-  if (value === '') return null;
-  if (value === 'null' || value === '~') return null;
-  if (value === 'true') return true;
-  if (value === 'false') return false;
-  if (/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/u.test(value)) return Number(value);
-  if (value === '[]') return [];
-  if (value === '{}') return {};
-  if (value.startsWith('[') && value.endsWith(']')) {
-    return splitTopLevel(value.slice(1, -1)).map(parseScalar);
-  }
-  if (value.startsWith('{') && value.endsWith('}')) {
-    const result = {};
-    for (const entry of splitTopLevel(value.slice(1, -1))) {
-      const pair = splitPair(entry) || (() => {
-        const separator = entry.indexOf(':');
-        return separator > 0 ? { key: entry.slice(0, separator).trim(), value: entry.slice(separator + 1).trim() } : null;
-      })();
-      if (pair) result[pair.key] = parseScalar(pair.value);
-    }
-    return result;
-  }
-  if (value.startsWith('"') && value.endsWith('"')) {
-    try { return JSON.parse(value); } catch { return value.slice(1, -1); }
-  }
-  if (value.startsWith("'") && value.endsWith("'")) return value.slice(1, -1).replace(/''/gu, "'");
-  return value;
-}
-
-function frontmatterLines(source) {
-  return String(source || '').replace(/^\uFEFF/u, '').split(/\r?\n/u)
-    .map((raw, index) => {
-      if (/\t/u.test(raw)) throw new Error(`frontmatter line ${index + 1} uses tabs for indentation`);
-      const withoutComment = stripYamlComment(raw);
-      if (!withoutComment.trim()) return null;
-      return {
-        indent: withoutComment.length - withoutComment.trimStart().length,
-        text: withoutComment.trim(),
-        line: index + 1,
-      };
-    })
-    .filter(Boolean);
-}
-
-function parseBlock(lines, start, indent) {
-  if (start >= lines.length || lines[start].indent < indent) return [null, start];
-  if (lines[start].indent !== indent) throw new Error(`unexpected frontmatter indentation at line ${lines[start].line}`);
-  const isArray = lines[start].text === '-' || lines[start].text.startsWith('- ');
-  const result = isArray ? [] : {};
-  let index = start;
-  while (index < lines.length) {
-    const line = lines[index];
-    if (line.indent < indent) break;
-    if (line.indent > indent) throw new Error(`unexpected frontmatter indentation at line ${line.line}`);
-    if (isArray) {
-      if (line.text !== '-' && !line.text.startsWith('- ')) break;
-      const rest = line.text.slice(1).trim();
-      index += 1;
-      if (!rest) {
-        if (index < lines.length && lines[index].indent > indent) {
-          const nested = parseBlock(lines, index, lines[index].indent);
-          result.push(nested[0]);
-          index = nested[1];
-        } else result.push(null);
-        continue;
-      }
-      const pair = splitPair(rest);
-      if (!pair) {
-        result.push(parseScalar(rest));
-        continue;
-      }
-      const object = {};
-      if (pair.value === '') {
-        if (index < lines.length && lines[index].indent > indent) {
-          const nested = parseBlock(lines, index, lines[index].indent);
-          object[pair.key] = nested[0];
-          index = nested[1];
-        } else object[pair.key] = null;
-      } else object[pair.key] = parseScalar(pair.value);
-      if (index < lines.length && lines[index].indent > indent) {
-        const nested = parseBlock(lines, index, lines[index].indent);
-        if (nested[0] && typeof nested[0] === 'object' && !Array.isArray(nested[0])) Object.assign(object, nested[0]);
-        index = nested[1];
-      }
-      result.push(object);
-    } else {
-      if (line.text === '-' || line.text.startsWith('- ')) break;
-      const pair = splitPair(line.text);
-      if (!pair) throw new Error(`expected frontmatter key/value at line ${line.line}`);
-      index += 1;
-      if (pair.value === '|' || pair.value === '>') {
-        const parts = [];
-        while (index < lines.length && lines[index].indent > indent) {
-          parts.push(lines[index].text);
-          index += 1;
-        }
-        result[pair.key] = pair.value === '|' ? `${parts.join('\n')}\n` : `${parts.join(' ')}\n`;
-      } else if (pair.value === '') {
-        if (index < lines.length && lines[index].indent > indent) {
-          const nested = parseBlock(lines, index, lines[index].indent);
-          result[pair.key] = nested[0];
-          index = nested[1];
-        } else result[pair.key] = null;
-      } else result[pair.key] = parseScalar(pair.value);
-    }
-  }
-  return [result, index];
-}
 
 export function parseFrontmatter(source, filename = 'note.md') {
   const normalized = String(source || '').replace(/^\uFEFF/u, '').replace(/\r\n/gu, '\n');
@@ -189,12 +15,10 @@ export function parseFrontmatter(source, filename = 'note.md') {
   const boundary = normalized.indexOf('\n---\n', 4);
   if (boundary < 0) throw new Error(`${filename}: unterminated YAML frontmatter`);
   const raw = normalized.slice(4, boundary);
-  const lines = frontmatterLines(raw);
-  const parsed = lines.length ? parseBlock(lines, 0, lines[0].indent) : [ {}, 0 ];
-  if (parsed[1] !== lines.length) throw new Error(`${filename}: invalid frontmatter near line ${lines[parsed[1]].line}`);
-  if (!parsed[0] || typeof parsed[0] !== 'object' || Array.isArray(parsed[0])) throw new Error(`${filename}: frontmatter must be an object`);
+  const metadata = parseYamlDocument(raw, `${filename} frontmatter`) ?? {};
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error(`${filename}: frontmatter must be an object`);
   return {
-    metadata: parsed[0],
+    metadata,
     body: normalized.slice(boundary + '\n---\n'.length).replace(/^\n/u, ''),
     hasFrontmatter: true,
   };
@@ -309,8 +133,7 @@ function asAliases(value) {
 }
 
 function normalizeRelative(value) {
-  const normalized = path.posix.normalize(String(value || '').replace(/\\/gu, '/').replace(/^\.\//u, ''));
-  return normalized === '.' ? '' : normalized;
+  return normalizeRelativePath(value);
 }
 
 function stripSuffix(value) {

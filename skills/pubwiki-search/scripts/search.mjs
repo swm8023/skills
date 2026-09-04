@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 import { ensureFresh, readIndexRows } from './index.mjs';
-import { ensureWikiState, resolveWikiPaths } from './wiki-state.mjs';
+import { ensureWikiState, resolveWikiPaths } from './pubwiki-core.mjs';
 
 const execFile = promisify(execFileCallback);
 

@@ -6,8 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { setTimeout as delay } from 'node:timers/promises';
 
-import { ensureWikiState, resolveWikiPaths } from './wiki-state.mjs';
-import { parseYamlDocument } from './yaml.mjs';
+import { ensureWikiState, normalizeRelativePath, parseYamlDocument, resolveWikiPaths } from './pubwiki-core.mjs';
 
 let DatabaseSync;
 try {
@@ -19,10 +18,6 @@ try {
 export const PARSER_VERSION = 'pubwiki-search-parser-1';
 export const INDEX_VERSION = 'pubwiki-search-index-1';
 export const MODEL_VERSION = 'lexical-only-1';
-
-function normalizePath(value) {
-  return String(value || '').replace(/\\/gu, '/').replace(/^\.\//u, '');
-}
 
 async function exists(filename) {
   try { await stat(filename); return true; } catch (error) {
@@ -78,7 +73,7 @@ async function scanMarkdown(paths) {
     entries.sort((left, right) => left.name.localeCompare(right.name));
     for (const entry of entries) {
       const filename = path.join(directory, entry.name);
-      const relative = normalizePath(path.posix.join(relativeDirectory, entry.name));
+      const relative = normalizeRelativePath(path.posix.join(relativeDirectory, entry.name));
       if (entry.isDirectory()) {
         if (entry.name === '.git' || entry.name === '.obsidian' || (!relativeDirectory && entry.name === 'assets')) continue;
         await visit(filename, relative);
@@ -87,7 +82,7 @@ async function scanMarkdown(paths) {
       const info = await lstat(filename);
       if (info.isSymbolicLink() || !info.isFile() || !entry.name.toLowerCase().endsWith('.md')) continue;
       const source = await readFile(filename, 'utf8');
-      const relativePath = normalizePath(path.posix.join('content', relative));
+      const relativePath = normalizeRelativePath(path.posix.join('content', relative));
       const note = parseNote(source, relativePath);
       result.push({
         relativePath,

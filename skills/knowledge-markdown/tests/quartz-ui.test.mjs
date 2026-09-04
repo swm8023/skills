@@ -16,6 +16,30 @@ test('WheelMaker home lists only real knowledge pages and uses a full-width card
   assert.match(source, /grid-template-columns:\s*repeat\(auto-fit/u);
 });
 
+test('WheelMaker home plugin renders generated folders as directory article pages', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker-home', 'index.mjs'), 'utf8');
+
+  assert.match(source, /function isFolderPage/u);
+  assert.match(source, /function pagesForFolder/u);
+  assert.match(source, /wheelmakerDirectory/u);
+  assert.match(source, /title: folder/u);
+  assert.match(source, /knowledge-directory-grid/u);
+  assert.match(source, /slug === "index" \|\| isFolderPage\(fileData\)/u);
+});
+
+test('WheelMaker explorer keeps directory navigation focused on folders', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz.config.yaml'), 'utf8');
+
+  assert.match(source, /filterFn:\s*\|[\s\S]*?node\.isFolder/u);
+  assert.match(source, /mapFn:\s*\|[\s\S]*?node\.slug\.replace/u);
+});
+
+test('WheelMaker home layout removes Quartz folder metadata chrome', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz.config.yaml'), 'utf8');
+
+  assert.match(source, /home:\s*[\s\S]*?positions:\s*[\s\S]*?beforeBody:\s*\[\]/u);
+});
+
 test('WheelMaker sidebar rewrites Quartz root content-index requests to the Wiki mount', async () => {
   const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker-sidebar', 'components.mjs'), 'utf8');
 

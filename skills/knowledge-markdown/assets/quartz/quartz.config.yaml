@@ -110,7 +110,8 @@ plugins:
   - source: github:quartz-community/content-page
     enabled: true
   - source: github:quartz-community/folder-page
-    enabled: true
+    # WheelMakerHomePage generates directory pages with the Wiki card layout.
+    enabled: false
   - source: github:quartz-community/tag-page
     enabled: true
 
@@ -124,6 +125,18 @@ plugins:
     enabled: true
     options:
       title: 目录
+      # The Wiki tree is a directory navigator; article cards live on the right.
+      filterFn: |
+        (node) => node.slugSegment !== "tags" && node.isFolder
+      mapFn: |
+        (node) => {
+          if (node.isFolder && node.slug) {
+            Object.defineProperty(node, "displayName", {
+              configurable: true,
+              value: node.slug.replace(/\/index$/, ""),
+            })
+          }
+        }
     layout:
       position: left
       priority: 50
@@ -232,6 +245,8 @@ layout:
         - graph
         - backlinks
         - table-of-contents
+      positions:
+        beforeBody: []
     folder:
       positions:
         right: []

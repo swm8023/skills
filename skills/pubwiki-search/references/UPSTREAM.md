@@ -13,7 +13,7 @@ This Skill incorporates and extends the following pinned open-source material.
   contain a root license file at this commit; the source and attribution are
   retained here.
 
-The active `knowledge-search/SKILL.md` preserves the upstream semantic-search and
+The active `pubwiki-search/SKILL.md` preserves the upstream semantic-search and
 Dataview workflow as reference material while replacing manual rebuilds, arbitrary
 personal paths, and required Python/vector dependencies with the fixed local
 automatic index and Obsidian-first adapter. The active implementation currently

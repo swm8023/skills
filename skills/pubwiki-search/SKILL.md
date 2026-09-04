@@ -1,9 +1,9 @@
 ---
-name: knowledge-search
+name: pubwiki-search
 description: Search the fixed local WheelMaker Obsidian Vault using Obsidian first and an automatically maintained local index second. Use for keyword or metadata note search, tag/folder/property lookup, related knowledge, and Dataview-style queries.
 ---
 
-# knowledge-search
+# pubwiki-search
 
 This Skill incorporates the complete copied `vault-search` Skill, README, and
 scripts under `references/upstream-vault-search/`. Read that material when the
@@ -23,7 +23,7 @@ The only Vault is:
 
 The `data/` directory must itself be a valid Git worktree. Check Git before reading
 configuration or building an index. A missing `knowledge.yaml` is initialized with
-the same commented default used by `knowledge-markdown`; a non-Git nonempty path is
+the same commented default used by `pubwiki-markdown`; a non-Git nonempty path is
 never changed. Do not search another Vault, the current working directory, or the
 whole machine.
 

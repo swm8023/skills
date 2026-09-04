@@ -12,7 +12,7 @@ import { resolveWikiPaths } from '../scripts/wiki-state.mjs';
 const run = promisify(execFile);
 
 async function fixture(t) {
-  const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'knowledge-search-index-')));
+  const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'pubwiki-search-index-')));
   t.after(() => import('node:fs/promises').then(({ rm }) => rm(home, { recursive: true, force: true })));
   const env = { USERPROFILE: home, HOME: home };
   const paths = resolveWikiPaths({ env });
@@ -105,8 +105,8 @@ test('rebuilds when an old fallback database file is present on a SQLite runtime
   await writeFile(value.paths.manifest, JSON.stringify({
     schema: 1,
     sourceRoot: value.paths.data,
-    parserVersion: 'knowledge-search-parser-1',
-    indexVersion: 'knowledge-search-index-1',
+    parserVersion: 'pubwiki-search-parser-1',
+    indexVersion: 'pubwiki-search-index-1',
     modelVersion: 'lexical-only-1',
     backend: 'lexical-json',
     files: [],

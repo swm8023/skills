@@ -13,7 +13,7 @@ This Skill incorporates and extends the following pinned open-source material.
 - License: MIT; the copied license and copyright notice remain with the copied
   material.
 
-The active `knowledge-markdown/SKILL.md` preserves the upstream syntax coverage
+The active `pubwiki-markdown/SKILL.md` preserves the upstream syntax coverage
 and adds fixed Hub discovery, content classification, confirmation, link mapping,
 Git safety, and WheelMaker/Quartz publishing.
 

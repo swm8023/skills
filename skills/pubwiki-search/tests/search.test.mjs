@@ -12,7 +12,7 @@ import { resolveWikiPaths } from '../scripts/wiki-state.mjs';
 const run = promisify(execFile);
 
 async function fixture(t) {
-  const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'knowledge-search-query-')));
+  const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'pubwiki-search-query-')));
   t.after(() => import('node:fs/promises').then(({ rm }) => rm(home, { recursive: true, force: true })));
   const env = { USERPROFILE: home, HOME: home };
   const paths = resolveWikiPaths({ env });

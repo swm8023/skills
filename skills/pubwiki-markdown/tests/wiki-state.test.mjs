@@ -11,7 +11,7 @@ import { ensureWikiState, resolveWikiPaths } from '../scripts/wiki-state.mjs';
 const run = promisify(execFile);
 
 async function makeHome(t) {
-  const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'knowledge-markdown-home-')));
+  const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'pubwiki-markdown-home-')));
   t.after(() => import('node:fs/promises').then(({ rm }) => rm(home, { recursive: true, force: true })));
   return home;
 }

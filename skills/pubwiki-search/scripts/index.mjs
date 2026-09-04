@@ -16,8 +16,8 @@ try {
   DatabaseSync = null;
 }
 
-export const PARSER_VERSION = 'knowledge-search-parser-1';
-export const INDEX_VERSION = 'knowledge-search-index-1';
+export const PARSER_VERSION = 'pubwiki-search-parser-1';
+export const INDEX_VERSION = 'pubwiki-search-index-1';
 export const MODEL_VERSION = 'lexical-only-1';
 
 function normalizePath(value) {

@@ -1,7 +1,0 @@
-interface:
-  display_name: "Knowledge Search"
-  short_description: "Search the local Wiki with native and AI lookup"
-  default_prompt: "Use $knowledge-search to find the most relevant notes in the local WheelMaker Wiki."
-
-policy:
-  allow_implicit_invocation: true

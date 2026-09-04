@@ -1,7 +1,0 @@
-interface:
-  display_name: "Knowledge Markdown"
-  short_description: "Create, organize, and publish Wiki Markdown"
-  default_prompt: "Use $knowledge-markdown to organize this durable knowledge into the local WheelMaker Wiki."
-
-policy:
-  allow_implicit_invocation: true

@@ -1,9 +1,9 @@
 ---
-name: knowledge-markdown
+name: pubwiki-markdown
 description: Create, import, classify, normalize, and publish durable knowledge in the fixed WheelMaker Wiki Vault. Use when a user asks to record project knowledge, import Markdown or Wiki material, organize notes, maintain tags, or publish confirmed notes.
 ---
 
-# knowledge-markdown
+# pubwiki-markdown
 
 This Skill combines the complete Obsidian Markdown guidance in
 `references/obsidian-markdown/obsidian-format.md` and its three linked references

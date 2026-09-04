@@ -12,7 +12,7 @@ async function mustExist(relativePath) {
   return filename;
 }
 
-test('knowledge-search contains its active instructions and complete upstream material', async () => {
+test('pubwiki-search contains its active instructions and complete upstream material', async () => {
   const required = [
     'SKILL.md',
     'agents/openai.yaml',
@@ -32,7 +32,7 @@ test('knowledge-search contains its active instructions and complete upstream ma
 
   const active = await readFile(await mustExist('SKILL.md'), 'utf8');
   const upstream = await readFile(await mustExist('references/UPSTREAM.md'), 'utf8');
-  assert.match(active, /name:\s*knowledge-search/u);
+  assert.match(active, /name:\s*pubwiki-search/u);
   assert.match(active, /Obsidian/u);
   assert.match(active, /index/u);
   assert.match(upstream, /03a22a8b563d1657cd1840b9f65000347a15a3b4/u);

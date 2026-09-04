@@ -27,6 +27,7 @@ const REQUIRED_EXTERNAL_PLUGINS = [
   'content-meta',
   'tag-list',
   'page-title',
+  'darkmode',
   'footer',
 ];
 
@@ -37,7 +38,6 @@ const REMOVED_EXTERNAL_PLUGINS = [
   'canvas-page',
   'folder-page',
   'note-properties',
-  'darkmode',
   'reader-mode',
   'breadcrumbs',
   'spacer',

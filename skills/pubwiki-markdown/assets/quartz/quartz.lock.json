@@ -101,6 +101,11 @@
       "resolved": "https://github.com/quartz-community/page-title.git",
       "commit": "ad0e06a2fe2e2280217a445f167ee105edb8bde5"
     },
+    "darkmode": {
+      "source": "github:quartz-community/darkmode",
+      "resolved": "https://github.com/quartz-community/darkmode.git",
+      "commit": "672ad8da9899dadb5ec0e237864279541cde9d58"
+    },
     "footer": {
       "source": "github:quartz-community/footer",
       "resolved": "https://github.com/quartz-community/footer.git",

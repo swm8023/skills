@@ -149,6 +149,7 @@ operation. The helper enforces the following boundary:
 - inspect worktree and index before starting;
 - stop when there are pre-existing staged files or unrelated changes under `data/`;
 - never stash automatically, clean user changes, or force-push;
+- verify the pinned Quartz runtime before the first Git write;
 - pull with rebase, stage exact approved paths, commit, and push;
 - stop on rebase, commit, or push conflict;
 - invoke `wheelmaker wiki publish` only after the Git phase succeeds.
@@ -159,7 +160,9 @@ Use:
 node <this-skill>/scripts/publish-wiki.mjs --paths <repo-relative-path> ...
 ```
 
-The publish helper commits only those approved paths, performs the configured
+The publish helper first verifies or installs the pinned Quartz runtime. If that
+preflight is blocked, it leaves Git and WheelMaker untouched. Once it is ready,
+the helper commits only those approved paths, performs the configured
 rebase/push phase, and then invokes the existing `wheelmaker wiki publish`
 command. It never calls a separate Hub upload command.
 
@@ -167,20 +170,23 @@ command. It never calls a separate Hub upload command.
 the default `auto`, the Skill calls the existing WheelMaker Wiki command. Values
 `off`, `disabled`, `manual`, and `false` return `skipped` before staging, commit,
 pull, push, or WheelMaker invocation. That
-command invokes its built-in `default.mjs`; the MJS calls the Skill-prepared Quartz
-runtime with `data/content/` as input and the Hub output directory as output. The
-same WheelMaker command validates, archives, authenticates, and uploads the static
-result to `/wiki/`. Quartz never uploads directly and receives no WheelMaker
-credentials.
+command uses the fixed exporter embedded in the WheelMaker Hub and calls the
+Skill-prepared Quartz runtime with `data/content/` as input and the Hub output
+directory as output. The same WheelMaker command validates, archives,
+authenticates, and uploads the static result to `/wiki/`. Quartz never uploads
+directly and receives no WheelMaker credentials.
 
-Before publishing, ensure the pinned Quartz runtime is available:
+The publish helper runs this readiness check automatically. The standalone
+helper is useful for an explicit runtime refresh:
 
 ```text
 node <this-skill>/scripts/ensure-quartz.mjs
 ```
 
 This installs or verifies the private runtime under `~/.wheelmaker/wiki/quartz/`
-and keeps its configuration outside the Git data root. The runtime is Quartz
+and keeps its configuration outside the Git data root. A normal check never
+replaces a valid runtime; pass `--refresh` only for an explicit replacement.
+The runtime is Quartz
 `v5.0.0`: its YAML configuration, `quartz.ts` entrypoint, plugin lockfile, and
 WheelMaker local plugins are checked as one pinned runtime. The setup helper
 restores Quartz Community plugins from that lockfile before a build; it does not

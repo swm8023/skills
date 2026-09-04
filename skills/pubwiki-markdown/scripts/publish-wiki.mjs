@@ -7,23 +7,17 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
-import { ensureWikiState, readGitStatus, runGit } from './wiki-state.mjs';
-import { parseWikiConfig } from './yaml.mjs';
+import { ensureWikiState, normalizeRelativePath, parseWikiConfig, readGitStatus, runGit } from './pubwiki-core.mjs';
+import { ensureQuartz as ensureQuartzRuntime } from './ensure-quartz.mjs';
 
 const execFile = promisify(execFileCallback);
-
-function normalizePath(value) {
-  const normalized = path.posix.normalize(String(value || '').replace(/\\/gu, '/').replace(/^\.\//u, ''));
-  if (!normalized || normalized === '.' || normalized.startsWith('../') || normalized.startsWith('/') || normalized.includes('/../') || normalized.startsWith('-')) return '';
-  return normalized;
-}
 
 function allowedPath(relativePath, requestedPaths) {
   return requestedPaths.some((requested) => relativePath === requested);
 }
 
 function parseNameList(output) {
-  return String(output || '').split('\0').map(normalizePath).filter(Boolean);
+  return String(output || '').split('\0').map(normalizeRelativePath).filter(Boolean);
 }
 
 function publishMode(config) {
@@ -32,11 +26,11 @@ function publishMode(config) {
   return typeof config?.publish?.mode === 'string' ? config.publish.mode.toLowerCase() : 'auto';
 }
 
-async function missingGitIdentity(data, { env = process.env } = {}) {
+async function missingGitIdentity(data, { env = process.env, runGitFn = runGit } = {}) {
   const missing = [];
   for (const field of ['user.name', 'user.email']) {
     try {
-      const result = await runGit(['-C', data, 'config', '--get', field], { env });
+      const result = await runGitFn(['-C', data, 'config', '--get', field], { env });
       if (!result.stdout.trim()) missing.push(field);
     } catch {
       missing.push(field);
@@ -59,10 +53,10 @@ async function invokeWheelmaker(args = ['wiki', 'publish'], { env = process.env 
   }
 }
 
-export async function inspectPublishPreflight({ data, requestedPaths, env = process.env } = {}) {
-  const normalizedPaths = [...new Set((requestedPaths || []).map(normalizePath).filter(Boolean))];
+export async function inspectPublishPreflight({ data, requestedPaths, env = process.env, readGitStatusFn = readGitStatus } = {}) {
+  const normalizedPaths = [...new Set((requestedPaths || []).map(normalizeRelativePath).filter(Boolean))];
   if (!normalizedPaths.length) return { ok: false, paths: [], entries: [], message: 'At least one approved Wiki path is required.' };
-  const entries = await readGitStatus(data, { env });
+  const entries = await readGitStatusFn(data, { env });
   const staged = entries.filter((entry) => entry.staged);
   if (staged.length) {
     return {
@@ -84,8 +78,8 @@ export async function inspectPublishPreflight({ data, requestedPaths, env = proc
   return { ok: true, paths: normalizedPaths, entries, message: '' };
 }
 
-async function stagedNames(data, { env = process.env } = {}) {
-  const result = await runGit(['-C', data, 'diff', '--cached', '--name-only', '-z'], { env });
+async function stagedNames(data, { env = process.env, runGitFn = runGit } = {}) {
+  const result = await runGitFn(['-C', data, 'diff', '--cached', '--name-only', '-z'], { env });
   return parseNameList(result.stdout);
 }
 
@@ -98,6 +92,9 @@ export async function publishWiki({
   pull = true,
   force = false,
   invokeWheelmaker: invoke = invokeWheelmaker,
+  ensureQuartz: ensure = ensureQuartzRuntime,
+  runGitFn = runGit,
+  readGitStatusFn = readGitStatus,
 } = {}) {
   if (force) return { status: 'blocked', message: 'Force-push is not permitted for Wiki publishing.' };
   let state;
@@ -120,7 +117,7 @@ export async function publishWiki({
   if (state.configCreated) requested.push(path.basename(state.paths.config));
   let preflight;
   try {
-    preflight = await inspectPublishPreflight({ data: state.paths.data, requestedPaths: requested, env });
+    preflight = await inspectPublishPreflight({ data: state.paths.data, requestedPaths: requested, env, readGitStatusFn });
   } catch (error) {
     return { status: 'blocked', paths: state.paths, message: `Unable to inspect Wiki Git state: ${error.message}` };
   }
@@ -128,7 +125,7 @@ export async function publishWiki({
   if (!preflight.entries.some((entry) => allowedPath(entry.relativePath, preflight.paths))) {
     return { status: 'blocked', paths: state.paths, message: 'No changes were found in the approved Wiki paths.' };
   }
-  const missingIdentity = await missingGitIdentity(state.paths.data, { env });
+  const missingIdentity = await missingGitIdentity(state.paths.data, { env, runGitFn });
   if (missingIdentity.length) {
     return {
       status: 'blocked',
@@ -137,17 +134,32 @@ export async function publishWiki({
     };
   }
 
+  let quartz;
   try {
-    await runGit(['-C', state.paths.data, 'add', '--', ...preflight.paths], { env });
-    const staged = await stagedNames(state.paths.data, { env });
+    quartz = await ensure({ env, refresh: false });
+  } catch (error) {
+    return { status: 'blocked', paths: state.paths, message: `Quartz preflight failed: ${error.message}` };
+  }
+  if (!quartz || quartz.status !== 'ready') {
+    return {
+      status: 'blocked',
+      paths: state.paths,
+      quartz,
+      message: `Quartz preflight failed: ${quartz?.message || quartz?.status || 'runtime is not ready'}`,
+    };
+  }
+
+  try {
+    await runGitFn(['-C', state.paths.data, 'add', '--', ...preflight.paths], { env });
+    const staged = await stagedNames(state.paths.data, { env, runGitFn });
     const unexpected = staged.filter((relativePath) => !allowedPath(relativePath, preflight.paths));
     if (unexpected.length) {
       return { status: 'blocked', paths: state.paths, message: `Git staged unexpected paths: ${unexpected.join(', ')}` };
     }
     if (!staged.length) return { status: 'blocked', paths: state.paths, message: 'Git did not stage any approved Wiki path.' };
-    await runGit(['-C', state.paths.data, 'commit', '-m', String(message || 'knowledge: update Wiki')], { env });
-    if (pull) await runGit(['-C', state.paths.data, 'pull', '--rebase'], { env });
-    if (push) await runGit(['-C', state.paths.data, 'push'], { env });
+    await runGitFn(['-C', state.paths.data, 'commit', '-m', String(message || 'knowledge: update Wiki')], { env });
+    if (pull) await runGitFn(['-C', state.paths.data, 'pull', '--rebase'], { env });
+    if (push) await runGitFn(['-C', state.paths.data, 'push'], { env });
     await invoke(['wiki', 'publish'], { env, paths: state.paths });
     return { status: 'published', paths: state.paths, staged, pushed: push, mode };
   } catch (error) {

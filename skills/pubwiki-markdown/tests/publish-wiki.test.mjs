@@ -6,7 +6,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
 
-import { ensureWikiState, readGitStatus, resolveWikiPaths } from '../scripts/wiki-state.mjs';
+import { ensureWikiState, readGitStatus, resolveWikiPaths, runGit } from '../scripts/wiki-state.mjs';
 import { publishWiki } from '../scripts/publish-wiki.mjs';
 
 const run = promisify(execFile);
@@ -28,15 +28,31 @@ async function fixture(t) {
 
 async function callPublish(fixtureValue, options = {}) {
   const calls = [];
+  const events = [];
+  const ensureQuartz = options.ensureQuartz || (async (quartzOptions) => {
+    events.push({ type: 'quartz', options: quartzOptions });
+    return { status: 'ready', version: 'test' };
+  });
+  const runGitFn = options.runGitFn || (async (args, runOptions) => {
+    events.push({ type: 'git', args });
+    return runGit(args, runOptions);
+  });
+  const readGitStatusFn = options.readGitStatusFn || (async (data, statusOptions) => {
+    events.push({ type: 'read-status' });
+    return readGitStatus(data, statusOptions);
+  });
   const result = await publishWiki({
     env: fixtureValue.env,
     requestedPaths: ['content/repo/note.md'],
     push: false,
     pull: false,
     invokeWheelmaker: async (args) => { calls.push(args); },
+    ensureQuartz,
+    runGitFn,
+    readGitStatusFn,
     ...options,
   });
-  return { result, calls };
+  return { result, calls, events };
 }
 
 test('stages and commits only the approved paths before invoking WheelMaker publish', async (t) => {
@@ -45,9 +61,15 @@ test('stages and commits only the approved paths before invoking WheelMaker publ
   await mkdir(path.dirname(note), { recursive: true });
   await writeFile(note, '---\ntitle: Note\n---\n\nbody\n');
 
-  const { result, calls } = await callPublish(value);
+  const { result, calls, events } = await callPublish(value);
   assert.equal(result.status, 'published', result.message);
   assert.deepEqual(calls, [['wiki', 'publish']]);
+  const quartzIndex = events.findIndex((event) => event.type === 'quartz');
+  const addIndex = events.findIndex((event) => event.type === 'git' && event.args.includes('add'));
+  const readIndex = events.findIndex((event) => event.type === 'read-status');
+  assert.equal(events[quartzIndex].options.refresh, false);
+  assert.equal(readIndex >= 0 && readIndex < quartzIndex, true);
+  assert.equal(quartzIndex >= 0 && quartzIndex < addIndex, true);
   assert.deepEqual(await readGitStatus(value.paths.data, { env: value.env }), []);
   assert.equal((await run('git', ['-C', value.paths.data, 'show', '--stat', '--oneline', '-1'])).stdout.includes('note.md'), true);
 });
@@ -67,10 +89,11 @@ publish:
   await mkdir(path.dirname(note), { recursive: true });
   await writeFile(note, 'note\n');
 
-  const { result, calls } = await callPublish(value);
+  const { result, calls, events } = await callPublish(value);
   assert.equal(result.status, 'skipped', result.message);
   assert.equal(result.mode, 'off');
   assert.deepEqual(calls, []);
+  assert.equal(events.some((event) => event.type === 'quartz'), false);
   assert.equal((await readGitStatus(value.paths.data, { env: value.env })).some((entry) => entry.relativePath === 'content/repo/note.md'), true);
 });
 
@@ -137,13 +160,63 @@ test('checks Git author identity before staging approved paths', async (t) => {
   value.env.GIT_CONFIG_GLOBAL = path.join(value.env.HOME, 'missing-global-config');
   value.env.GIT_CONFIG_NOSYSTEM = '1';
 
-  const { result, calls } = await callPublish(value);
+  const { result, calls, events } = await callPublish(value);
   assert.equal(result.status, 'blocked');
   assert.match(result.message, /user\.name|user\.email|identity/iu);
   assert.deepEqual(calls, []);
+  assert.equal(events.some((event) => event.type === 'quartz'), false);
   assert.deepEqual(await readGitStatus(value.paths.data, { env: value.env }), [
     { status: '??', relativePath: 'content/repo/note.md', staged: false, workingTree: false },
   ]);
+});
+
+test('blocks before the first Git write when Quartz preflight is not ready', async (t) => {
+  const value = await fixture(t);
+  const note = path.join(value.paths.data, 'content', 'repo', 'note.md');
+  await mkdir(path.dirname(note), { recursive: true });
+  await writeFile(note, 'note\n');
+
+  const quartzEvents = [];
+  const { result, calls, events } = await callPublish(value, {
+    ensureQuartz: async (options) => {
+      quartzEvents.push(options);
+      return { status: 'blocked', message: 'Quartz runtime is unavailable' };
+    },
+  });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /Quartz runtime is unavailable/u);
+  assert.deepEqual(calls, []);
+  assert.equal(quartzEvents[0].refresh, false);
+  assert.equal(events.some((event) => event.type === 'git' && ['add', 'commit', 'pull', 'push'].some((command) => event.args.includes(command))), false);
+  assert.equal((await readGitStatus(value.paths.data, { env: value.env })).some((entry) => entry.relativePath === 'content/repo/note.md'), true);
+});
+
+test('blocks before Git writes when normal Quartz readiness rejects a nonempty runtime', async (t) => {
+  const value = await fixture(t);
+  const note = path.join(value.paths.data, 'content', 'repo', 'note.md');
+  await mkdir(path.dirname(note), { recursive: true });
+  await writeFile(note, 'note\n');
+  await mkdir(value.paths.quartz, { recursive: true });
+  await writeFile(path.join(value.paths.quartz, 'user-owned.txt'), 'keep me\n');
+
+  const events = [];
+  const calls = [];
+  const result = await publishWiki({
+    env: value.env,
+    requestedPaths: ['content/repo/note.md'],
+    push: false,
+    pull: false,
+    runGitFn: async (args, runOptions) => {
+      events.push({ type: 'git', args });
+      return runGit(args, runOptions);
+    },
+    invokeWheelmaker: async (args) => { calls.push(args); },
+  });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /nonempty|overwrite|expected/iu);
+  assert.deepEqual(calls, []);
+  assert.equal(events.some((event) => ['add', 'commit', 'pull', 'push'].some((command) => event.args.includes(command))), false);
+  assert.equal((await readGitStatus(value.paths.data, { env: value.env })).some((entry) => entry.relativePath === 'content/repo/note.md'), true);
 });
 
 test('CLI parser forwards repeated approved paths to publishWiki', async () => {

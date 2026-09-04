@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -46,6 +46,19 @@ async function fakePluginInstaller(stage) {
   await writeFile(path.join(stage, '.quartz', 'plugins', 'index.ts'), 'export {}\n');
 }
 
+async function exists(filename) {
+  try { await stat(filename); return true; } catch (error) {
+    if (error?.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+async function assertNoTransactionArtifacts(paths) {
+  const entries = await readdir(paths.wiki);
+  assert.equal(entries.some((entry) => entry.startsWith('.quartz-stage-')), false);
+  assert.equal(entries.some((entry) => entry.includes('.previous-')), false);
+}
+
 test('installs the pinned Quartz runtime atomically into the private Wiki root', async (t) => {
   const home = await makeHome(t);
   const env = { USERPROFILE: home, HOME: home };
@@ -58,7 +71,7 @@ test('installs the pinned Quartz runtime atomically into the private Wiki root',
   assert.equal(await stat(path.join(paths.quartz, 'quartz.ts')).then((info) => info.isFile()), true);
   assert.equal(await stat(path.join(paths.quartz, '.quartz', 'plugins', 'wheelmaker')).then((info) => info.isDirectory()), true);
   assert.match(await readFile(path.join(paths.quartz, '.quartz', 'plugins', 'index.ts'), 'utf8'), /CustomOgImagesEmitterName/u);
-  assert.equal((await readdir(paths.wiki)).some((entry) => entry.startsWith('.quartz-stage-')), false);
+  await assertNoTransactionArtifacts(paths);
 });
 
 test('uses a single-branch shallow clone for the pinned Quartz source', () => {
@@ -92,4 +105,109 @@ test('refuses to overwrite a nonempty unexpected runtime directory', async (t) =
   assert.equal(result.status, 'blocked');
   assert.match(result.message, /unexpected|overwrite/u);
   assert.equal(await readFile(marker, 'utf8'), 'keep me\n');
+});
+
+test('failed initial installation leaves no partial runtime or transaction artifacts', async (t) => {
+  const home = await makeHome(t);
+  const env = { USERPROFILE: home, HOME: home };
+  const paths = resolveWikiPaths({ env });
+  const result = await ensureQuartz({
+    env,
+    installer: async (stage) => {
+      await writeFile(path.join(stage, 'partial-download.txt'), 'partial\n');
+      throw new Error('installer failed');
+    },
+    pluginInstaller: fakePluginInstaller,
+  });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /installer failed/u);
+  assert.equal(await exists(paths.quartz), false);
+  await assertNoTransactionArtifacts(paths);
+});
+
+test('failed plugin installation leaves an existing empty runtime untouched', async (t) => {
+  const home = await makeHome(t);
+  const env = { USERPROFILE: home, HOME: home };
+  const paths = resolveWikiPaths({ env });
+  await mkdir(paths.quartz, { recursive: true });
+  const result = await ensureQuartz({
+    env,
+    installer: fakeInstaller,
+    pluginInstaller: async (stage) => {
+      await writeFile(path.join(stage, 'partial-plugin.txt'), 'partial\n');
+      throw new Error('plugin restore failed');
+    },
+  });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /plugin restore failed/u);
+  assert.equal(await readdir(paths.quartz).then((entries) => entries.length), 0);
+  await assertNoTransactionArtifacts(paths);
+});
+
+test('failed refresh preserves the previously active runtime', async (t) => {
+  const home = await makeHome(t);
+  const env = { USERPROFILE: home, HOME: home };
+  const paths = resolveWikiPaths({ env });
+  const installed = await ensureQuartz({ env, installer: fakeInstaller, pluginInstaller: fakePluginInstaller });
+  assert.equal(installed.status, 'ready', installed.message);
+  const marker = path.join(paths.quartz, 'keep-during-refresh.txt');
+  await writeFile(marker, 'keep me\n');
+
+  const result = await ensureQuartz({
+    env,
+    refresh: true,
+    installer: async () => { throw new Error('refresh download failed'); },
+    pluginInstaller: fakePluginInstaller,
+  });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /refresh download failed/u);
+  assert.equal(await readFile(marker, 'utf8'), 'keep me\n');
+  await assertNoTransactionArtifacts(paths);
+});
+
+test('activation failure restores the previously active runtime', async (t) => {
+  const home = await makeHome(t);
+  const env = { USERPROFILE: home, HOME: home };
+  const paths = resolveWikiPaths({ env });
+  const installed = await ensureQuartz({ env, installer: fakeInstaller, pluginInstaller: fakePluginInstaller });
+  assert.equal(installed.status, 'ready', installed.message);
+  const marker = path.join(paths.quartz, 'keep-after-activation-failure.txt');
+  await writeFile(marker, 'keep me\n');
+
+  const result = await ensureQuartz({
+    env,
+    refresh: true,
+    installer: fakeInstaller,
+    pluginInstaller: fakePluginInstaller,
+    renameFn: async (source, target) => {
+      if (path.basename(source).startsWith('.quartz-stage-')) throw new Error('activation failed');
+      return rename(source, target);
+    },
+  });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /activation failed/u);
+  assert.equal(await readFile(marker, 'utf8'), 'keep me\n');
+  await assertNoTransactionArtifacts(paths);
+});
+
+test('post-activation validation failure restores the previously active runtime', async (t) => {
+  const home = await makeHome(t);
+  const env = { USERPROFILE: home, HOME: home };
+  const paths = resolveWikiPaths({ env });
+  const installed = await ensureQuartz({ env, installer: fakeInstaller, pluginInstaller: fakePluginInstaller });
+  assert.equal(installed.status, 'ready', installed.message);
+  const marker = path.join(paths.quartz, 'keep-after-validation-failure.txt');
+  await writeFile(marker, 'keep me\n');
+
+  const result = await ensureQuartz({
+    env,
+    refresh: true,
+    installer: fakeInstaller,
+    pluginInstaller: fakePluginInstaller,
+    runtimeValidator: async (filename) => filename !== paths.quartz,
+  });
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /local plugins|validation|expected/iu);
+  assert.equal(await readFile(marker, 'utf8'), 'keep me\n');
+  await assertNoTransactionArtifacts(paths);
 });

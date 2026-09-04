@@ -8,7 +8,7 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
-import { resolveWikiPaths } from './wiki-state.mjs';
+import { resolveWikiPaths } from './pubwiki-core.mjs';
 
 const execFile = promisify(execFileCallback);
 export const QUARTZ_VERSION = 'v5.0.0';
@@ -202,6 +202,8 @@ export async function ensureQuartz({
   refresh = false,
   installer = defaultInstaller,
   pluginInstaller = defaultPluginInstaller,
+  runtimeValidator = expectedRuntime,
+  renameFn = rename,
 } = {}) {
   requireQuartzNode();
   const paths = resolveWikiPaths({ env });
@@ -220,33 +222,42 @@ export async function ensureQuartz({
   await mkdir(paths.wiki, { recursive: true });
   const stage = await mkdtemp(path.join(paths.wiki, '.quartz-stage-'));
   let backup = '';
+  let runtimeMoved = false;
+  let candidateActivated = false;
   try {
     await installer(stage, { env, version: QUARTZ_VERSION, repository: QUARTZ_REPOSITORY });
     await materializeAssets(stage);
     await pluginInstaller(stage, { env });
     await ensurePluginIndex(stage);
     await writeReleaseMetadata(stage);
-    if (!(await expectedRuntime(stage, { requireLocalPlugins: false }))) throw new Error('Pinned Quartz installer did not produce the expected CLI, dependencies, configuration, or release metadata.');
+    if (!(await runtimeValidator(stage, { requireLocalPlugins: false }))) throw new Error('Pinned Quartz installer did not produce the expected CLI, dependencies, configuration, or release metadata.');
     if (await exists(runtime)) {
-      if (refresh) {
-        backup = `${runtime}.previous-${Date.now()}`;
-        await rename(runtime, backup);
-      } else {
-        await rm(runtime, { recursive: false });
-      }
+      backup = `${runtime}.previous-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      await renameFn(runtime, backup);
+      runtimeMoved = true;
     }
-    await rename(stage, runtime);
+    await renameFn(stage, runtime);
+    candidateActivated = true;
     await materializeLocalPlugins(runtime);
-    if (!(await expectedRuntime(runtime))) throw new Error('Pinned Quartz installer did not produce the expected CLI, dependencies, configuration, custom assets, or local plugins.');
+    if (!(await runtimeValidator(runtime))) throw new Error('Pinned Quartz installer did not produce the expected CLI, dependencies, configuration, custom assets, or local plugins.');
     if (backup) await rm(backup, { recursive: true, force: true });
-    return { status: 'ready', version: QUARTZ_VERSION, installed: true, refreshed: Boolean(backup), runtime, ...expectedFiles(runtime) };
+    return { status: 'ready', version: QUARTZ_VERSION, installed: true, refreshed: Boolean(refresh), runtime, ...expectedFiles(runtime) };
   } catch (error) {
-    if (await exists(runtime)) await rm(runtime, { recursive: true, force: true });
-    if (backup && await exists(backup)) {
-      try { await rename(backup, runtime); } catch { /* preserve the original failure */ }
-    }
-    await rm(stage, { recursive: true, force: true });
-    return { status: 'blocked', version: QUARTZ_VERSION, runtime, message: error.message };
+    let rollbackError = null;
+    const attemptRollback = async (operation) => {
+      try { await operation(); } catch (cleanupError) { rollbackError ??= cleanupError; }
+    };
+    if (candidateActivated) await attemptRollback(async () => {
+      if (await exists(runtime)) await rm(runtime, { recursive: true, force: true });
+    });
+    if (runtimeMoved && backup) await attemptRollback(async () => {
+      if (await exists(backup) && !(await exists(runtime))) await renameFn(backup, runtime);
+    });
+    await attemptRollback(() => rm(stage, { recursive: true, force: true }));
+    const message = rollbackError
+      ? `${error.message} Rollback failed: ${rollbackError.message}`
+      : error.message;
+    return { status: 'blocked', version: QUARTZ_VERSION, runtime, message };
   }
 }
 

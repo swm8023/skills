@@ -1,0 +1,32 @@
+{
+  "name": "wheelmaker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs",
+    "./components": "./components.mjs"
+  },
+  "quartz": {
+    "name": "wheelmaker",
+    "displayName": "WheelMaker Wiki",
+    "description": "Provides the WheelMaker home page, directory/tag sidebar, and Wiki navigation behavior.",
+    "version": "1.0.0",
+    "quartzVersion": "5.0.0",
+    "category": [
+      "pageType",
+      "component"
+    ],
+    "components": {
+      "WheelMakerSidebar": {
+        "name": "WheelMakerSidebar",
+        "displayName": "WheelMaker directory and tag sidebar",
+        "description": "Switches the left sidebar between the directory and hierarchical tags.",
+        "version": "1.0.0",
+        "quartzVersion": "5.0.0",
+        "defaultPosition": "left",
+        "defaultPriority": 40
+      }
+    }
+  }
+}

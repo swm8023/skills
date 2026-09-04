@@ -1,4 +1,7 @@
-import { h } from "preact"
+import { Fragment, h } from "preact"
+import { KnowledgeTagSidebar } from "./tags.mjs"
+
+export { KnowledgeTagSidebar } from "./tags.mjs"
 
 export const KnowledgeSidebarSwitch = () => {
   const Component = () =>
@@ -250,6 +253,22 @@ export const KnowledgeSidebarSwitch = () => {
   setView(initial)
 })()
 `
+
+  return Component
+}
+
+export const WheelMakerSidebar = () => {
+  const SidebarSwitch = KnowledgeSidebarSwitch()
+  const TagSidebar = KnowledgeTagSidebar()
+  const Component = (props) =>
+    h(Fragment, null, [
+      h(SidebarSwitch, props),
+      h(TagSidebar, props),
+    ])
+
+  Component.css = [SidebarSwitch.css, TagSidebar.css].filter(Boolean).join("\n")
+  Component.beforeDOMLoaded = SidebarSwitch.beforeDOMLoaded
+  Component.afterDOMLoaded = SidebarSwitch.afterDOMLoaded
 
   return Component
 }

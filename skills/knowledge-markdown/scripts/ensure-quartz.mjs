@@ -17,16 +17,13 @@ export const QUARTZ_REPOSITORY = 'https://github.com/jackyzha0/quartz.git';
 export const QUARTZ_RELEASE_FILE = '.wheelmaker-quartz-release.json';
 const CUSTOM_ASSETS = [
   ['quartz.lock.json'],
-  ['quartz', 'wheelmaker-home', 'package.json'],
-  ['quartz', 'wheelmaker-home', 'index.mjs'],
-  ['quartz', 'wheelmaker-sidebar', 'package.json'],
-  ['quartz', 'wheelmaker-sidebar', 'index.mjs'],
-  ['quartz', 'wheelmaker-sidebar', 'components.mjs'],
-  ['quartz', 'wheelmaker-tags', 'package.json'],
-  ['quartz', 'wheelmaker-tags', 'index.mjs'],
-  ['quartz', 'wheelmaker-tags', 'components.mjs'],
+  ['quartz', 'wheelmaker', 'package.json'],
+  ['quartz', 'wheelmaker', 'index.mjs'],
+  ['quartz', 'wheelmaker', 'home.mjs'],
+  ['quartz', 'wheelmaker', 'components.mjs'],
+  ['quartz', 'wheelmaker', 'tags.mjs'],
 ];
-const LOCAL_PLUGIN_NAMES = ['wheelmaker-home', 'wheelmaker-sidebar', 'wheelmaker-tags'];
+const LOCAL_PLUGIN_NAMES = ['wheelmaker'];
 
 function requireQuartzNode() {
   const major = Number.parseInt(process.versions.node.split('.')[0], 10);

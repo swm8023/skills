@@ -22,14 +22,11 @@ async function fakeInstaller(stage) {
   await writeFile(path.join(stage, 'quartz.lock.json'), '{}\n');
   for (const relativePath of [
     'quartz.lock.json',
-    'quartz/wheelmaker-home/package.json',
-    'quartz/wheelmaker-home/index.mjs',
-    'quartz/wheelmaker-sidebar/package.json',
-    'quartz/wheelmaker-sidebar/index.mjs',
-    'quartz/wheelmaker-sidebar/components.mjs',
-    'quartz/wheelmaker-tags/package.json',
-    'quartz/wheelmaker-tags/index.mjs',
-    'quartz/wheelmaker-tags/components.mjs',
+    'quartz/wheelmaker/package.json',
+    'quartz/wheelmaker/index.mjs',
+    'quartz/wheelmaker/home.mjs',
+    'quartz/wheelmaker/components.mjs',
+    'quartz/wheelmaker/tags.mjs',
   ]) {
     await mkdir(path.dirname(path.join(stage, relativePath)), { recursive: true });
     await writeFile(path.join(stage, relativePath), `${relativePath}\n`);
@@ -57,7 +54,7 @@ test('installs the pinned Quartz runtime atomically into the private Wiki root',
   assert.equal(await stat(path.join(paths.quartz, 'quartz', 'bootstrap-cli.mjs')).then((info) => info.isFile()), true);
   assert.equal(await stat(path.join(paths.quartz, 'quartz.config.yaml')).then((info) => info.isFile()), true);
   assert.equal(await stat(path.join(paths.quartz, 'quartz.ts')).then((info) => info.isFile()), true);
-  assert.equal(await stat(path.join(paths.quartz, '.quartz', 'plugins', 'wheelmaker-home')).then((info) => info.isDirectory()), true);
+  assert.equal(await stat(path.join(paths.quartz, '.quartz', 'plugins', 'wheelmaker')).then((info) => info.isDirectory()), true);
   assert.equal((await readdir(paths.wiki)).some((entry) => entry.startsWith('.quartz-stage-')), false);
 });
 

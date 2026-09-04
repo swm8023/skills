@@ -92,7 +92,7 @@ export const KnowledgeSidebarSwitch = () => {
 }
 
 @media (max-width: 800px) {
-  .page > #quartz-body .sidebar.left {
+  .page > #quartz-body .sidebar.left:has(> .knowledge-sidebar-switch):has(> .explorer) {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
@@ -217,6 +217,20 @@ export const KnowledgeSidebarSwitch = () => {
   const tags = document.querySelector(".knowledge-tags-sidebar")
   if (!directory || !tags) return
   const storageKey = "wheelmaker-knowledge-sidebar-view"
+  const mobileExplorer = directory.querySelector(".mobile-explorer")
+  if (mobileExplorer && mobileExplorer.dataset.wheelmakerMobileExplorerBound !== "true") {
+    mobileExplorer.dataset.wheelmakerMobileExplorerBound = "true"
+    directory.classList.add("collapsed")
+    directory.setAttribute("aria-expanded", "false")
+    mobileExplorer.setAttribute("aria-expanded", "false")
+    mobileExplorer.addEventListener("click", (event) => {
+      event.stopImmediatePropagation()
+      const collapsed = directory.classList.toggle("collapsed")
+      directory.setAttribute("aria-expanded", String(!collapsed))
+      mobileExplorer.setAttribute("aria-expanded", String(!collapsed))
+      document.documentElement.classList.toggle("mobile-no-scroll", !collapsed)
+    }, true)
+  }
   const setView = (view) => {
     const useTags = view === "tags"
     directory.dataset.knowledgeVisible = String(!useTags)

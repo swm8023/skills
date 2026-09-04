@@ -131,9 +131,11 @@ plugins:
       mapFn: |
         (node) => {
           if (node.isFolder && node.slug) {
+            const folderPath = node.slug.replace(/\/index$/, "")
+            const folderName = folderPath.split("/").pop() || folderPath
             Object.defineProperty(node, "displayName", {
               configurable: true,
-              value: node.slug.replace(/\/index$/, ""),
+              value: folderName,
             })
           }
         }

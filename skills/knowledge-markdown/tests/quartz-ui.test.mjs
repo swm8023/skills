@@ -32,6 +32,7 @@ test('WheelMaker explorer keeps directory navigation focused on folders', async 
 
   assert.match(source, /filterFn:\s*\|[\s\S]*?node\.isFolder/u);
   assert.match(source, /mapFn:\s*\|[\s\S]*?node\.slug\.replace/u);
+  assert.match(source, /split\("\/"\)/u);
 });
 
 test('WheelMaker home layout removes Quartz folder metadata chrome', async () => {
@@ -64,4 +65,18 @@ test('WheelMaker sidebar owns a responsive toolbar layout', async () => {
   assert.match(source, /grid-template-areas/u);
   assert.match(source, /@media \(max-width: 800px\)/u);
   assert.match(source, /min-width: 0/u);
+});
+
+test('WheelMaker mobile sidebar wins the Quartz flex-layout cascade', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker-sidebar', 'components.mjs'), 'utf8');
+
+  assert.match(source, /\.sidebar\.left:has\(> \.knowledge-sidebar-switch\):has\(> \.explorer\)/u);
+  assert.match(source, /sidebar\.left:has\(> \.knowledge-sidebar-switch\):has\(> \.explorer\)[\s\S]*?display: grid/u);
+});
+
+test('WheelMaker mobile Explorer toggle remains single-shot after Quartz nav events', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker-sidebar', 'components.mjs'), 'utf8');
+
+  assert.match(source, /wheelmakerMobileExplorerBound/u);
+  assert.match(source, /stopImmediatePropagation\(\)/u);
 });

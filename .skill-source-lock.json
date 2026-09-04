@@ -1,0 +1,25 @@
+{
+  "version": 3,
+  "sources": [
+    {
+      "source": "https://github.com/anthropics/skills.git",
+      "sourceKey": "github.com/anthropics/skills",
+      "branch": "main",
+      "commit": "0a64e398ec6bb34a494f0c347e8ccae53a862f8e",
+      "updatedAt": "2026-08-19T23:45:18Z",
+      "managedSkills": [
+        "skill-creator"
+      ]
+    },
+    {
+      "source": "https://github.com/vercel-labs/skills.git",
+      "sourceKey": "github.com/vercel-labs/skills",
+      "branch": "main",
+      "commit": "435076e78988e1e6ec40d00b0b1d76bdbbc5419a",
+      "updatedAt": "2026-08-19T23:46:03Z",
+      "managedSkills": [
+        "find-skills"
+      ]
+    }
+  ]
+}

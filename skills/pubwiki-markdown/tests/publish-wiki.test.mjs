@@ -21,7 +21,7 @@ async function fixture(t) {
   await run('git', ['-C', paths.data, 'config', 'user.email', 'test@example.invalid']);
   await run('git', ['-C', paths.data, 'config', 'user.name', 'Knowledge Test']);
   await ensureWikiState({ env });
-  await run('git', ['-C', paths.data, 'add', '--', 'knowledge.yaml']);
+  await run('git', ['-C', paths.data, 'add', '--', 'wiki.config.yaml']);
   await run('git', ['-C', paths.data, 'commit', '-m', 'initialize Wiki']);
   return { env, paths };
 }
@@ -150,11 +150,11 @@ test('CLI parser forwards repeated approved paths to publishWiki', async () => {
   const module = await import('../scripts/publish-wiki.mjs');
   assert.equal(typeof module.parseCli, 'function');
   assert.deepEqual(module.parseCli([
-    '--paths', 'knowledge.yaml',
+    '--paths', 'wiki.config.yaml',
     '--paths', 'content/repo/note.md',
     '--message', 'knowledge: test',
   ]), {
-    requestedPaths: ['knowledge.yaml', 'content/repo/note.md'],
+    requestedPaths: ['wiki.config.yaml', 'content/repo/note.md'],
     message: 'knowledge: test',
   });
 });

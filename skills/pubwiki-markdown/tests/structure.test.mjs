@@ -41,7 +41,8 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
   const active = await readFile(await mustExist('SKILL.md'), 'utf8');
   const upstream = await readFile(await mustExist('references/UPSTREAM.md'), 'utf8');
   assert.match(active, /name:\s*pubwiki-markdown/u);
-  assert.match(active, /knowledge\.yaml/u);
+  assert.match(active, /wiki\.config\.yaml/u);
+  assert.doesNotMatch(active, /knowledge\.yaml/u);
   assert.match(active, /wheelmaker wiki publish/u);
   assert.match(upstream, /a1dc48e68138490d522c04cbf5822214c6eb1202/u);
   assert.doesNotMatch(active, /(?:^|[\/`])(?:lookup-knowledge|publish-knowledge)(?:$|[\/`])/u);

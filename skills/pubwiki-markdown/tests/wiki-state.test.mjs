@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import test from 'node:test';
 
 import { ensureWikiState, resolveWikiPaths } from '../scripts/wiki-state.mjs';
+import { parseKnowledgeConfig } from '../scripts/yaml.mjs';
 
 const run = promisify(execFile);
 
@@ -78,10 +79,25 @@ test('a valid Git data root creates only missing default directories and config'
   assert.equal(await stat(paths.content).then((info) => info.isDirectory()), true);
   assert.equal(await stat(paths.assets).then((info) => info.isDirectory()), true);
   assert.equal(await stat(paths.config).then((info) => info.isFile()), true);
-  assert.match(await readFile(paths.config, 'utf8'), /^# /mu);
+  assert.match(await readFile(paths.config, 'utf8'), /^site:\s*$/mu);
+  assert.match(await readFile(paths.config, 'utf8'), /title:\s*WheelMaker Knowledge/u);
+  await assert.rejects(() => stat(path.join(paths.data, 'knowledge.yaml')), { code: 'ENOENT' });
 });
 
-test('a malformed existing knowledge.yaml stops before content initialization', async (t) => {
+test('a legacy knowledge.yaml is ignored by the hard-cutover state path', async (t) => {
+  const home = await makeHome(t);
+  const paths = resolveWikiPaths({ env: { USERPROFILE: home, HOME: home } });
+  await initGit(paths.data);
+  await writeFile(path.join(paths.data, 'knowledge.yaml'), 'this legacy file is ignored\n');
+
+  const result = await ensureWikiState({ env: { USERPROFILE: home, HOME: home } });
+  assert.equal(result.status, 'ready');
+  assert.equal(result.paths.config, path.join(paths.data, 'wiki.config.yaml'));
+  assert.equal(await stat(paths.config).then((info) => info.isFile()), true);
+  assert.equal(await readFile(path.join(paths.data, 'knowledge.yaml'), 'utf8'), 'this legacy file is ignored\n');
+});
+
+test('a malformed existing wiki.config.yaml stops before content initialization', async (t) => {
   const home = await makeHome(t);
   const paths = resolveWikiPaths({ env: { USERPROFILE: home, HOME: home } });
   await initGit(paths.data);
@@ -91,6 +107,23 @@ test('a malformed existing knowledge.yaml stops before content initialization', 
   assert.equal(result.status, 'blocked');
   assert.match(result.message, /malformed/u);
   await assert.rejects(() => stat(paths.content), { code: 'ENOENT' });
+});
+
+test('validates site settings as non-empty strings', () => {
+  const config = parseKnowledgeConfig(`site:\n  title: My Knowledge Base\n  description: A custom description\n`, 'wiki.config.yaml');
+  assert.deepEqual(config.site, {
+    title: 'My Knowledge Base',
+    description: 'A custom description',
+  });
+
+  assert.throws(
+    () => parseKnowledgeConfig('site:\n  title: 42\n', 'wiki.config.yaml'),
+    /wiki\.config\.yaml site\.title.*string/u,
+  );
+  assert.throws(
+    () => parseKnowledgeConfig('site:\n  description: "  "\n', 'wiki.config.yaml'),
+    /wiki\.config\.yaml site\.description.*non-empty/u,
+  );
 });
 
 test('rejects syntactically invalid YAML instead of accepting any line with a colon', async (t) => {

@@ -28,6 +28,24 @@ export const KnowledgeSidebarSwitch = () => {
     ])
 
   Component.css = `
+.page > #quartz-body .sidebar.left {
+  min-width: 0;
+}
+
+.page > #quartz-body .sidebar.left .page-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.page > #quartz-body .sidebar.left .flex-component {
+  min-width: 0;
+}
+
+.page > #quartz-body .sidebar.left .flex-component > div:first-child,
+.page > #quartz-body .sidebar.left .search {
+  min-width: 0;
+}
+
 .knowledge-sidebar-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -65,6 +83,129 @@ export const KnowledgeSidebarSwitch = () => {
 .explorer[data-knowledge-visible="false"] {
   display: none;
 }
+
+@media (min-width: 801px) {
+  .page > #quartz-body .sidebar.left .search {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 800px) {
+  .page > #quartz-body .sidebar.left {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "toolbar"
+      "switch"
+      "navigation";
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 0 0;
+  }
+
+  .page > #quartz-body .sidebar.left > .page-title {
+    grid-area: title;
+    margin: 0;
+    font-size: clamp(1.55rem, 7vw, 2.2rem);
+    line-height: 1.08;
+  }
+
+  .page > #quartz-body .sidebar.left > .flex-component {
+    grid-area: toolbar;
+    display: flex;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    gap: 0.45rem !important;
+  }
+
+  .page > #quartz-body .sidebar.left > .flex-component > div:first-child {
+    flex: 1 1 auto !important;
+    width: auto;
+  }
+
+  .page > #quartz-body .sidebar.left .search {
+    max-width: none;
+    width: 100%;
+  }
+
+  .page > #quartz-body .sidebar.left > .knowledge-sidebar-switch {
+    grid-area: switch;
+    width: 100%;
+    margin: 0;
+  }
+
+  .page > #quartz-body .sidebar.left > .explorer,
+  .page > #quartz-body .sidebar.left > .knowledge-tags-sidebar {
+    grid-area: navigation;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .knowledge-sidebar-button {
+    transition: none;
+  }
+}
+`
+
+  Component.beforeDOMLoaded = `
+(() => {
+  if (window.__wheelmakerWikiFetchPatched) return
+  window.__wheelmakerWikiFetchPatched = true
+
+  const marker = "/wiki/"
+  const pathname = window.location.pathname
+  const markerIndex = pathname.lastIndexOf(marker)
+  const wikiRoot = markerIndex >= 0 ? pathname.slice(0, markerIndex + marker.length) : "/"
+  const contentIndexURL = new URL("static/contentIndex.json", window.location.origin + wikiRoot).href
+  const nativeFetch = window.fetch.bind(window)
+
+  const rewriteWikiURL = (url) => {
+    if (url.origin !== window.location.origin || url.pathname.startsWith(wikiRoot)) return url
+    if (url.pathname === "/static/contentIndex.json") return new URL(contentIndexURL)
+    const path = url.pathname.slice(1)
+    const lastSegment = path.split("/").pop() || ""
+    if (!url.pathname.startsWith("/static/") && lastSegment.includes(".")) return url
+    return new URL(path + url.search + url.hash, window.location.origin + wikiRoot)
+  }
+
+  const rewriteRequest = (input) => {
+    const rawURL = typeof input === "string" ? input : input?.url
+    if (!rawURL) return input
+    const requestedURL = new URL(rawURL, window.location.href)
+    const mountedURL = rewriteWikiURL(requestedURL)
+    if (mountedURL.href === requestedURL.href) {
+      return input
+    }
+    return typeof input === "string" ? mountedURL.href : new Request(mountedURL.href, input)
+  }
+
+  const rewriteNavigation = (root) => {
+    if (root.matches?.("a[href]")) {
+      const rawHref = root.getAttribute("href")
+      if (rawHref?.startsWith("/")) {
+        const mountedURL = rewriteWikiURL(new URL(rawHref, window.location.href))
+        if (mountedURL.href !== new URL(rawHref, window.location.href).href) {
+          root.setAttribute("href", mountedURL.pathname + mountedURL.search + mountedURL.hash)
+        }
+      }
+    }
+    root.querySelectorAll?.("a[href]").forEach((anchor) => rewriteNavigation(anchor))
+  }
+
+  window.fetch = (input, init) => nativeFetch(rewriteRequest(input), init)
+  rewriteNavigation(document)
+  new MutationObserver((records) => {
+    records.forEach(({ addedNodes }) => {
+      addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) rewriteNavigation(node)
+      })
+    })
+  }).observe(document.documentElement, { childList: true, subtree: true })
+})()
 `
 
   Component.afterDOMLoaded = `

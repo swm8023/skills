@@ -22,6 +22,7 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
   assert.match(config, /source:\s*\.\/quartz\/wheelmaker-sidebar/u);
   assert.match(config, /source:\s*\.\/quartz\/wheelmaker-tags/u);
   assert.doesNotMatch(config, /source:\s*.*content\/index\.md/u);
+  assert.doesNotMatch(config, /source:\s*github:quartz-community\/reader-mode/u);
   for (const source of config.matchAll(/^\s+- source:\s+(github:\S+)/gmu)) {
     assert.ok(Object.values(lock.plugins).some((entry) => entry.source === source[1]), `missing lock entry for ${source[1]}`);
   }

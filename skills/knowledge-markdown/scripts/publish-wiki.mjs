@@ -32,6 +32,19 @@ function publishMode(config) {
   return typeof config?.publish?.mode === 'string' ? config.publish.mode.toLowerCase() : 'auto';
 }
 
+async function missingGitIdentity(data, { env = process.env } = {}) {
+  const missing = [];
+  for (const field of ['user.name', 'user.email']) {
+    try {
+      const result = await runGit(['-C', data, 'config', '--get', field], { env });
+      if (!result.stdout.trim()) missing.push(field);
+    } catch {
+      missing.push(field);
+    }
+  }
+  return missing;
+}
+
 async function invokeWheelmaker(args = ['wiki', 'publish'], { env = process.env } = {}) {
   const command = env.WHEELMAKER_CLI || 'wheelmaker';
   try {
@@ -115,6 +128,14 @@ export async function publishWiki({
   if (!preflight.entries.some((entry) => allowedPath(entry.relativePath, preflight.paths))) {
     return { status: 'blocked', paths: state.paths, message: 'No changes were found in the approved Wiki paths.' };
   }
+  const missingIdentity = await missingGitIdentity(state.paths.data, { env });
+  if (missingIdentity.length) {
+    return {
+      status: 'blocked',
+      paths: state.paths,
+      message: `Git author identity is not configured (${missingIdentity.join(', ')}); configure it before Wiki publishing.`,
+    };
+  }
 
   try {
     await runGit(['-C', state.paths.data, 'add', '--', ...preflight.paths], { env });
@@ -134,14 +155,14 @@ export async function publishWiki({
   }
 }
 
-function parseCli(argv) {
-  const values = { paths: [] };
+export function parseCli(argv) {
+  const values = { requestedPaths: [] };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === '--paths') {
       const value = argv[index + 1];
       if (!value || value.startsWith('--')) throw new Error('--paths requires a repository-relative path');
-      values.paths.push(value);
+      values.requestedPaths.push(value);
       index += 1;
     } else if (flag === '--message') {
       values.message = argv[index + 1] || '';
@@ -153,7 +174,7 @@ function parseCli(argv) {
       index += 1;
     } else throw new Error(`unknown Wiki publish argument ${flag}`);
   }
-  if (!values.paths.length) throw new Error('usage: node publish-wiki.mjs --paths <repo-relative-path> ...');
+  if (!values.requestedPaths.length) throw new Error('usage: node publish-wiki.mjs --paths <repo-relative-path> ...');
   return values;
 }
 

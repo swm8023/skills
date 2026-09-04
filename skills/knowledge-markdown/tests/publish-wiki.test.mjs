@@ -126,3 +126,35 @@ test('refuses a force-push request', async (t) => {
   assert.match(result.message, /force/iu);
   assert.deepEqual(calls, []);
 });
+
+test('checks Git author identity before staging approved paths', async (t) => {
+  const value = await fixture(t);
+  const note = path.join(value.paths.data, 'content', 'repo', 'note.md');
+  await mkdir(path.dirname(note), { recursive: true });
+  await writeFile(note, 'note\n');
+  await run('git', ['-C', value.paths.data, 'config', '--local', '--unset', 'user.name']);
+  await run('git', ['-C', value.paths.data, 'config', '--local', '--unset', 'user.email']);
+  value.env.GIT_CONFIG_GLOBAL = path.join(value.env.HOME, 'missing-global-config');
+  value.env.GIT_CONFIG_NOSYSTEM = '1';
+
+  const { result, calls } = await callPublish(value);
+  assert.equal(result.status, 'blocked');
+  assert.match(result.message, /user\.name|user\.email|identity/iu);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(await readGitStatus(value.paths.data, { env: value.env }), [
+    { status: '??', relativePath: 'content/repo/note.md', staged: false, workingTree: false },
+  ]);
+});
+
+test('CLI parser forwards repeated approved paths to publishWiki', async () => {
+  const module = await import('../scripts/publish-wiki.mjs');
+  assert.equal(typeof module.parseCli, 'function');
+  assert.deepEqual(module.parseCli([
+    '--paths', 'knowledge.yaml',
+    '--paths', 'content/repo/note.md',
+    '--message', 'knowledge: test',
+  ]), {
+    requestedPaths: ['knowledge.yaml', 'content/repo/note.md'],
+    message: 'knowledge: test',
+  });
+});

@@ -70,12 +70,6 @@ plugins:
   - source: github:quartz-community/github-flavored-markdown
     enabled: true
     order: 40
-  - source: github:quartz-community/table-of-contents
-    enabled: true
-    order: 50
-    layout:
-      position: right
-      priority: 30
   - source: github:quartz-community/crawl-links
     enabled: true
     options:
@@ -99,19 +93,11 @@ plugins:
   - source: github:quartz-community/content-index
     enabled: true
     options:
-      enableSiteMap: true
-      enableRSS: true
-  - source: github:quartz-community/favicon
-    enabled: true
-  - source: github:quartz-community/og-image
-    enabled: true
-  - source: github:quartz-community/canvas-page
-    enabled: true
+      # Search, graph, backlinks, and the WheelMaker sidebar consume this index.
+      enableSiteMap: false
+      enableRSS: false
   - source: github:quartz-community/content-page
     enabled: true
-  - source: github:quartz-community/folder-page
-    # WheelMakerHomePage generates directory pages with the Wiki card layout.
-    enabled: false
   - source: github:quartz-community/tag-page
     enabled: true
 
@@ -179,49 +165,15 @@ plugins:
     layout:
       position: beforeBody
       priority: 30
-  - source: github:quartz-community/note-properties
-    enabled: true
-    options:
-      includeAll: false
-      includedProperties:
-        - description
-        - tags
-        - aliases
-      excludedProperties: []
-      hidePropertiesView: false
-      delimiters: ---
-      language: yaml
-    order: 5
-    layout:
-      position: beforeBody
-      priority: 15
   - source: github:quartz-community/page-title
     enabled: true
     layout:
       position: left
       priority: 10
-  - source: github:quartz-community/darkmode
-    enabled: true
-    layout:
-      position: left
-      priority: 30
-      group: toolbar
-  - source: github:quartz-community/breadcrumbs
-    enabled: true
-    layout:
-      position: beforeBody
-      priority: 5
-      condition: not-index
   - source: github:quartz-community/footer
     enabled: true
     options:
       links: {}
-  - source: github:quartz-community/spacer
-    enabled: true
-    layout:
-      position: left
-      priority: 25
-      display: mobile-only
 
 layout:
   groups:
@@ -239,7 +191,6 @@ layout:
       exclude:
         - graph
         - backlinks
-        - table-of-contents
       positions:
         beforeBody: []
     folder:
@@ -248,4 +199,3 @@ layout:
     tag:
       positions:
         right: []
-    canvas: {}

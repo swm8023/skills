@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { ensureQuartz } from '../scripts/ensure-quartz.mjs';
+import { ensureQuartz, QUARTZ_CLONE_ARGS } from '../scripts/ensure-quartz.mjs';
 import { resolveWikiPaths } from '../scripts/wiki-state.mjs';
 
 async function makeHome(t) {
@@ -35,6 +35,7 @@ async function fakeInstaller(stage) {
 
 async function fakePluginInstaller(stage) {
   const lock = JSON.parse(await readFile(path.join(stage, 'quartz.lock.json'), 'utf8'));
+  await mkdir(path.join(stage, '.quartz', 'plugins'), { recursive: true });
   for (const [name, entry] of Object.entries(lock.plugins || {})) {
     if (entry?.commit === 'local') continue;
     await mkdir(path.join(stage, '.quartz', 'plugins', name, 'dist'), { recursive: true });
@@ -42,6 +43,7 @@ async function fakePluginInstaller(stage) {
     await writeFile(path.join(stage, '.quartz', 'plugins', name, 'dist', 'index.d.ts'), 'export {}\n');
     await writeFile(path.join(stage, '.quartz', 'plugins', name, 'dist', 'index.js'), 'export {}\n');
   }
+  await writeFile(path.join(stage, '.quartz', 'plugins', 'index.ts'), 'export {}\n');
 }
 
 test('installs the pinned Quartz runtime atomically into the private Wiki root', async (t) => {
@@ -55,7 +57,12 @@ test('installs the pinned Quartz runtime atomically into the private Wiki root',
   assert.equal(await stat(path.join(paths.quartz, 'quartz.config.yaml')).then((info) => info.isFile()), true);
   assert.equal(await stat(path.join(paths.quartz, 'quartz.ts')).then((info) => info.isFile()), true);
   assert.equal(await stat(path.join(paths.quartz, '.quartz', 'plugins', 'wheelmaker')).then((info) => info.isDirectory()), true);
+  assert.match(await readFile(path.join(paths.quartz, '.quartz', 'plugins', 'index.ts'), 'utf8'), /CustomOgImagesEmitterName/u);
   assert.equal((await readdir(paths.wiki)).some((entry) => entry.startsWith('.quartz-stage-')), false);
+});
+
+test('uses a single-branch shallow clone for the pinned Quartz source', () => {
+  assert.deepEqual(QUARTZ_CLONE_ARGS, ['clone', '--branch', 'v5.0.0', '--depth', '1', '--single-branch']);
 });
 
 test('refuses an existing runtime whose release metadata is not the pinned version', async (t) => {

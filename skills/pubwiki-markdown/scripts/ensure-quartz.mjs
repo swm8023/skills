@@ -15,6 +15,7 @@ export const QUARTZ_VERSION = 'v5.0.0';
 export const QUARTZ_COMMIT = 'ab346fa66a895e12d63a308e70ce330ba795822a';
 export const QUARTZ_REPOSITORY = 'https://github.com/jackyzha0/quartz.git';
 export const QUARTZ_RELEASE_FILE = '.wheelmaker-quartz-release.json';
+export const QUARTZ_CLONE_ARGS = ['clone', '--branch', QUARTZ_VERSION, '--depth', '1', '--single-branch'];
 const CUSTOM_ASSETS = [
   ['quartz.lock.json'],
   ['quartz', 'wheelmaker', 'package.json'],
@@ -24,6 +25,7 @@ const CUSTOM_ASSETS = [
   ['quartz', 'wheelmaker', 'tags.mjs'],
 ];
 const LOCAL_PLUGIN_NAMES = ['wheelmaker'];
+const OPTIONAL_PLUGIN_COMPATIBILITY = 'export const CustomOgImagesEmitterName = "CustomOgImages";';
 
 function requireQuartzNode() {
   const major = Number.parseInt(process.versions.node.split('.')[0], 10);
@@ -56,6 +58,7 @@ function expectedFiles(runtime) {
     entry: path.join(runtime, 'quartz.ts'),
     lockfile: path.join(runtime, 'quartz.lock.json'),
     dependencies: path.join(runtime, 'node_modules'),
+    pluginIndex: path.join(runtime, '.quartz', 'plugins', 'index.ts'),
     release: path.join(runtime, QUARTZ_RELEASE_FILE),
     assets: CUSTOM_ASSETS.map((segments) => path.join(runtime, ...segments)),
     localPlugins: LOCAL_PLUGIN_NAMES.map((name) => path.join(runtime, '.quartz', 'plugins', name)),
@@ -90,7 +93,7 @@ async function restoredPluginsPresent(runtime) {
 
 async function expectedRuntime(runtime, { requireLocalPlugins = true } = {}) {
   const files = expectedFiles(runtime);
-  const requiredFiles = [files.cli, files.config, files.entry, files.lockfile, files.release, ...files.assets];
+  const requiredFiles = [files.cli, files.config, files.entry, files.lockfile, files.pluginIndex, files.release, ...files.assets];
   if (requireLocalPlugins) requiredFiles.push(...files.localPlugins);
   if (!(await Promise.all(requiredFiles.map(exists))).every(Boolean)) return false;
   if (!(await isDirectory(files.dependencies))) return false;
@@ -103,6 +106,7 @@ async function expectedRuntime(runtime, { requireLocalPlugins = true } = {}) {
       && release?.configDigest === await digest(files.config)
       && release?.entryDigest === await digest(files.entry)
       && release?.lockDigest === await digest(files.lockfile)
+      && release?.pluginIndexDigest === await digest(files.pluginIndex)
       && JSON.stringify(release?.assetDigests || {}) === JSON.stringify(Object.fromEntries(await Promise.all(
         files.assets.map(async (filename, index) => [CUSTOM_ASSETS[index].join('/'), await digest(filename)]),
       )));
@@ -129,7 +133,7 @@ async function runCommand(command, args, options = {}) {
 }
 
 async function defaultInstaller(stage, { env = process.env } = {}) {
-  await runCommand('git', ['clone', '--branch', QUARTZ_VERSION, '--depth', '1', QUARTZ_REPOSITORY, stage], { env });
+  await runCommand('git', [...QUARTZ_CLONE_ARGS, QUARTZ_REPOSITORY, stage], { env });
   const revision = (await runCommand('git', ['-C', stage, 'rev-parse', 'HEAD'], { env })).stdout.trim();
   if (revision !== QUARTZ_COMMIT) {
     throw new Error(`Quartz ${QUARTZ_VERSION} resolved to ${revision}, expected ${QUARTZ_COMMIT}.`);
@@ -155,6 +159,18 @@ async function materializeAssets(stage) {
   await cp(assets, stage, { recursive: true, force: true });
 }
 
+async function ensurePluginIndex(stage) {
+  const filename = path.join(stage, '.quartz', 'plugins', 'index.ts');
+  if (!(await exists(filename))) throw new Error('Quartz plugin restore did not produce .quartz/plugins/index.ts.');
+  const source = await readFile(filename, 'utf8');
+  if (source.includes('CustomOgImagesEmitterName')) return;
+  await writeFile(
+    filename,
+    `${source}${source.endsWith('\n') ? '' : '\n'}\n// Quartz Head references this optional emitter symbol even when OG image generation is disabled.\n${OPTIONAL_PLUGIN_COMPATIBILITY}\n`,
+    'utf8',
+  );
+}
+
 async function materializeLocalPlugins(runtime) {
   const pluginRoot = path.join(runtime, '.quartz', 'plugins');
   await mkdir(pluginRoot, { recursive: true });
@@ -174,6 +190,7 @@ async function writeReleaseMetadata(stage) {
     configDigest: await digest(files.config),
     entryDigest: await digest(files.entry),
     lockDigest: await digest(files.lockfile),
+    pluginIndexDigest: await digest(files.pluginIndex),
     assetDigests: Object.fromEntries(await Promise.all(
       files.assets.map(async (filename, index) => [CUSTOM_ASSETS[index].join('/'), await digest(filename)]),
     )),
@@ -207,6 +224,7 @@ export async function ensureQuartz({
     await installer(stage, { env, version: QUARTZ_VERSION, repository: QUARTZ_REPOSITORY });
     await materializeAssets(stage);
     await pluginInstaller(stage, { env });
+    await ensurePluginIndex(stage);
     await writeReleaseMetadata(stage);
     if (!(await expectedRuntime(stage, { requireLocalPlugins: false }))) throw new Error('Pinned Quartz installer did not produce the expected CLI, dependencies, configuration, or release metadata.');
     if (await exists(runtime)) {

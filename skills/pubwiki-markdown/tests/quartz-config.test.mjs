@@ -6,6 +6,43 @@ import test from 'node:test';
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
+const REQUIRED_EXTERNAL_PLUGINS = [
+  'created-modified-date',
+  'syntax-highlighting',
+  'obsidian-flavored-markdown',
+  'github-flavored-markdown',
+  'crawl-links',
+  'description',
+  'latex',
+  'remove-draft',
+  'alias-redirects',
+  'content-index',
+  'content-page',
+  'tag-page',
+  'explorer',
+  'search',
+  'backlinks',
+  'graph',
+  'article-title',
+  'content-meta',
+  'tag-list',
+  'page-title',
+  'footer',
+];
+
+const REMOVED_EXTERNAL_PLUGINS = [
+  'table-of-contents',
+  'favicon',
+  'og-image',
+  'canvas-page',
+  'folder-page',
+  'note-properties',
+  'darkmode',
+  'reader-mode',
+  'breadcrumbs',
+  'spacer',
+];
+
 test('Quartz 5 assets use YAML configuration and local plugins without a source index.md', async () => {
   const assets = path.join(skillRoot, 'assets', 'quartz');
   const config = await readFile(path.join(assets, 'quartz.config.yaml'), 'utf8');
@@ -25,8 +62,16 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
   assert.deepEqual(wheelmaker.quartz.category, ['pageType', 'component']);
   assert.ok(wheelmaker.quartz.components.WheelMakerSidebar);
   assert.doesNotMatch(config, /source:\s*.*content\/index\.md/u);
-  assert.doesNotMatch(config, /source:\s*github:quartz-community\/reader-mode/u);
-  for (const source of config.matchAll(/^\s+- source:\s+(github:\S+)/gmu)) {
-    assert.ok(Object.values(lock.plugins).some((entry) => entry.source === source[1]), `missing lock entry for ${source[1]}`);
+  const configuredNames = [...config.matchAll(/^\s+- source:\s+github:quartz-community\/([^\s#]+)/gmu)]
+    .map(([, name]) => name)
+    .sort();
+  assert.deepEqual(configuredNames, [...REQUIRED_EXTERNAL_PLUGINS].sort());
+  assert.deepEqual(Object.keys(lock.plugins).sort(), [...REQUIRED_EXTERNAL_PLUGINS].sort());
+  for (const name of REMOVED_EXTERNAL_PLUGINS) {
+    assert.doesNotMatch(config, new RegExp(`source:\\s+github:quartz-community/${name}(?:\\s|$)`, 'u'));
+    assert.equal(lock.plugins[name], undefined, `removed plugin remains locked: ${name}`);
   }
+  assert.match(config, /enableSiteMap:\s*false/u);
+  assert.match(config, /enableRSS:\s*false/u);
+  assert.doesNotMatch(config, /enableSiteMap:\s*true|enableRSS:\s*true/u);
 });

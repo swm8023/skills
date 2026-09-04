@@ -6,7 +6,7 @@ description: Create, import, classify, normalize, and publish durable knowledge 
 # knowledge-markdown
 
 This Skill combines the complete Obsidian Markdown guidance in
-`references/upstream-obsidian-markdown/SKILL.md` and its three linked references
+`references/obsidian-markdown/obsidian-format.md` and its three linked references
 with the WheelMaker knowledge workflow below. Read the upstream reference when
 editing Obsidian-specific syntax; the rules below add the repository, confirmation,
 and publishing contract.

@@ -7,8 +7,9 @@ This Skill incorporates and extends the following pinned open-source material.
 - Repository: <https://github.com/kepano/obsidian-skills>
 - Source path: `skills/obsidian-markdown/`
 - Pinned commit: `a1dc48e68138490d522c04cbf5822214c6eb1202`
-- Copied files: `SKILL.md`, `CALLOUTS.md`, `EMBEDS.md`, `PROPERTIES.md`, and the
-  repository MIT license under `upstream-obsidian-markdown/`.
+- Copied files: `obsidian-format.md` (renamed locally from upstream `SKILL.md`),
+  `CALLOUTS.md`, `EMBEDS.md`, `PROPERTIES.md`, and the repository MIT license
+  under `obsidian-markdown/`.
 - License: MIT; the copied license and copyright notice remain with the copied
   material.
 

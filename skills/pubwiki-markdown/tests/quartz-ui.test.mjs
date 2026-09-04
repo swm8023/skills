@@ -16,6 +16,18 @@ test('WheelMaker home lists only real knowledge pages and uses a full-width card
   assert.match(source, /grid-template-columns:\s*repeat\(auto-fit/u);
 });
 
+test('WheelMaker home uses the validated site settings for the shared title and description', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'home.mjs'), 'utf8');
+
+  assert.match(source, /WHEELMAKER_WIKI_SITE_TITLE/u);
+  assert.match(source, /WHEELMAKER_WIKI_SITE_DESCRIPTION/u);
+  assert.match(source, /cfg\.pageTitle\s*=\s*site\.title/u);
+  assert.match(source, /title:\s*site\.title/u);
+  assert.match(source, /data:\s*\{\s*description:\s*site\.description\s*\}/u);
+  assert.match(source, /title:\s*fileData\.title \|\| site\.title/u);
+  assert.equal([...source.matchAll(/WheelMaker Knowledge/gu)].length, 1);
+});
+
 test('WheelMaker home plugin renders generated folders as directory article pages', async () => {
   const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'home.mjs'), 'utf8');
 

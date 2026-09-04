@@ -57,6 +57,7 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
   await assert.rejects(() => access(path.join(assets, 'quartz.config.ts')));
   await assert.rejects(() => access(path.join(assets, 'quartz.layout.ts')));
   assert.match(config, /source:\s*github:quartz-community\/obsidian-flavored-markdown/u);
+  assert.match(config, /pageTitle:\s*WheelMaker Knowledge/u);
   assert.match(config, /source:\s*\.\/quartz\/wheelmaker\s*$/mu);
   assert.doesNotMatch(config, /source:\s*\.\/quartz\/wheelmaker-(?:home|sidebar|tags)/u);
   assert.deepEqual(wheelmaker.quartz.category, ['pageType', 'component']);

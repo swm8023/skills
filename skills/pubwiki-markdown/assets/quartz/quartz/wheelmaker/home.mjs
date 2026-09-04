@@ -1,8 +1,24 @@
 import { h } from "preact"
 import { resolveRelative } from "@quartz-community/utils"
 
-const HOME_DESCRIPTION = "Browse the WheelMaker knowledge base."
+const DEFAULT_SITE_TITLE = "WheelMaker Knowledge"
+const DEFAULT_SITE_DESCRIPTION = "Browse the WheelMaker knowledge base."
 const DIRECTORY_DESCRIPTION = "Browse the articles in this directory."
+
+function siteSettings(cfg = {}) {
+  const configuredTitle = typeof process?.env?.WHEELMAKER_WIKI_SITE_TITLE === "string"
+    ? process.env.WHEELMAKER_WIKI_SITE_TITLE.trim()
+    : ""
+  const configuredDescription = typeof process?.env?.WHEELMAKER_WIKI_SITE_DESCRIPTION === "string"
+    ? process.env.WHEELMAKER_WIKI_SITE_DESCRIPTION.trim()
+    : ""
+  const configuredPageTitle = typeof cfg.pageTitle === "string" ? cfg.pageTitle.trim() : ""
+
+  return {
+    title: configuredTitle || configuredPageTitle || DEFAULT_SITE_TITLE,
+    description: configuredDescription || DEFAULT_SITE_DESCRIPTION,
+  }
+}
 
 function titleFor(page) {
   return page.frontmatter?.title || page.slug || "Untitled"
@@ -142,14 +158,15 @@ function KnowledgeCardList({
   )
 }
 
-function HomeContent({ allFiles = [], fileData = { slug: "index" } } = {}) {
+function HomeContent({ allFiles = [], fileData = { slug: "index" }, cfg = {} } = {}) {
   const pages = allFiles.filter(isKnowledgePage).sort(sortPages)
+  const site = siteSettings(cfg)
 
   return h("div", { class: "popover-hint knowledge-home" }, [
     PageHeading({
       eyebrow: "Knowledge base",
-      title: "WheelMaker Knowledge",
-      description: HOME_DESCRIPTION,
+      title: fileData.title || site.title,
+      description: fileData.description || site.description,
       count: pages.length,
     }),
     KnowledgeCardList({
@@ -362,11 +379,13 @@ export const WheelMakerHomePage = () => ({
   priority: 1000,
   match: ({ slug, fileData }) => slug === "index" || isFolderPage(fileData),
   generate({ cfg, content }) {
+    const site = siteSettings(cfg)
+    cfg.pageTitle = site.title
     return [
       {
         slug: "index",
-        title: cfg.pageTitle,
-        data: { description: HOME_DESCRIPTION },
+        title: site.title,
+        data: { description: site.description },
       },
       ...directoryPagesFor(content),
     ]

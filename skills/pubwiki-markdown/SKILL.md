@@ -45,7 +45,7 @@ node <this-skill>/scripts/prepare-wiki.mjs --sync
 This command refuses to stash or rebase over existing changes. A rebase or remote
 conflict is reported for the user to resolve.
 
-After Git succeeds, the helper creates a commented `knowledge.yaml`,
+After Git succeeds, the helper creates a commented `wiki.config.yaml`,
 `content/`, and `content/assets/` only when they are missing. Existing configuration
 is never silently replaced. The data root is the only content configuration root;
 the AI index and Quartz runtime live outside it.
@@ -56,7 +56,7 @@ Use this layout:
 
 ```text
 data/
-├── knowledge.yaml
+├── wiki.config.yaml
 └── content/
     ├── <repo>/                 # first-level project boundary
     │   └── <directory>/        # AI-selected nested page directory
@@ -65,9 +65,22 @@ data/
 ```
 
 `repo` defaults to the source Git root name, then the source project directory
-name, and can be renamed through `knowledge.yaml`. Do not introduce required
+name, and can be renamed through `wiki.config.yaml`. Do not introduce required
 `kind`, `slug`, `project`, `projects`, or `references` properties. Page relations
 belong in Markdown links or Wikilinks.
+
+The optional `site` block in `wiki.config.yaml` controls the public Wiki title and
+description:
+
+```yaml
+site:
+  title: WheelMaker Knowledge
+  description: Browse the WheelMaker knowledge base.
+```
+
+Both values must be non-empty strings when provided. The title is shared by the
+public home heading, Quartz page title, virtual home metadata, and site metadata.
+The legacy configuration filename is not read or migrated.
 
 Do not create `index.md` files for the root, repo, or directories. Quartz creates
 the public virtual home and folder listings at build time.
@@ -150,7 +163,7 @@ The publish helper commits only those approved paths, performs the configured
 rebase/push phase, and then invokes the existing `wheelmaker wiki publish`
 command. It never calls a separate Hub upload command.
 
-`publish.mode` in `knowledge.yaml` controls whether this final phase runs. With
+`publish.mode` in `wiki.config.yaml` controls whether this final phase runs. With
 the default `auto`, the Skill calls the existing WheelMaker Wiki command. Values
 `off`, `disabled`, `manual`, and `false` return `skipped` before staging, commit,
 pull, push, or WheelMaker invocation. That

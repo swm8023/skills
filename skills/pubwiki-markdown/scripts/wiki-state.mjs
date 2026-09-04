@@ -6,11 +6,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
-import { parseKnowledgeConfig } from './yaml.mjs';
+import { parseWikiConfig } from './yaml.mjs';
 
 const execFile = promisify(execFileCallback);
 
-export const DEFAULT_KNOWLEDGE_YAML = `# Content configuration only; data and index roots are fixed by the Skill.
+export const WIKI_CONFIG_FILENAME = 'wiki.config.yaml';
+
+export const DEFAULT_WIKI_CONFIG = `# Content configuration only; data and index roots are fixed by the Skill.
 # version: 1
 # content:
 #   root: content
@@ -30,6 +32,9 @@ export const DEFAULT_KNOWLEDGE_YAML = `# Content configuration only; data and in
 #     sync: rebase
 #     commit: auto
 #     push: auto
+site:
+  title: WheelMaker Knowledge
+  description: Browse the WheelMaker knowledge base.
 `;
 
 function mergedEnvironment(env) {
@@ -51,7 +56,7 @@ export function resolveWikiPaths({ env = process.env } = {}) {
     home,
     wiki,
     data,
-    config: path.join(data, 'knowledge.yaml'),
+    config: path.join(data, WIKI_CONFIG_FILENAME),
     content: path.join(data, 'content'),
     assets: path.join(data, 'content', 'assets'),
     index: path.join(wiki, '.index'),
@@ -163,7 +168,7 @@ export async function syncCleanWiki(data, { env = process.env } = {}) {
 
 async function ensureDefaultConfig(config) {
   try {
-    await writeFile(config, DEFAULT_KNOWLEDGE_YAML, { encoding: 'utf8', flag: 'wx' });
+    await writeFile(config, DEFAULT_WIKI_CONFIG, { encoding: 'utf8', flag: 'wx' });
     return true;
   } catch (error) {
     if (error?.code === 'EEXIST') return false;
@@ -171,9 +176,9 @@ async function ensureDefaultConfig(config) {
   }
 }
 
-export async function validateKnowledgeConfig(config) {
+export async function validateWikiConfig(config) {
   const source = await readFile(config, 'utf8');
-  parseKnowledgeConfig(source, config);
+  parseWikiConfig(source, config);
   return true;
 }
 
@@ -218,9 +223,9 @@ export async function ensureWikiState({ env = process.env, gitUrl = '' } = {}) {
 
   const configCreated = await ensureDefaultConfig(paths.config);
   try {
-    await validateKnowledgeConfig(paths.config);
+    await validateWikiConfig(paths.config);
   } catch (error) {
-    return { status: 'blocked', cloned, paths, configCreated, message: `knowledge.yaml is malformed: ${error.message}` };
+    return { status: 'blocked', cloned, paths, configCreated, message: `${WIKI_CONFIG_FILENAME} is malformed: ${error.message}` };
   }
   await mkdir(paths.content, { recursive: true });
   await mkdir(paths.assets, { recursive: true });

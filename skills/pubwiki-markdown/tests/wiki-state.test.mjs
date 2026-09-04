@@ -7,7 +7,7 @@ import { promisify } from 'node:util';
 import test from 'node:test';
 
 import { ensureWikiState, resolveWikiPaths } from '../scripts/wiki-state.mjs';
-import { parseKnowledgeConfig } from '../scripts/yaml.mjs';
+import { parseWikiConfig } from '../scripts/yaml.mjs';
 
 const run = promisify(execFile);
 
@@ -110,18 +110,18 @@ test('a malformed existing wiki.config.yaml stops before content initialization'
 });
 
 test('validates site settings as non-empty strings', () => {
-  const config = parseKnowledgeConfig(`site:\n  title: My Knowledge Base\n  description: A custom description\n`, 'wiki.config.yaml');
+  const config = parseWikiConfig(`site:\n  title: My Knowledge Base\n  description: A custom description\n`, 'wiki.config.yaml');
   assert.deepEqual(config.site, {
     title: 'My Knowledge Base',
     description: 'A custom description',
   });
 
   assert.throws(
-    () => parseKnowledgeConfig('site:\n  title: 42\n', 'wiki.config.yaml'),
+    () => parseWikiConfig('site:\n  title: 42\n', 'wiki.config.yaml'),
     /wiki\.config\.yaml site\.title.*string/u,
   );
   assert.throws(
-    () => parseKnowledgeConfig('site:\n  description: "  "\n', 'wiki.config.yaml'),
+    () => parseWikiConfig('site:\n  description: "  "\n', 'wiki.config.yaml'),
     /wiki\.config\.yaml site\.description.*non-empty/u,
   );
 });

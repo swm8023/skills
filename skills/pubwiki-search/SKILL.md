@@ -22,7 +22,7 @@ The only Vault is:
 ```
 
 The `data/` directory must itself be a valid Git worktree. Check Git before reading
-configuration or building an index. A missing `knowledge.yaml` is initialized with
+configuration or building an index. A missing `wiki.config.yaml` is initialized with
 the same commented default used by `pubwiki-markdown`; a non-Git nonempty path is
 never changed. Do not search another Vault, the current working directory, or the
 whole machine.

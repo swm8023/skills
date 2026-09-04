@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 import { ensureWikiState, readGitStatus, runGit } from './wiki-state.mjs';
-import { parseKnowledgeConfig } from './yaml.mjs';
+import { parseWikiConfig } from './yaml.mjs';
 
 const execFile = promisify(execFileCallback);
 
@@ -109,15 +109,15 @@ export async function publishWiki({
   if (state.status !== 'ready') return { status: 'blocked', ...state };
   let mode;
   try {
-    mode = publishMode(parseKnowledgeConfig(await readFile(state.paths.config, 'utf8'), state.paths.config));
+    mode = publishMode(parseWikiConfig(await readFile(state.paths.config, 'utf8'), state.paths.config));
   } catch (error) {
-    return { status: 'blocked', paths: state.paths, message: `knowledge.yaml is malformed: ${error.message}` };
+    return { status: 'blocked', paths: state.paths, message: `${path.basename(state.paths.config)} is malformed: ${error.message}` };
   }
   if (mode === 'manual' || mode === 'disabled' || mode === 'off' || mode === 'false') {
     return { status: 'skipped', paths: state.paths, mode, pushed: false };
   }
   const requested = [...requestedPaths];
-  if (state.configCreated) requested.push('knowledge.yaml');
+  if (state.configCreated) requested.push(path.basename(state.paths.config));
   let preflight;
   try {
     preflight = await inspectPublishPreflight({ data: state.paths.data, requestedPaths: requested, env });

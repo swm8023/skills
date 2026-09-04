@@ -273,7 +273,12 @@ function assertRelativePath(value, label) {
   if (normalized === '..' || normalized.startsWith('../') || normalized.includes('/../')) throw new Error(`${label} cannot escape the data directory`);
 }
 
-export function parseKnowledgeConfig(source, filename = 'knowledge.yaml') {
+function assertNonEmptyString(value, label) {
+  if (typeof value !== 'string') throw new Error(`${label} must be a string`);
+  if (!value.trim()) throw new Error(`${label} must be non-empty`);
+}
+
+export function parseWikiConfig(source, filename = 'wiki.config.yaml') {
   const config = parseYamlDocument(source, filename) ?? {};
   assertObject(config, `${filename} root`);
   if (config.version !== undefined && !((typeof config.version === 'number' && Number.isInteger(config.version)) || typeof config.version === 'string')) throw new Error(`${filename} version must be a scalar`);
@@ -282,6 +287,11 @@ export function parseKnowledgeConfig(source, filename = 'knowledge.yaml') {
     assertRelativePath(config.content.root, `${filename} content.root`);
     assertRelativePath(config.content.assets, `${filename} content.assets`);
     for (const key of ['repo', 'directories', 'tags']) if (config.content[key] !== undefined) assertObject(config.content[key], `${filename} content.${key}`);
+  }
+  if (config.site !== undefined) {
+    assertObject(config.site, `${filename} site`);
+    if (config.site.title !== undefined) assertNonEmptyString(config.site.title, `${filename} site.title`);
+    if (config.site.description !== undefined) assertNonEmptyString(config.site.description, `${filename} site.description`);
   }
   if (config.publish !== undefined && typeof config.publish !== 'boolean') assertObject(config.publish, `${filename} publish`);
   const publish = typeof config.publish === 'object' && config.publish !== null ? config.publish : {};

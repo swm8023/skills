@@ -108,10 +108,11 @@ function directoryPagesFor(content = []) {
     }))
 }
 
-function PageHeading({ eyebrow, title, description, count }) {
+function PageHeading({ eyebrow, title, description, count, mobileTitle }) {
   return h("header", { class: "knowledge-page-heading" }, [
     h("p", { class: "knowledge-page-eyebrow" }, eyebrow),
     h("h1", { class: "knowledge-page-title" }, title),
+    mobileTitle ? h("h2", { class: "knowledge-mobile-list-title" }, mobileTitle) : null,
     h("p", { class: "knowledge-page-lede" }, description),
     h("div", { class: "knowledge-page-meta", "aria-label": "文章数量" }, [
       h("span", null, `共 ${count} 篇文章`),
@@ -149,7 +150,9 @@ function KnowledgeCardList({
             h("span", { class: "knowledge-page-card-section" }, sectionFor(page)),
             h("h2", null, titleFor(page)),
             page.description ? h("p", null, page.description) : null,
-            h("span", { class: "knowledge-page-card-arrow", "aria-hidden": "true" }, "↗"),
+            h("span", { class: "knowledge-page-card-arrow", "aria-hidden": "true" },
+              h("svg", { viewBox: "0 0 24 24", width: "1em", height: "1em", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", focusable: "false" },
+                h("path", { d: "m9 18 6-6-6-6" }))),
           ],
         ),
       ]),
@@ -164,6 +167,7 @@ function HomeContent({ allFiles = [], fileData = { slug: "index" }, cfg = {} } =
   return h("div", { class: "popover-hint knowledge-home" }, [
     PageHeading({
       eyebrow: "知识库",
+      mobileTitle: "全部文章",
       title: fileData.title || site.title,
       description: fileData.description || site.description,
       count: pages.length,
@@ -206,6 +210,10 @@ function PageContent(props) {
 }
 
 PageContent.css = `
+.knowledge-mobile-list-title {
+  display: none;
+}
+
 .knowledge-home,
 .knowledge-directory {
   --knowledge-accent: var(--secondary);
@@ -353,10 +361,33 @@ PageContent.css = `
   }
 
   .knowledge-page-heading {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
 
-  .knowledge-page-eyebrow {
+  .knowledge-home .knowledge-page-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .knowledge-mobile-list-title {
+    display: block;
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .knowledge-home .knowledge-page-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .knowledge-page-eyebrow,
+  .knowledge-page-lede {
     display: none;
   }
 
@@ -365,27 +396,28 @@ PageContent.css = `
     line-height: 1.2;
   }
 
-  .knowledge-page-lede {
-    margin: 0.5rem 0;
-    font-size: 0.9375rem;
-    line-height: 1.6;
-  }
-
   .knowledge-home-grid,
   .knowledge-directory-grid {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 0;
   }
 
   .knowledge-page-card-link.internal {
     min-height: 0;
     position: relative;
-    padding: 1rem;
+    padding: 1rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--lightgray);
+    border-radius: 0;
+    background: transparent;
   }
 
   .knowledge-page-card-section {
     padding-right: 1.5rem;
     font-size: 0.7rem;
+    font-family: var(--bodyFont);
+    text-transform: none;
+    letter-spacing: normal;
   }
 
   .knowledge-page-card h2 {
@@ -397,7 +429,7 @@ PageContent.css = `
   .knowledge-page-card p {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     overflow: hidden;
     margin-top: 0.5rem;
     font-size: 0.9375rem;
@@ -407,7 +439,7 @@ PageContent.css = `
   .knowledge-page-card-arrow {
     position: absolute;
     top: 1rem;
-    right: 1rem;
+    right: 0;
     padding: 0;
     font-size: 1rem;
   }

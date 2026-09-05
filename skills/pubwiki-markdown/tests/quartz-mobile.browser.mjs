@@ -69,6 +69,10 @@ const server = createServer(async (request, response) => {
       const document = parse(data.toString());
       const replaceComponents = node => {
         const classes = node.attrs?.find(attr => attr.name === 'class')?.value.split(' ') || [];
+        if (classes.includes('knowledge-mobile-bar') || classes.includes('knowledge-mobile-dialog')) {
+          node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1);
+          return;
+        }
         let component;
         if (classes.includes('knowledge-sidebar-switch')) component = sidebar;
         if (classes.includes('knowledge-tags-sidebar')) component = tags;
@@ -77,9 +81,9 @@ const server = createServer(async (request, response) => {
           if (slug !== 'index' && !slug.endsWith('/index')) props.fileData.slug = slug + '/index';
         }
         if (component) {
-          const replacement = parseFragment(render(h(component, props))).childNodes[0];
-          replacement.parentNode = node.parentNode;
-          node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1, replacement);
+          const replacements = parseFragment(render(h(component, props))).childNodes;
+          replacements.forEach(replacement => { replacement.parentNode = node.parentNode; });
+          node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1, ...replacements);
         } else node.childNodes?.slice().forEach(replaceComponents);
       };
       replaceComponents(document);
@@ -98,8 +102,9 @@ const server = createServer(async (request, response) => {
       data = serialize(document).replace('</head>', () => `<script>${resetCSS}</script><style>${[sidebar.css, tags.css, content.css].join('\n')}</style></head>`);
     } else if (path.basename(file) === 'postscript.js') {
       // Disable only the previously exported switch, leaving Quartz plugins intact.
-      data = data.toString().replaceAll('".knowledge-sidebar-switch"', '".wiki-preview-retired-switch"')
-        + '\n' + sidebar.afterDOMLoaded;
+      data = 'window.__wheelmakerSidebarBound = true;\n'
+        + data.toString().replaceAll('".knowledge-sidebar-switch"', '".wiki-preview-retired-switch"')
+        + '\ndelete window.__wheelmakerSidebarBound;\n' + sidebar.afterDOMLoaded;
     }
     const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
     response.setHeader('Content-Type', types[extension] || 'application/octet-stream');
@@ -119,50 +124,111 @@ try {
     await page.locator('.explorer-ul .folder-container').first().waitFor({ state: 'attached' });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: page overflow`);
     if (width <= 800) {
+      const bar = page.locator('.knowledge-mobile-bar');
+      const menu = page.locator('[data-knowledge-open="navigation"]');
+      const search = page.locator('[data-knowledge-open="search"]');
+      const navigation = page.locator('#knowledge-mobile-navigation');
+      const searchDialog = page.locator('#knowledge-mobile-search');
       const directoryButton = page.locator('[data-knowledge-view="directory"]');
       const tagsButton = page.locator('[data-knowledge-view="tags"]');
-      assert.equal(await directoryButton.getAttribute('aria-expanded'), 'false');
+      const chrome = await page.locator('.sidebar.left').boundingBox();
+      assert.ok(chrome.height <= 64, width + ': mobile chrome must be one toolbar, got ' + chrome.height + 'px');
+      assert.equal(await directoryButton.isVisible(), false, 'navigation is not in the reading flow');
       const firstCard = await page.locator('.knowledge-page-card').first().boundingBox();
-      assert.ok(firstCard.y < 390, `${width}: first card starts at ${firstCard.y}`);
-      console.log(`${width}px first card: ${Math.round(firstCard.y)}px`);
-      for (const selector of ['.search-button', '.darkmode', '[data-knowledge-view="directory"]', '[data-knowledge-view="tags"]']) {
-        assert.ok((await page.locator(selector).first().boundingBox()).height >= 44, `${width}: small target ${selector}`);
-      }
+      assert.ok(firstCard.y <= 128, width + ': articles must start directly below the toolbar');
+      console.log(width + 'px toolbar: ' + chrome.height + 'px; first article: ' + Math.round(firstCard.y) + 'px');
+      for (const button of [menu, search]) assert.ok((await button.boundingBox()).height >= 44);
+      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-home.png') });
+      await menu.click();
+      assert.equal(await navigation.evaluate(dialog => dialog.matches(':modal')), true);
+      assert.equal(await menu.getAttribute('aria-expanded'), 'true');
+      assert.equal((await page.locator('.knowledge-page-card').first().boundingBox()).y, firstCard.y, 'drawer never pushes content');
       await directoryButton.click();
-      assert.equal(await page.locator('.explorer').getAttribute('data-knowledge-visible'), 'true');
+      assert.equal(await page.locator('.mobile-explorer').isVisible(), false, 'the drawer has no redundant menu button');
+      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-directory.png') });
+      await page.mouse.click(width - 4, 100);
+      assert.equal(await navigation.isVisible(), false, 'backdrop dismisses the drawer');
+      await menu.click();
       await tagsButton.click();
       assert.equal(await page.locator('.explorer').isVisible(), false);
-      assert.ok((await page.locator('.knowledge-tags-sidebar').boundingBox()).height <= 844 * 0.45 + 1);
-      assert.equal(await page.evaluate(() => document.documentElement.classList.contains('mobile-no-scroll')), false);
-      await tagsButton.click();
-      assert.equal(await page.locator('.knowledge-tags-sidebar').isVisible(), false);
-      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-home.png') });
+      assert.equal(await page.locator('.knowledge-tags-sidebar').isVisible(), true);
+      for (let i = 0; i < 20; i++) {
+        await page.keyboard.press('Tab');
+        assert.equal(await page.evaluate(() => document.activeElement === document.body || !!document.activeElement?.closest('dialog[open]')), true, 'background controls cannot receive focus while modal');
+      }
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('#knowledge-mobile-navigation').open);
+      assert.equal(await menu.evaluate(button => button === document.activeElement), true, 'close returns focus to its trigger');
+      await menu.click();
       await directoryButton.click();
-      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-directory.png') });
       await page.locator('.explorer .folder-container a').first().click();
       await page.waitForURL(current => current.pathname !== '/wiki/');
-      assert.equal(await directoryButton.getAttribute('aria-expanded'), 'false', 'SPA navigation closes mobile navigation');
+      assert.equal(await navigation.isVisible(), false, 'folder navigation closes the drawer');
+      assert.ok((await page.locator('.sidebar.left').boundingBox()).height <= 64);
+      await menu.click();
       await tagsButton.click();
-      assert.equal(await tagsButton.getAttribute('aria-expanded'), 'true', 'SPA switch still works');
-      await tagsButton.click();
+      await page.locator('.knowledge-tag-link').first().click();
+      await page.waitForURL(current => current.pathname.includes('/tags/'));
+      assert.equal(await navigation.isVisible(), false, 'tag navigation closes the drawer');
+      await bar.locator('a').click();
+      await page.waitForURL(url);
       await page.locator('.knowledge-page-card-link').first().click();
       await page.locator('.article-title').waitFor();
-      assert.equal(await page.locator('.center article > h1:first-child').isVisible(), false, 'duplicate article title is hidden');
-      await tagsButton.click();
-      assert.equal(await tagsButton.getAttribute('aria-expanded'), 'true', 'article switch works');
-      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-tags.png') });
-      await tagsButton.click();
+      assert.equal(await page.locator('.center article > h1:first-child').isVisible(), false);
+      assert.equal(await page.locator('.page-header .tags').count(), 0, 'article tags move out of the reading header');
+      assert.ok((await page.locator('.center article').boundingBox()).y < 180, 'article body starts near the toolbar');
       if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-article.png') });
-      await page.locator('.search-button').click();
-      const input = page.locator('.search-space input');
-      await input.fill(allFiles.find(file => !file.slug.endsWith('/index'))?.frontmatter.title || 'ACP');
-      await page.locator('.result-card').first().waitFor();
-      assert.ok((await input.boundingBox()).y >= 0, 'search input stays inside viewport');
-      await page.keyboard.press('Escape');
+      await page.evaluate(() => window.scrollTo(0, 600));
+      assert.equal((await bar.boundingBox()).y, 0, 'toolbar stays available while reading');
+      const readingScroll = await page.evaluate(() => window.scrollY);
+      await menu.click();
+      assert.equal(await page.locator('.knowledge-mobile-article-tags').isVisible(), true);
+      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-tags.png') });
+      await navigation.locator('[data-knowledge-close]').click();
+      assert.equal(await page.evaluate(() => window.scrollY), readingScroll, 'dismissal preserves the reading position');
+      await menu.click();
       await page.locator('.darkmode').click();
       assert.equal(await page.locator('html').getAttribute('saved-theme'), 'dark');
-      await page.waitForFunction(() => getComputedStyle(document.querySelector('.page-title a')).color === 'rgb(145, 171, 193)');
+      await navigation.locator('[data-knowledge-close]').click();
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.knowledge-mobile-title')).color === 'rgb(238, 238, 239)');
       if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-dark.png') });
+      await search.click();
+      assert.equal(await searchDialog.evaluate(dialog => dialog.matches(':modal')), true);
+      const input = page.locator('.search-space input');
+      assert.equal(await input.evaluate(element => element === document.activeElement), true, 'search is ready to type');
+      await input.fill(allFiles.find(file => !file.slug.endsWith('/index'))?.frontmatter.title || 'ACP');
+      await page.locator('.result-card:not(.no-match)').first().waitFor();
+      assert.ok((await page.locator('.result-card > p').first().boundingBox()).height <= 73, 'results show a short excerpt, not a full article');
+      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-search.png') });
+      assert.ok((await input.boundingBox()).y >= 56);
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('#knowledge-mobile-search').open);
+      assert.equal(await search.evaluate(button => button === document.activeElement), true);
+      await search.click();
+      assert.equal(await input.inputValue(), '', 'closing clears the old query');
+      await input.fill('Codex');
+      await page.locator('.result-card:not(.no-match)').first().click();
+      await page.waitForURL(current => current.pathname.includes('codex'));
+      assert.equal(await searchDialog.isVisible(), false, 'search result navigation closes the search');
+      await page.keyboard.press('Control+k');
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-search').open);
+      await searchDialog.locator('[data-knowledge-close]').click();
+      await page.evaluate(sidebar.afterDOMLoaded);
+      await menu.click();
+      await navigation.locator('[data-knowledge-close]').click();
+      await menu.click();
+      assert.equal(await navigation.evaluate(dialog => dialog.open), true);
+      await page.setViewportSize({ width: 1200, height: 844 });
+      await page.waitForFunction(() => !document.querySelector('#knowledge-mobile-navigation').open);
+      assert.equal(await page.locator('.sidebar.left > .knowledge-sidebar-switch').isVisible(), true);
+      assert.equal(await page.locator('.sidebar.left > .flex-component .search').count(), 1);
+      assert.equal(await page.locator('.page-header .tags').count(), 1, 'desktop metadata is restored');
+      assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY), 'hidden');
+      await page.setViewportSize({ width, height: 844 });
+      await page.waitForFunction(() => !!document.querySelector('#knowledge-mobile-search .search'));
+      assert.equal(await page.locator('.knowledge-mobile-bar').count(), 1);
+      assert.equal(await directoryButton.isVisible(), false);
       await page.evaluate(() => {
         const article = document.querySelector('.center article');
         const heading = document.createElement('h2');
@@ -185,17 +251,6 @@ try {
         const table = document.querySelector('.center article > .table-container:last-child');
         return pre.scrollWidth > pre.clientWidth && table.scrollWidth > table.clientWidth;
       }), 'wide code and tables scroll locally');
-      // Repeat our initializer as Quartz can include component resources more than once.
-      await page.evaluate(sidebar.afterDOMLoaded);
-      await directoryButton.click();
-      assert.equal(await directoryButton.getAttribute('aria-expanded'), 'true', 'repeated nav does not duplicate handlers');
-      await page.setViewportSize({ width: 1200, height: 844 });
-      await page.waitForFunction(() => !document.querySelector('[data-knowledge-view="directory"]').hasAttribute('aria-expanded'));
-      assert.equal(await directoryButton.getAttribute('aria-expanded'), null);
-      assert.equal(await page.evaluate(() => document.documentElement.classList.contains('mobile-no-scroll')), false);
-      await page.setViewportSize({ width, height: 844 });
-      await page.waitForFunction(() => document.querySelector('[data-knowledge-view="directory"]').getAttribute('aria-expanded') === 'false');
-      assert.equal(await directoryButton.getAttribute('aria-expanded'), 'false');
     } else {
       assert.equal(await page.locator('.explorer').isVisible(), true);
       await page.locator('[data-knowledge-view="tags"]').click();

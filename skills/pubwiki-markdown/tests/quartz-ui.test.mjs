@@ -71,21 +71,6 @@ test('WheelMaker sidebar keeps Quartz root-relative navigation inside the Wiki m
   assert.match(source, /startsWith\(wikiRoot\)/u);
 });
 
-test('WheelMaker sidebar owns a responsive toolbar layout', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
-
-  assert.match(source, /grid-template-areas/u);
-  assert.match(source, /@media \(max-width: 800px\)/u);
-  assert.match(source, /min-width: 0/u);
-});
-
-test('WheelMaker mobile sidebar wins the Quartz flex-layout cascade', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
-
-  assert.match(source, /\.sidebar\.left:has\(> \.knowledge-sidebar-switch\):has\(> \.explorer\)/u);
-  assert.match(source, /sidebar\.left:has\(> \.knowledge-sidebar-switch\):has\(> \.explorer\)[\s\S]*?display: grid/u);
-});
-
 test('WheelMaker bundle composes the sidebar switch and hierarchical tag sidebar', async () => {
   const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
   const tags = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'tags.mjs'), 'utf8');

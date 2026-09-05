@@ -53,9 +53,9 @@ export const KnowledgeTagSidebar = () => {
       }
     }
     const slug = fileData.slug || "index"
-    return h("div", { class: "knowledge-tags-sidebar", "aria-label": "Tags" }, [
-      h("h2", null, "Tags"),
-      tags.size > 0 ? renderNodes(tags, slug) : h("p", null, "暂无 Tags"),
+    return h("div", { class: "knowledge-tags-sidebar", "aria-label": "标签" }, [
+      h("h2", null, "标签"),
+      tags.size > 0 ? renderNodes(tags, slug) : h("p", null, "暂无标签"),
     ])
   }
 
@@ -80,7 +80,7 @@ export const KnowledgeTagSidebar = () => {
   margin: 0.15rem 0;
 }
 
-.knowledge-tag-link {
+.knowledge-tag-link.internal {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -88,18 +88,42 @@ export const KnowledgeTagSidebar = () => {
   padding: 0.25rem 0.35rem;
   border-radius: 0.25rem;
   color: var(--darkgray);
+  background: transparent;
   font-size: 0.8rem;
   text-decoration: none;
 }
 
-.knowledge-tag-link:hover {
+.knowledge-tag-link > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.knowledge-tag-link.internal:hover {
   background: var(--highlight);
   color: var(--dark);
 }
 
 .knowledge-tag-count {
-  color: var(--gray);
+  color: var(--darkgray);
   font-size: 0.7rem;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 800px) {
+  .knowledge-tag-link.internal {
+    box-sizing: border-box;
+    min-height: 2.75rem;
+    align-items: center;
+    padding: 0.5rem;
+    font-size: 0.9375rem;
+    background: transparent;
+  }
+
+  .knowledge-tag-link.internal:hover,
+  .knowledge-tag-link.internal:focus-visible {
+    background: var(--highlight);
+  }
 }
 `
 

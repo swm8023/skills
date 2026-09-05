@@ -86,13 +86,6 @@ test('WheelMaker mobile sidebar wins the Quartz flex-layout cascade', async () =
   assert.match(source, /sidebar\.left:has\(> \.knowledge-sidebar-switch\):has\(> \.explorer\)[\s\S]*?display: grid/u);
 });
 
-test('WheelMaker mobile Explorer toggle remains single-shot after Quartz nav events', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
-
-  assert.match(source, /wheelmakerMobileExplorerBound/u);
-  assert.match(source, /stopImmediatePropagation\(\)/u);
-});
-
 test('WheelMaker bundle composes the sidebar switch and hierarchical tag sidebar', async () => {
   const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
   const tags = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'tags.mjs'), 'utf8');

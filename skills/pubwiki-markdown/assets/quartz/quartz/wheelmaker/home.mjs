@@ -3,7 +3,7 @@ import { resolveRelative } from "@quartz-community/utils"
 
 const DEFAULT_SITE_TITLE = "WheelMaker Knowledge"
 const DEFAULT_SITE_DESCRIPTION = "Browse the WheelMaker knowledge base."
-const DIRECTORY_DESCRIPTION = "Browse the articles in this directory."
+const DIRECTORY_DESCRIPTION = "浏览此目录下的全部文章。"
 
 function siteSettings(cfg = {}) {
   const configuredTitle = typeof process?.env?.WHEELMAKER_WIKI_SITE_TITLE === "string"
@@ -113,9 +113,8 @@ function PageHeading({ eyebrow, title, description, count }) {
     h("p", { class: "knowledge-page-eyebrow" }, eyebrow),
     h("h1", { class: "knowledge-page-title" }, title),
     h("p", { class: "knowledge-page-lede" }, description),
-    h("div", { class: "knowledge-page-meta", "aria-label": "Knowledge base status" }, [
-      h("span", null, `${count} ${count === 1 ? "article" : "articles"}`),
-      h("span", null, "Local workspace"),
+    h("div", { class: "knowledge-page-meta", "aria-label": "文章数量" }, [
+      h("span", null, `共 ${count} 篇文章`),
     ]),
   ])
 }
@@ -164,7 +163,7 @@ function HomeContent({ allFiles = [], fileData = { slug: "index" }, cfg = {} } =
 
   return h("div", { class: "popover-hint knowledge-home" }, [
     PageHeading({
-      eyebrow: "Knowledge base",
+      eyebrow: "知识库",
       title: fileData.title || site.title,
       description: fileData.description || site.description,
       count: pages.length,
@@ -186,7 +185,7 @@ function DirectoryContent({ allFiles = [], fileData = { slug: "" } } = {}) {
 
   return h("div", { class: "popover-hint knowledge-directory" }, [
     PageHeading({
-      eyebrow: "Directory",
+      eyebrow: "目录",
       title: folderSlug || "Root",
       description: DIRECTORY_DESCRIPTION,
       count: pages.length,
@@ -196,8 +195,8 @@ function DirectoryContent({ allFiles = [], fileData = { slug: "" } } = {}) {
       fileData,
       className: "knowledge-directory-grid",
       ariaLabel: `${folderSlug || "Root"} articles`,
-      emptyTitle: "No articles in this directory",
-      emptyDescription: "Add a Markdown note to this directory and it will appear here.",
+      emptyTitle: "此目录暂无文章",
+      emptyDescription: "发布到此目录的 Markdown 笔记会出现在这里。",
     }),
   ])
 }
@@ -234,6 +233,7 @@ PageContent.css = `
   font-size: clamp(2rem, 5vw, 3.35rem);
   line-height: 1.08;
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .knowledge-page-lede {
@@ -248,17 +248,13 @@ PageContent.css = `
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  color: var(--gray);
-  font-family: var(--codeFont);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--darkgray);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .knowledge-page-meta span {
-  border: 1px solid var(--lightgray);
-  border-radius: 999px;
-  padding: 0.28rem 0.6rem;
+  padding: 0.25rem 0;
 }
 
 .knowledge-home-grid,
@@ -285,9 +281,9 @@ PageContent.css = `
   padding: 1.15rem 1.2rem 1rem;
   border: 1px solid var(--lightgray);
   border-radius: 0.7rem;
-  background: color-mix(in srgb, var(--light) 88%, var(--secondary));
+  background: var(--light);
   color: var(--dark);
-  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+  font-weight: 400;
 }
 
 .knowledge-page-card-link.internal:hover,
@@ -295,7 +291,6 @@ PageContent.css = `
   border-color: var(--knowledge-accent);
   background: var(--highlight);
   color: var(--dark);
-  transform: translateY(-2px);
 }
 
 .knowledge-page-card-link.internal:focus-visible {
@@ -305,10 +300,11 @@ PageContent.css = `
 
 .knowledge-page-card-section {
   color: var(--knowledge-accent);
-  font-family: var(--codeFont);
+  font-family: var(--codeFont), monospace;
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .knowledge-page-card h2 {
@@ -316,12 +312,15 @@ PageContent.css = `
   color: var(--dark);
   font-size: clamp(1.15rem, 2vw, 1.4rem);
   line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .knowledge-page-card p {
   margin: 0.65rem 0 0;
   color: var(--darkgray);
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .knowledge-page-card-arrow {
@@ -354,16 +353,63 @@ PageContent.css = `
   }
 
   .knowledge-page-heading {
-    margin-bottom: 1.35rem;
+    margin-bottom: 1rem;
+  }
+
+  .knowledge-page-eyebrow {
+    display: none;
+  }
+
+  .knowledge-page-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .knowledge-page-lede {
+    margin: 0.5rem 0;
+    font-size: 0.9375rem;
+    line-height: 1.6;
   }
 
   .knowledge-home-grid,
   .knowledge-directory-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
   .knowledge-page-card-link.internal {
     min-height: 0;
+    position: relative;
+    padding: 1rem;
+  }
+
+  .knowledge-page-card-section {
+    padding-right: 1.5rem;
+    font-size: 0.7rem;
+  }
+
+  .knowledge-page-card h2 {
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+
+  .knowledge-page-card p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  .knowledge-page-card-arrow {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0;
+    font-size: 1rem;
   }
 }
 

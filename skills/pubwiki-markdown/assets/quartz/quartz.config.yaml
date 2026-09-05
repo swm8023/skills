@@ -45,6 +45,20 @@ configuration:
 
 plugins:
   # Markdown and Obsidian processing is supplied by Quartz Community plugins in v5.
+  # Note Properties supplies the frontmatter transformer; its visual panel stays hidden.
+  - source: github:quartz-community/note-properties
+    enabled: true
+    options:
+      includeAll: false
+      includedProperties:
+        - description
+        - tags
+        - aliases
+      excludedProperties: []
+      hidePropertiesView: true
+      delimiters: ---
+      language: yaml
+    order: 5
   - source: github:quartz-community/created-modified-date
     enabled: true
     options:

@@ -36,6 +36,11 @@
       "resolved": "https://github.com/quartz-community/latex.git",
       "commit": "2544fd13fa132493647480d8ce75f4432a6f1750"
     },
+    "note-properties": {
+      "source": "github:quartz-community/note-properties",
+      "resolved": "https://github.com/quartz-community/note-properties.git",
+      "commit": "e68145b9f11b31d3168ed2755bd74f36a67dbed7"
+    },
     "remove-draft": {
       "source": "github:quartz-community/remove-draft",
       "resolved": "https://github.com/quartz-community/remove-draft.git",

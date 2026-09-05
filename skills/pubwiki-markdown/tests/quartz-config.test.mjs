@@ -14,6 +14,7 @@ const REQUIRED_EXTERNAL_PLUGINS = [
   'crawl-links',
   'description',
   'latex',
+  'note-properties',
   'remove-draft',
   'alias-redirects',
   'content-index',
@@ -37,7 +38,6 @@ const REMOVED_EXTERNAL_PLUGINS = [
   'og-image',
   'canvas-page',
   'folder-page',
-  'note-properties',
   'reader-mode',
   'breadcrumbs',
   'spacer',
@@ -57,6 +57,7 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
   await assert.rejects(() => access(path.join(assets, 'quartz.config.ts')));
   await assert.rejects(() => access(path.join(assets, 'quartz.layout.ts')));
   assert.match(config, /source:\s*github:quartz-community\/obsidian-flavored-markdown/u);
+  assert.match(config, /source:\s*github:quartz-community\/note-properties[\s\S]*?hidePropertiesView:\s*true[\s\S]*?order:\s*5/u);
   assert.match(config, /pageTitle:\s*WheelMaker Knowledge/u);
   assert.match(config, /source:\s*\.\/quartz\/wheelmaker\s*$/mu);
   assert.doesNotMatch(config, /source:\s*\.\/quartz\/wheelmaker-(?:home|sidebar|tags)/u);
@@ -68,6 +69,7 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
     .sort();
   assert.deepEqual(configuredNames, [...REQUIRED_EXTERNAL_PLUGINS].sort());
   assert.deepEqual(Object.keys(lock.plugins).sort(), [...REQUIRED_EXTERNAL_PLUGINS].sort());
+  assert.equal(lock.plugins['note-properties']?.commit, 'e68145b9f11b31d3168ed2755bd74f36a67dbed7');
   for (const name of REMOVED_EXTERNAL_PLUGINS) {
     assert.doesNotMatch(config, new RegExp(`source:\\s+github:quartz-community/${name}(?:\\s|$)`, 'u'));
     assert.equal(lock.plugins[name], undefined, `removed plugin remains locked: ${name}`);

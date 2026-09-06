@@ -1,6 +1,7 @@
 // Run against an existing local Quartz export without building or publishing:
 // node quartz-mobile.browser.mjs --site <static-output> --runtime <quartz-runtime>
 //   --playwright <playwright/index.mjs> --browser <chromium-executable> --artifacts <directory>
+// Add --desktop-only for the desktop navigation, result-page and density checks.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
@@ -9,9 +10,10 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
-const { values } = parseArgs({ options: Object.fromEntries(
-  ['site', 'runtime', 'playwright', 'browser', 'artifacts'].map(name => [name, { type: 'string' }]),
-) });
+const { values } = parseArgs({ options: {
+  ...Object.fromEntries(['site', 'runtime', 'playwright', 'browser', 'artifacts'].map(name => [name, { type: 'string' }])),
+  'desktop-only': { type: 'boolean', default: false },
+} });
 for (const name of ['site', 'runtime', 'playwright']) assert.ok(values[name], `--${name} is required`);
 const root = path.resolve(values.site);
 const runtimeURL = pathToFileURL(path.join(path.resolve(values.runtime), 'package.json')).href;
@@ -34,6 +36,29 @@ const allFiles = Object.entries(index).map(([slug, entry]) => ({
 }));
 const textContent = node => node.nodeName === '#text' ? node.value : (node.childNodes || []).map(textContent).join('');
 const walk = (node, visit) => { visit(node); node.childNodes?.forEach(child => walk(child, visit)); };
+if (values['desktop-only']) {
+  const sampleFiles = [
+    { slug: 'sample/a', frontmatter: { title: 'First article', tags: ['topic/one', 'topic/two', 'topic/one'] } },
+    { slug: 'sample/b', frontmatter: { title: 'Second article', tags: ['topic/one'] } },
+    { slug: 'tags/topic', frontmatter: { title: 'Generated tag page', tags: ['topic'] } },
+  ];
+  const tagDocument = parseFragment(render(h(tags, { allFiles: sampleFiles, fileData: { slug: 'index' } })));
+  const counts = {};
+  walk(tagDocument, node => {
+    const href = node.attrs?.find(attr => attr.name === 'href')?.value;
+    if (href) counts[href] = textContent(node).trim();
+  });
+  assert.equal(counts['./tags/topic'], 'topic2', 'parent tags count distinct articles, not tag assignments');
+  const pageType = WheelMakerHomePage();
+  assert.equal(pageType.match({ slug: 'tags/topic', fileData: {} }), true, 'tag results share the owned page renderer');
+  const generated = pageType.generate({ cfg: {}, content: sampleFiles.slice(0, 2).map(data => [null, { data }]) });
+  assert.equal(generated.filter(page => page.slug === 'tags/topic').length, 1, 'one virtual page per parent tag');
+  assert.throws(() => pageType.generate({ cfg: {}, content: [], ctx: { cfg: { plugins: { pageTypes: [{ name: 'TagPage' }] } } } }), /--refresh/, 'old pinned configuration cannot silently emit duplicate tag pages');
+  const tagProps = { allFiles: sampleFiles, fileData: { slug: 'tags/topic' } };
+  const firstRender = render(h(content, tagProps));
+  const secondRender = render(h(content, { ...tagProps, tree: { type: 'root', children: [{ type: 'text', value: firstRender }] } }));
+  assert.equal(secondRender, firstRender, 'pre-rendered virtual page content is not recursively included');
+}
 const originalHome = parse(await readFile(path.join(root, 'index.html'), 'utf8'));
 const site = {};
 walk(originalHome, node => {
@@ -65,10 +90,12 @@ const server = createServer(async (request, response) => {
     const extension = path.extname(file);
     if (extension === '.html') {
       const slug = pathname.replace(/\.html$/, '').replace(/\/$/, '/index') || 'index';
-      const props = { allFiles, fileData: { slug, ...(slug === 'index' ? site : {}) }, cfg: { pageTitle: site.title } };
+      const props = { allFiles, fileData: { ...allFiles.find(file => file.slug === slug), slug, ...(slug === 'index' ? site : {}) }, cfg: { pageTitle: site.title } };
       const document = parse(data.toString());
       const replaceComponents = node => {
         const classes = node.attrs?.find(attr => attr.name === 'class')?.value.split(' ') || [];
+        const tagPage = slug === 'tags' || slug.startsWith('tags/');
+        if (tagPage && classes.includes('page-header')) node.childNodes = [];
         if (classes.includes('knowledge-mobile-bar') || classes.includes('knowledge-mobile-dialog')) {
           node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1);
           return;
@@ -80,6 +107,7 @@ const server = createServer(async (request, response) => {
           component = content;
           if (slug !== 'index' && !slug.endsWith('/index')) props.fileData.slug = slug + '/index';
         }
+        if (tagPage && classes.includes('popover-hint') && node.parentNode?.attrs?.some(attr => attr.name === 'class' && attr.value.split(' ').includes('center'))) component = content;
         if (component) {
           const replacements = parseFragment(render(h(component, props))).childNodes;
           replacements.forEach(replacement => { replacement.parentNode = node.parentNode; });
@@ -117,7 +145,7 @@ let browser;
 const errors = [];
 try {
   browser = await chromium.launch({ headless: true, ...(values.browser ? { executablePath: values.browser } : {}) });
-  for (const width of [320, 390, 768, 800, 801, 1440]) {
+  for (const width of (values['desktop-only'] ? [801, 1024, 1280, 1440, 1920] : [320, 390, 768, 800, 801, 1440])) {
     const page = await browser.newPage({ viewport: { width, height: 844 }, isMobile: width <= 800, hasTouch: width <= 800 });
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(url);
@@ -167,7 +195,7 @@ try {
       assert.ok((await page.locator('.sidebar.left').boundingBox()).height <= 64);
       await menu.click();
       await tagsButton.click();
-      await page.locator('.knowledge-tag-link').first().click();
+      await page.locator('.knowledge-tag-row:has(.knowledge-tree-toggle) .knowledge-tag-link').first().click();
       await page.waitForURL(current => current.pathname.includes('/tags/'));
       assert.equal(await navigation.isVisible(), false, 'tag navigation closes the drawer');
       await bar.locator('a').click();
@@ -253,9 +281,104 @@ try {
       }), 'wide code and tables scroll locally');
     } else {
       assert.equal(await page.locator('.explorer').isVisible(), true);
-      await page.locator('[data-knowledge-view="tags"]').click();
+      await page.locator('.explorer .knowledge-tree-toggle').first().waitFor();
+      const directoryTab = page.locator('[data-knowledge-view="directory"]');
+      const tagsTab = page.locator('[data-knowledge-view="tags"]');
+      await directoryTab.focus();
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await tagsTab.getAttribute('aria-selected'), 'true');
+      assert.equal(await tagsTab.evaluate(el => el === document.activeElement), true);
+      await page.keyboard.press('Home');
+      assert.equal(await directoryTab.getAttribute('aria-selected'), 'true');
+      await page.keyboard.press('End');
+      assert.equal(await tagsTab.getAttribute('aria-selected'), 'true');
       assert.equal(await page.locator('.knowledge-tags-sidebar').isVisible(), true);
-      if (artifacts && width === 1440) await page.screenshot({ path: path.join(artifacts, 'after-desktop.png') });
+      const tagToggle = page.locator('.knowledge-tags-sidebar .knowledge-tree-toggle').first();
+      await tagToggle.focus();
+      const expanded = await tagToggle.getAttribute('aria-expanded');
+      await page.keyboard.press('Space');
+      assert.notEqual(await tagToggle.getAttribute('aria-expanded'), expanded, 'tag branches toggle with keyboard');
+      const savedExpanded = await tagToggle.getAttribute('aria-expanded');
+      await page.locator('.knowledge-tag-row:has(.knowledge-tree-toggle) .knowledge-tag-link').first().click();
+      await page.waitForURL(current => current.pathname.includes('/tags/'));
+      await page.locator('.knowledge-tag-page').waitFor();
+      assert.equal(await page.locator('.knowledge-tags-sidebar .knowledge-tree-toggle').first().getAttribute('aria-expanded'), savedExpanded, 'tag expansion survives SPA navigation');
+      assert.equal(await page.locator('.knowledge-tag-link[aria-current="page"]').count(), 1);
+      assert.equal(await page.locator('.page-listing').count(), 0, 'tag page has no duplicated upstream result listing');
+      assert.ok(await page.locator('.knowledge-page-card').count() > 0);
+      if (artifacts && width === 1440) await page.screenshot({ path: path.join(artifacts, 'after-desktop-tags.png') });
+      await page.goto(url);
+      await directoryTab.click();
+      const toggle = page.locator('.explorer .knowledge-tree-toggle').first();
+      await toggle.waitFor();
+      await toggle.focus();
+      const before = await toggle.getAttribute('aria-expanded');
+      await page.keyboard.press('Space');
+      assert.notEqual(await toggle.getAttribute('aria-expanded'), before, 'directory branches toggle with keyboard');
+      if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
+      const folderRow = page.locator('.explorer .folder-container').first();
+      const tagRow = page.locator('.knowledge-tag-row').first();
+      const dirStyle = await folderRow.evaluate(el => ({ top: el.getBoundingClientRect().y, height: el.getBoundingClientRect().height, size: getComputedStyle(el.querySelector('a')).fontSize }));
+      await tagsTab.click();
+      const tagStyle = await tagRow.evaluate(el => ({ top: el.getBoundingClientRect().y, height: el.getBoundingClientRect().height, size: getComputedStyle(el.querySelector('a')).fontSize }));
+      assert.deepEqual(tagStyle, dirStyle, 'directory and tag rows use the same visual metrics');
+      await directoryTab.click();
+      const firstCard = await page.locator('.knowledge-page-card').first().boundingBox();
+      assert.ok(firstCard.y < 260, 'desktop content starts without a large hero gap');
+      if (width >= 1280) {
+        assert.ok(await page.locator('.center').evaluate(el => el.getBoundingClientRect().width) > width * 0.6, 'empty right rail returns space to the collection');
+      }
+      if (artifacts && width === 1440) await page.screenshot({ path: path.join(artifacts, 'after-desktop-home.png') });
+      if (width === 1440) {
+        console.log(JSON.stringify({ width, row: dirStyle, firstArticleY: firstCard.y,
+          contentWidth: await page.locator('.center').evaluate(el => el.getBoundingClientRect().width) }));
+        const theme = await page.locator('html').getAttribute('saved-theme');
+        await page.locator('.sidebar.left .darkmode').click();
+        await page.waitForFunction(previous => document.documentElement.getAttribute('saved-theme') !== previous, theme);
+        await page.waitForFunction(() => getComputedStyle(document.querySelector('.folder-container a')).color === getComputedStyle(document.querySelector('.knowledge-tag-count')).color);
+        const contrast = await page.evaluate(() => {
+          const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(Number).map(value => {
+            const channel = value / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          }).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+          const background = luminance(getComputedStyle(document.body).backgroundColor);
+          return ['.page-title a', '.folder-title', '.knowledge-tag-link'].map(selector => {
+            const foreground = luminance(getComputedStyle(document.querySelector(selector)).color);
+            return (Math.max(background, foreground) + 0.05) / (Math.min(background, foreground) + 0.05);
+          });
+        });
+        assert.ok(contrast.every(value => value >= 4.5), 'dark sidebar labels remain legible after the theme transition');
+        if (artifacts) await page.screenshot({ path: path.join(artifacts, 'after-desktop-dark.png') });
+        await page.locator('.sidebar.left .darkmode').click();
+        await page.locator('.sidebar.left .search-button').click();
+        const searchInput = page.locator('.search-container input');
+        await searchInput.fill('acp');
+        await page.locator('.result-card').first().waitFor();
+        assert.ok((await page.locator('.result-card > p').first().boundingBox()).height <= 66, 'desktop results use short excerpts');
+        await page.locator('.preview-container .article-title').waitFor();
+        await page.waitForFunction(() => document.querySelector('.preview-container article > h1:first-child')?.dataset.knowledgeRepeatedTitle === 'true');
+        assert.equal(await page.locator('.preview-container article > h1:first-child').isVisible(), false, 'search previews do not repeat the title');
+        if (artifacts) await page.screenshot({ path: path.join(artifacts, 'after-desktop-search.png') });
+        await page.keyboard.press('Escape');
+        await page.locator('.search-container').waitFor({ state: 'hidden' });
+      }
+      await page.locator('.explorer .folder-container a').first().click();
+      await page.waitForURL(current => current.pathname !== '/wiki/');
+      await page.locator('.explorer [aria-current="page"]').waitFor();
+      await page.locator('.knowledge-page-card-link').first().click();
+      await page.locator('.article-title').waitFor();
+      await page.locator('.explorer [aria-current="location"]').waitFor();
+      if (artifacts && width === 1440) await page.screenshot({ path: path.join(artifacts, 'after-desktop-article.png') });
+      // A long tag list scrolls inside the sidebar without covering its controls.
+      await tagsTab.click();
+      await page.locator('.knowledge-tags-sidebar').evaluate(el => {
+        const list = el.querySelector('ul');
+        for (let i = 0; i < 60; i++) list.append(list.firstElementChild.cloneNode(true));
+        el.scrollTop = el.scrollHeight;
+      });
+      assert.ok(await page.locator('.knowledge-tags-sidebar').evaluate(el => el.scrollHeight > el.clientHeight));
+      assert.ok((await tagsTab.boundingBox()).y >= 0);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
     console.log(`PASS ${width}px: layout, navigation and reading controls`);
     await page.close();

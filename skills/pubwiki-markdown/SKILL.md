@@ -225,6 +225,15 @@ an explicit `--refresh --link-skill`; refresh retains linked mode once enabled.
 The old Hub cannot publish a linked runtime, so update the Hub before migration.
 Subsequent UI-only updates do not require another Hub update or Quartz reinstall.
 
+The desktop navigation uses matching directory/tag rows, separate disclosure
+buttons and links, per-article counts, current-location indicators, and keyboard
+operable tabs. Long navigation lists scroll inside the sidebar. WheelMaker owns
+home, directory, and tag result pages so they share the same rendering and avoid
+recursively embedding the upstream tag page's pre-rendered list. Installations
+that still enable the external `tag-page` plugin need a one-time
+`--refresh --link-skill` to adopt the updated pinned configuration; the page
+plugin reports this explicitly instead of emitting competing tag pages.
+
 ## Scope boundary
 
 This Skill does not provide a WheelMaker editor button, an Obsidian URI opener, or

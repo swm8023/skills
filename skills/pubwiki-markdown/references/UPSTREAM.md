@@ -42,5 +42,10 @@ publishing workflow.
   `quartz.config.yaml`, plugin manifests, and per-plugin layout declarations.
   The local home page is a v5 virtual page type, so no `content/index.md` is
   generated or required.
+- Home, directory, and tag result pages now use the WheelMaker page type. The
+  external `tag-page` plugin is removed from the pinned configuration and lock:
+  its virtual-page body could re-embed its populated HTML tree during final
+  rendering, duplicating results. Existing installations must explicitly refresh
+  the runtime configuration once when adopting this change.
 - The runtime is a build dependency, not Wiki content. It is never copied into
   `data/` or public output, and Quartz receives no WheelMaker credentials.

@@ -19,7 +19,6 @@ const REQUIRED_EXTERNAL_PLUGINS = [
   'alias-redirects',
   'content-index',
   'content-page',
-  'tag-page',
   'explorer',
   'search',
   'backlinks',
@@ -33,6 +32,7 @@ const REQUIRED_EXTERNAL_PLUGINS = [
 ];
 
 const REMOVED_EXTERNAL_PLUGINS = [
+  'tag-page',
   'table-of-contents',
   'favicon',
   'og-image',

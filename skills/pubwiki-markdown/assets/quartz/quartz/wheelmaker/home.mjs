@@ -1,5 +1,6 @@
 import { h } from "preact"
 import { resolveRelative } from "@quartz-community/utils"
+import { buildTagTree, normalizedTags, pagesForTag, sortedNodes } from "./tags.mjs"
 
 const DEFAULT_SITE_TITLE = "WheelMaker Knowledge"
 const DEFAULT_SITE_DESCRIPTION = "Browse the WheelMaker knowledge base."
@@ -42,6 +43,8 @@ export function isKnowledgePage(page) {
     slug
       && slug !== "index"
       && slug !== "404"
+      && slug !== "tags"
+      && page.frontmatter?.draft !== true
       && !slug.startsWith("tags/")
       && !slug.endsWith("/")
       && !slug.endsWith("/index"),
@@ -106,6 +109,20 @@ function directoryPagesFor(content = []) {
       title: folder,
       data: { wheelmakerDirectory: true },
     }))
+}
+
+function tagPagesFor(content = []) {
+  const files = content.map(([, file]) => file.data)
+  const existing = new Set(files.map(file => file.slug))
+  const tags = new Set(["index"])
+  for (const file of files.filter(isKnowledgePage)) {
+    for (const tag of normalizedTags(file)) {
+      const parts = tag.split("/")
+      parts.forEach((_, index) => tags.add(parts.slice(0, index + 1).join("/")))
+    }
+  }
+  return [...tags].sort().filter(tag => !existing.has(`tags/${tag}`))
+    .map(tag => ({ slug: `tags/${tag}`, title: tag === "index" ? "全部标签" : `标签：${tag}`, data: {} }))
 }
 
 function PageHeading({ eyebrow, title, description, count, mobileTitle }) {
@@ -205,7 +222,28 @@ function DirectoryContent({ allFiles = [], fileData = { slug: "" } } = {}) {
   ])
 }
 
+function TagContent({ allFiles = [], fileData = { slug: "tags/index" } } = {}) {
+  const tag = fileData.slug.replace(/^tags\/?/, "").replace(/\/index$/, "")
+  if (!tag || tag === "index") {
+    const nodes = sortedNodes(buildTagTree(allFiles))
+    return h("div", { class: "popover-hint knowledge-tag-page" }, [
+      PageHeading({ eyebrow: "标签", title: "全部标签", description: "按主题浏览知识库。", count: allFiles.filter(isKnowledgePage).length }),
+      h("ul", { class: "knowledge-tag-index" }, nodes.map(node => h("li", { key: node.path },
+        h("a", { class: "internal", href: resolveRelative(fileData.slug, `tags/${node.path}`) }, [
+          h("span", null, node.name), h("span", { class: "knowledge-tag-count" }, `${node.pages.size} 篇文章`),
+        ])))),
+    ])
+  }
+  const pages = pagesForTag(allFiles, tag).sort(sortPages)
+  return h("div", { class: "popover-hint knowledge-tag-page" }, [
+    PageHeading({ eyebrow: "标签", title: tag, description: "包含此标签及其子标签的文章。", count: pages.length }),
+    KnowledgeCardList({ pages, fileData, className: "knowledge-directory-grid", ariaLabel: `${tag} articles`,
+      emptyTitle: "此标签暂无文章", emptyDescription: "选择左侧的其他标签继续浏览。" }),
+  ])
+}
+
 function PageContent(props) {
+  if (props.fileData?.slug === "tags" || props.fileData?.slug?.startsWith("tags/")) return h(TagContent, props)
   return props.fileData?.slug === "index" ? h(HomeContent, props) : h(DirectoryContent, props)
 }
 
@@ -215,7 +253,8 @@ PageContent.css = `
 }
 
 .knowledge-home,
-.knowledge-directory {
+.knowledge-directory,
+.knowledge-tag-page {
   --knowledge-accent: var(--secondary);
   padding-bottom: 3rem;
 }
@@ -354,6 +393,24 @@ PageContent.css = `
   margin: 0.4rem 0 0;
 }
 
+.knowledge-tag-index { list-style: none; margin: 0; padding: 0; }
+.knowledge-tag-index > li { margin: 0; border-bottom: 1px solid var(--lightgray); }
+.knowledge-tag-index a.internal { display: flex; justify-content: space-between; gap: 1rem; padding: 0.875rem 0.5rem; background: transparent; }
+
+@media (min-width: 801px) {
+  .knowledge-page-heading { margin-bottom: 1.5rem; max-width: none; }
+  .knowledge-page-eyebrow { margin-bottom: 0.5rem; }
+  .knowledge-page-title { font-size: clamp(1.75rem, 2.6vw, 2.25rem); line-height: 1.2; letter-spacing: -0.025em; text-wrap: pretty; }
+  .knowledge-page-lede { margin: 0.625rem 0 0.75rem; font-size: 1rem; line-height: 1.6; }
+  .knowledge-home-grid,
+  .knowledge-directory-grid { gap: 0.875rem; align-items: stretch; }
+  .knowledge-page-card-link.internal { height: 100%; min-height: 10rem; padding: 1rem; border-radius: 0.5rem; }
+  .knowledge-page-card h2 { margin-top: 0.5rem; font-size: 1.125rem; line-height: 1.4; text-wrap: pretty; }
+  .knowledge-page-card p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-size: 0.9375rem; line-height: 1.6; }
+  .knowledge-page-card-section { font-size: 0.7rem; letter-spacing: 0.02em; text-transform: none; }
+  .knowledge-page-card-arrow { padding-top: 0.75rem; font-size: 1rem; }
+}
+
 @media (max-width: 800px) {
   .knowledge-home,
   .knowledge-directory {
@@ -455,8 +512,11 @@ PageContent.css = `
 export const WheelMakerHomePage = () => ({
   name: "WheelMakerHomePage",
   priority: 1000,
-  match: ({ slug, fileData }) => slug === "index" || isFolderPage(fileData),
-  generate({ cfg, content }) {
+  match: ({ slug, fileData }) => slug === "index" || isFolderPage(fileData) || slug === "tags" || slug.startsWith("tags/"),
+  generate({ cfg, content, ctx }) {
+    if (ctx?.cfg?.plugins?.pageTypes?.some(plugin => plugin.name === "TagPage")) {
+      throw new Error("WheelMaker now owns tag result pages. Run ensure-quartz.mjs --refresh --link-skill to update the pinned configuration before publishing.")
+    }
     const site = siteSettings(cfg)
     cfg.pageTitle = site.title
     return [
@@ -466,6 +526,7 @@ export const WheelMakerHomePage = () => ({
         data: { description: site.description },
       },
       ...directoryPagesFor(content),
+      ...tagPagesFor(content),
     ]
   },
   layout: "home",

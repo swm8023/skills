@@ -112,10 +112,7 @@ plugins:
       enableRSS: false
   - source: github:quartz-community/content-page
     enabled: true
-  - source: github:quartz-community/tag-page
-    enabled: true
-
-  # WheelMaker-owned page type and directory/tag navigation.
+  # WheelMaker owns home, directory and tag result pages, plus shared navigation.
   - source: ./quartz/wheelmaker
     enabled: true
     order: 1000

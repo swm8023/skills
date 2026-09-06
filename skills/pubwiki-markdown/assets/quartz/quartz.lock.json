@@ -61,11 +61,6 @@
       "resolved": "https://github.com/quartz-community/content-page.git",
       "commit": "b8a3f3bb6a126256b12f55879d144ba2ac104b73"
     },
-    "tag-page": {
-      "source": "github:quartz-community/tag-page",
-      "resolved": "https://github.com/quartz-community/tag-page.git",
-      "commit": "dd0cd223c433722b3eb3ff7c93eec8eec49f76b5"
-    },
     "explorer": {
       "source": "github:quartz-community/explorer",
       "resolved": "https://github.com/quartz-community/explorer.git",

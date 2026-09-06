@@ -3,19 +3,19 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "调用 implement：source_kind 为 approved-spec，source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared；spec 头部状态为「待批准」。",
-      "expected_output": "implement 在阶段 1 核对 spec 头部状态行，发现未获批准后返回 scope 补齐批准流程；自身不批准或改写 spec，不生成 plan、不修改代码。",
+      "prompt": "上游误将一份待批准 spec 以 approved-spec 传给 implement：source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared。用户只要求审阅草稿，明确不要实施；当前对话没有任何实施批准。",
+      "expected_output": "implement 核对实际用户授权，不把 source_kind 标签当成批准；尊重仅审阅请求，不自行批准、生成 plan 或修改代码。用户之后要实施时才补齐相应授权。",
       "files": [],
       "expectations": [
         "未生成任何 plan 文件（fixture 内不存在 docs/plans/ 目录）",
         "未修改 src/ 或 test/ 下的任何文件（相对初始 commit 无 diff、无新 commit）",
-        "最终回复明确指出 spec 尚未批准并返回 scope，自身未批准或改写 spec 状态"
+        "明确指出没有实施授权，不仅凭 source_kind 或状态标签启动实施，也不强迫只要审阅的用户当场批准"
       ]
     },
     {
       "id": 2,
       "prompt": "调用 implement：source_kind 为 approved-spec，source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared；spec 头部状态为「已批准 2026-08-09」。",
-      "expected_output": "implement 接受输入并执行 prepare，生成 docs/plans/2026-08-09-greet-util/plan-*.md，按内置测试先行契约实现 greet 并通过 node --test，完成 Git 收尾并给出完成报告。",
+      "expected_output": "implement 接受输入并执行 prepare，生成 docs/plans/2026-08-09-greet-util/plan-*.md，对可自动化的新行为执行 RED/GREEN，实现 greet 并通过 node --test，完成 Git 收尾并给出完成报告。",
       "files": [],
       "expectations": [
         "生成了 docs/plans/2026-08-09-greet-util/ 下的 plan-*.md",
@@ -26,13 +26,13 @@
     },
     {
       "id": 3,
-      "prompt": "调用 implement：source_kind 为 approved-spec，source 为 docs/scope/2026-08-09-greet-util.md，wiki_target 为 none，git_state 为 unprepared；spec 头部没有任何状态行。",
-      "expected_output": "implement 不把「执行这份 spec」当作批准，返回 scope 补齐批准流程；自身不补写状态行，不生成 plan、不修改代码。",
+      "prompt": "用户明确要求：执行 docs/scope/2026-08-09-greet-util.md 这份 spec。该 spec 内容完整、无未决项，但头部没有状态行。调用 implement：source_kind 为 approved-spec，source 为上述路径，wiki_target 为 none，git_state 为 unprepared。",
+      "expected_output": "implement 将用户对具体 spec 的执行指令视为批准，读取并核对内容，prepare 后补记已批准状态，规划、实现、验证并完成 Git 收尾，不重新请求批准。",
       "files": [],
       "expectations": [
-        "未生成任何 plan 文件（fixture 内不存在 docs/plans/ 目录）",
-        "未修改 src/ 或 test/ 下的任何文件（相对初始 commit 无 diff、无新 commit）",
-        "最终回复返回 scope 补齐批准流程，不把「执行这份 spec」当作批准，也不自行补写状态行"
+        "没有因状态行缺失返回 scope 或重复询问同一实施授权",
+        "读取具体 spec 并完成 prepare 后才补记批准状态，没有无授权自行批准",
+        "生成并执行 plan，按 spec 验收完成实现、必要验证和 Git 收尾"
       ]
     },
     {
@@ -91,6 +91,50 @@
         "Todo 或验证证据明确说明为什么 RED/GREEN 不适用",
         "运行了与文档或镜像契约直接对应的结构、引用、内容或格式检查",
         "只有针对性验证和 source 验收通过后才以 complete finalize"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "用户最初明确要求修复空列表汇总抛异常的问题。debug 已用 sum([]) 的失败测试查证根因是 reduce 缺初始值，并交接完整 approved-fix：仅为 reduce 添加零初值，不改变非空行为，验收为空列表返回 0 且既有非空测试通过，verification 为原始测试及相关回归，无额外风险或诊断文件。授权依据是最初修复请求，用户未要求先等方案。git_state 为 unprepared，wiki_target 为 none。",
+      "expected_output": "继承最初修复请求的授权，以证据充分的修复契约直接实施和验证，不要求诊断之后再批准一次。",
+      "files": [],
+      "expectations": [
+        "不将最初修复请求等同于完整根因证据，但接受 debug 已完成的证据与契约",
+        "不询问是否批准同一修复，复用原始 RED 并完成最小修复和回归",
+        "没有扩大范围或改变非空行为，验证后完成 Git 收尾"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "用户已确认只提取一个内部 helper 的保行为重构，对外输入输出与错误行为不变。source 为完整 confirmed-conversation 契约，既有行为测试覆盖所改路径；wiki_target 为 none，git_state 为 unprepared。",
+      "expected_output": "先运行行为测试确认基线，再重构并运行相关回归，不制造失败测试或要求用户批准免除 RED。",
+      "files": [],
+      "expectations": [
+        "保留修改前基线和修改后回归的实际证据",
+        "不为满足 RED 人为破坏实现或增加无意义测试",
+        "不扩展生产行为，不生成 spec 或 plan 文档"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "debug 已交接获授权的视觉修复契约：修正菜单在 125% 缩放下的裁切，复现为浏览器截图和固定点击步骤，自动化断言无法可靠判定裁切。用户已经接受该验证方式；当前环境能够执行相同点击并截图。wiki_target 为 none，git_state 为 unprepared。",
+      "expected_output": "继承已有的截图与交互验证，记录修复前后证据并实施；不因没有自动化 RED 重问替代验证批准。",
+      "files": [],
+      "expectations": [
+        "不重复询问已获授权的验证方式",
+        "不伪称运行或通过自动化失败测试",
+        "只有已确认的可观察验收和必要回归完成后才报告完成"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "一项已确认的修复要求在指定实体设备上复现并验证。当前只有代码访问，无法连接设备，也没有可靠替代证据。用户未授权降低该验收标准。",
+      "expected_output": "不以放宽 RED 为由免除必需设备验证；明确缺失证据，只询问设备访问或具体人工验证反馈，不重复请求整体修复批准。",
+      "files": [],
+      "expectations": [
+        "不自行删除或降低设备验收标准",
+        "没有必要验证结果时不报告 complete",
+        "询问聚焦于真实证据或环境缺口，不重新批准整个已确认方案"
       ]
     }
   ]

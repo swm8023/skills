@@ -136,15 +136,27 @@ may be in frontmatter or inline as `#tag`, including hierarchical forms such as
 `a/b`. `draft: true` is local/private and is excluded from public Quartz output.
 
 When a similar note exists, show the candidate and let the user choose update,
-merge, or new. Never silently overwrite. Before any formal write, show and obtain
-confirmation for the frontmatter, description, body change, repo, directory, tags,
-duplicate choice, resource moves, and link rewrites. Cancellation leaves both
-source data and derived state unchanged.
+merge, or new unless that choice is already explicit in the current request or a
+prior approval. Never silently overwrite. Read relevant candidates before preparing
+the preview. Show the frontmatter, description, body change, repo, directory, tags,
+duplicate choice, resource moves, and link rewrites together; inherit already
+authorized choices and ask only about unresolved substantive choices or missing
+authorization. The same preview states whether this operation only saves locally
+or saves and publishes under the applicable user instructions and publishing
+preferences. Do not add a separate confirmation round for an already authorized
+publish, or turn local-save-only instructions into publication. Cancellation before
+the formal note write leaves source notes unchanged; report any preparation or
+private derived-state updates already performed instead of promising they never occur.
 
 ## Git and publish
 
-After confirmation, run the publish helper with only the paths changed by this
-operation. The helper enforces the following boundary:
+Saving and publishing remain in this one Skill. For an authorized publish, run the
+publish helper with only the paths changed by this operation. For local-save-only
+work, save and validate the notes without invoking that helper or changing the
+long-term publishing preference. The dedicated preparation/publish helpers own the
+Git lifecycle of the fixed `data/` repository; do not also run `git-workflow` or
+`git-check` prepare, commit, push, or cleanup over the same changes. Ordinary source
+repositories retain their own Git lifecycle. The publish helper enforces this boundary:
 
 - inspect worktree and index before starting;
 - stop when there are pre-existing staged files or unrelated changes under `data/`;

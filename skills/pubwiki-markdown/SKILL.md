@@ -182,11 +182,48 @@ node <this-skill>/scripts/ensure-quartz.mjs
 This installs or verifies the private runtime under `~/.wheelmaker/wiki/quartz/`
 and keeps its configuration outside the Git data root. The runtime is Quartz
 `v5.0.0`: its YAML configuration, `quartz.ts` entrypoint, plugin lockfile, and
-WheelMaker local plugins are checked as one pinned runtime. The setup helper
+generated plugin index remain pinned. By default, the WheelMaker UI plugin is
+copied and checked against the installation snapshot for older Hub compatibility. The setup helper
 restores Quartz Community plugins from that lockfile before a build; it does not
 leave those generated plugin directories in Wiki `data/`. There is no file
 watcher; editing and saving in Obsidian does not publish implicitly. Quartz 5
 requires Node.js 22 or newer.
+
+### Link the UI plugin to this Skill
+
+After updating the Hub to a version that supports linked Skill plugins, enable
+the binding once, while no Wiki publish or other setup is running:
+
+```text
+node <this-skill>/scripts/ensure-quartz.mjs --link-skill
+```
+
+For a valid existing runtime, this replaces only the WheelMaker plugin directory
+and cache link, preserving Quartz, configuration, and `node_modules`. Windows
+uses directory junctions; other platforms use directory symlinks. The source is
+derived from this installed Skill, not a hardcoded checkout path. Repeating the
+command is safe and repairs missing links or rebinds a moved Skill installation.
+Unexpected directories are not overwritten; failed activation restores the old
+plugin and metadata.
+
+Once linked, editing or updating the bound Skill's UI MJS files takes effect on
+the next normal Hub UI/CLI publish. There is no watcher or automatic publication,
+and the Hub does not run the Skill helper on each publish. The fixed exporter
+uses Node's `--preserve-symlinks` to resolve the plugin's dependencies from Quartz;
+`--import` preloads the plugin so syntax/import failures stop the process before
+Quartz can silently skip the plugin. No Quartz source patch or Skill-side
+`node_modules` is needed.
+
+Release metadata records the local source and pins the plugin manifest separately
+from its live UI files. The exporter checks both directory links and fingerprints
+the plugin tree before and after each build; a missing source, changed manifest,
+nested link, or edit during a build fails publication instead of using a stale
+copy. The source path and metadata remain outside `data/` and the published site.
+
+Changes to the plugin manifest, Quartz configuration, or dependency lock require
+an explicit `--refresh --link-skill`; refresh retains linked mode once enabled.
+The old Hub cannot publish a linked runtime, so update the Hub before migration.
+Subsequent UI-only updates do not require another Hub update or Quartz reinstall.
 
 ## Scope boundary
 

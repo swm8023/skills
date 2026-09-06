@@ -32,7 +32,11 @@ publishing workflow.
 - The Skill installs this release into the private
   `~/.wheelmaker/wiki/quartz/` directory when it is absent, then overlays the
   checked-in `assets/quartz/` YAML configuration, TypeScript entrypoint, and
-  WheelMaker local v5 plugins. The setup helper restores the v5 Community
+  WheelMaker local v5 plugins. With `ensure-quartz.mjs --link-skill`, the local
+  UI plugin instead links directly to this installed Skill's assets; existing
+  installations migrate without reinstalling Quartz or its dependencies.
+  This requires a Hub with linked-plugin exporter support. Quartz source is
+  unchanged, and the Hub supplies Node's `--preserve-symlinks` flag. The setup helper restores the v5 Community
   plugins from the upstream `quartz.lock.json` before the runtime is used.
 - Quartz 5 replaces the v4 `quartz.config.ts`/`quartz.layout.ts` pair with
   `quartz.config.yaml`, plugin manifests, and per-plugin layout declarations.

@@ -2,7 +2,7 @@
 
 import { createHash } from 'node:crypto';
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, readFile, readdir, realpath, stat, writeFile } from 'node:fs/promises';
+import { readFile, realpath, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -75,13 +75,6 @@ async function exists(filename) {
   }
 }
 
-async function empty(directory) {
-  try { return (await readdir(directory)).length === 0; } catch (error) {
-    if (error?.code === 'ENOENT') return true;
-    throw error;
-  }
-}
-
 async function git(args, { env = process.env } = {}) {
   try {
     return await execFile('git', args, { env: environment(env), windowsHide: true, maxBuffer: 2 * 1024 * 1024 });
@@ -105,46 +98,28 @@ async function gitRoot(data, { env = process.env } = {}) {
   } catch { return { valid: false, root: '' }; }
 }
 
-async function createConfig(config) {
-  try {
-    await writeFile(config, DEFAULT_WIKI_CONFIG, { encoding: 'utf8', flag: 'wx' });
-    return true;
-  } catch (error) {
-    if (error?.code === 'EEXIST') return false;
-    throw error;
-  }
-}
-
 async function validateConfig(config) {
-  const source = await readFile(config, 'utf8');
+  let source;
+  try { source = await readFile(config, 'utf8'); } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+    source = DEFAULT_WIKI_CONFIG;
+  }
   parseWikiConfig(source, config);
   return true;
 }
 
-export async function ensureWikiState({ env = process.env, gitUrl = '' } = {}) {
+// Search may refresh its private index, but never initialize or mutate the Vault.
+export async function ensureWikiState({ env = process.env } = {}) {
   const paths = resolveWikiPaths({ env });
-  const present = await exists(paths.data);
-  const isEmpty = present ? await empty(paths.data) : true;
-  let cloned = false;
-  if (!present || isEmpty) {
-    if (!String(gitUrl || '').trim()) return { status: 'needs-git-url', paths, cloned: false };
-    await mkdir(paths.wiki, { recursive: true });
-    try {
-      await git(['clone', '--', String(gitUrl).trim(), paths.data], { env });
-      cloned = true;
-    } catch (error) {
-      return { status: 'blocked', paths, cloned: false, message: `Unable to clone the Wiki Git repository: ${error.message}` };
-    }
+  if (!await exists(paths.data)) {
+    return { status: 'needs-setup', paths, message: 'The fixed Wiki Vault is missing; prepare it with pubwiki-markdown before searching.' };
   }
   const root = await gitRoot(paths.data, { env });
-  if (!root.valid) return { status: 'blocked', paths, cloned, message: 'The fixed Wiki data directory is not a Git worktree rooted at data/.' };
-  const configCreated = await createConfig(paths.config);
+  if (!root.valid) return { status: 'blocked', paths, message: 'The fixed Wiki data directory is not a Git worktree rooted at data/.' };
   try { await validateConfig(paths.config); } catch (error) {
-    return { status: 'blocked', paths, cloned, configCreated, message: `${WIKI_CONFIG_FILENAME} is malformed: ${error.message}` };
+    return { status: 'blocked', paths, message: `${WIKI_CONFIG_FILENAME} is malformed: ${error.message}` };
   }
-  await mkdir(paths.content, { recursive: true });
-  await mkdir(paths.assets, { recursive: true });
-  return { status: 'ready', paths, cloned, configCreated, gitRoot: root.root };
+  return { status: 'ready', paths, gitRoot: root.root };
 }
 
 export { git };

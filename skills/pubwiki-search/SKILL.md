@@ -5,9 +5,11 @@ description: Search the fixed local WheelMaker Obsidian Vault using Obsidian fir
 
 # pubwiki-search
 
-This Skill incorporates the complete copied `vault-search` Skill, README, and
-scripts under `references/upstream-vault-search/`. Read that material when the
-request needs its semantic-search or Dataview examples. The active implementation
+The upstream `vault-search` instructions are preserved only as
+[reference material](references/upstream-vault-search/reference.md), with their
+README and scripts. Read them only for background or Dataview examples; they are
+not an invocable Skill, and their personal paths, commands, dependencies, and
+semantic-search claims do not apply to this implementation. The active implementation
 below extends it with fixed local discovery, Obsidian-first lookup, automatic
 freshness, and a dependency-free local fallback. The active local fallback is
 lexical and metadata-based in this release; it does not install or invoke an
@@ -22,10 +24,12 @@ The only Vault is:
 ```
 
 The `data/` directory must itself be a valid Git worktree. Check Git before reading
-configuration or building an index. A missing `wiki.config.yaml` is initialized with
-the same commented default used by `pubwiki-markdown`; a non-Git nonempty path is
-never changed. Do not search another Vault, the current working directory, or the
-whole machine.
+configuration or building an index. If `wiki.config.yaml` is missing, use the same
+defaults as `pubwiki-markdown` in memory only. Never create configuration, content
+directories, or a Git checkout during search. A missing or non-Git Vault produces
+an actionable setup error; initialization belongs to `pubwiki-markdown`, not an
+automatic search fallback. Do not search another Vault, the current working
+directory, or the whole machine.
 
 The persistent search index is private and outside the Wiki repository:
 
@@ -102,5 +106,6 @@ Vault or index.
 ## Scope boundary
 
 This Skill is read-only with respect to notes and Git content. It may create or
-update only its private derived index. It does not publish, open an editor, modify
+update only its private derived index; this does not start a repository Git
+lifecycle or require `git-workflow`. It does not publish, open an editor, modify
 WheelMaker UI, or call Registry upload APIs.

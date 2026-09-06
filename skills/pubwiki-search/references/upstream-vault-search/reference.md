@@ -1,8 +1,17 @@
----
+# Upstream reference: vault-search
+
+> Historical reference only, not an invocable Skill. Follow
+> [pubwiki-search](../../SKILL.md) for actual searches. Do not execute the upstream
+> personal paths, installation steps, or commands below. Source and pinned version
+> are recorded in [UPSTREAM.md](../UPSTREAM.md).
+
+Original upstream metadata:
+
+```yaml
 name: vault-search
 description: Semantic search and Dataview-style queries across the Obsidian vault. Use when searching for notes by meaning, finding related content, querying frontmatter metadata, or answering questions about vault contents. Trigger phrases include "search vault", "find notes about", "what do I have on", "related notes", "list tasks", "show positions".
 allowed-tools: Read, Bash(python:*)
----
+```
 
 # Vault Search Skill
 

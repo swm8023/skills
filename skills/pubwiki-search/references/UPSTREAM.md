@@ -7,7 +7,7 @@ This Skill incorporates and extends the following pinned open-source material.
 - Repository: <https://github.com/Roasbeef/obsidian-claude-code>
 - Source path: `skills/vault-search/`
 - Pinned commit: `03a22a8b563d1657cd1840b9f65000347a15a3b4`
-- Copied files: `README.md`, `SKILL.md`, `scripts/dataview.py`,
+- Copied files: `README.md`, `SKILL.md` (renamed locally to `reference.md`), `scripts/dataview.py`,
   `scripts/index.py`, and `scripts/search.py` under `upstream-vault-search/`.
 - License: the pinned repository README declares MIT. The repository did not
   contain a root license file at this commit; the source and attribution are
@@ -23,6 +23,8 @@ silently activated or installed.
 ## Local extension boundary
 
 The copied upstream files are reference material and are not fetched at runtime.
+The upstream entrypoint is named `reference.md`, with its metadata in a code block,
+so recursive Skill discovery cannot register it as a second search Skill.
 The active Skill's fixed Vault, private index, automatic freshness, and no-network
 rules take precedence over upstream examples that use a different path, manual
 commands, or a required embedding installation.

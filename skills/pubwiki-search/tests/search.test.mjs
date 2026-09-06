@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
 
 import { searchKnowledge } from '../scripts/search.mjs';
+import { dataviewQuery } from '../scripts/dataview.mjs';
 import { resolveWikiPaths } from '../scripts/wiki-state.mjs';
 
 const run = promisify(execFile);
@@ -28,6 +29,66 @@ async function note(paths, relativePath, body) {
   await mkdir(path.dirname(filename), { recursive: true });
   await writeFile(filename, body);
 }
+
+async function sourceSnapshot(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const snapshot = {};
+  for (const entry of entries) {
+    if (entry.name === '.git') continue;
+    const filename = path.join(directory, entry.name);
+    snapshot[entry.name] = entry.isDirectory()
+      ? await sourceSnapshot(filename)
+      : (await readFile(filename)).toString('base64');
+  }
+  return snapshot;
+}
+
+for (const mode of ['native', 'fallback', 'dataview']) {
+  test(`${mode} lookup preserves source files and Git state without a config`, async (t) => {
+    const { env, paths } = await fixture(t);
+    await note(paths, 'content/repo/note.md', '---\ntitle: Readonly\n---\n\nSearchable knowledge\n');
+    await run('git', ['-C', paths.data, 'add', 'content/repo/note.md']);
+    await note(paths, 'content/repo/note.md', '---\ntitle: Readonly\n---\n\nSearchable updated knowledge\n');
+    const before = await sourceSnapshot(paths.data);
+    const gitBefore = await run('git', ['-C', paths.data, 'status', '--porcelain=v1']);
+    if (mode === 'dataview') {
+      const result = await dataviewQuery({ env, sql: 'SELECT title FROM notes' });
+      assert.equal(result.rows[0].title, 'Readonly');
+    } else {
+      const result = await searchKnowledge({
+        env,
+        query: 'Readonly',
+        runNative: async () => mode === 'native'
+          ? { available: true, results: [{ path: 'content/repo/note.md' }] }
+          : { available: false },
+      });
+      assert.equal(result.mode, mode === 'native' ? 'obsidian' : 'lexical');
+      assert.equal(result.results[0].path, 'content/repo/note.md');
+    }
+    assert.deepEqual(await sourceSnapshot(paths.data), before);
+    assert.equal((await run('git', ['-C', paths.data, 'status', '--porcelain=v1'])).stdout, gitBefore.stdout);
+    await assert.rejects(() => stat(paths.config), { code: 'ENOENT' });
+    await assert.rejects(() => stat(paths.assets), { code: 'ENOENT' });
+    if (mode !== 'native') assert.ok((await stat(paths.manifest)).isFile());
+  });
+}
+
+test('searching an empty Git Vault does not create content directories', async (t) => {
+  const { env, paths } = await fixture(t);
+  const result = await searchKnowledge({ env, query: 'missing', structured: true });
+  assert.equal(result.mode, 'lexical');
+  assert.deepEqual(result.results, []);
+  assert.deepEqual(await sourceSnapshot(paths.data), {});
+});
+
+test('search does not clone or initialize an absent Vault even when passed a Git URL', async (t) => {
+  const { paths } = await fixture(t);
+  const targetHome = path.join(paths.home, 'uninitialized');
+  const env = { HOME: targetHome, USERPROFILE: targetHome };
+  const result = await searchKnowledge({ env, gitUrl: paths.data, query: 'missing', structured: true });
+  assert.equal(result.mode, 'unavailable');
+  await assert.rejects(() => stat(resolveWikiPaths({ env }).wiki), { code: 'ENOENT' });
+});
 
 test('uses Obsidian first and does not build the fallback index after a valid native response', async (t) => {
   const value = await fixture(t);

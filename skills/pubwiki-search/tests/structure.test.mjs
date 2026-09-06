@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
@@ -18,7 +18,7 @@ test('pubwiki-search contains its active instructions and complete upstream mate
     'agents/openai.yaml',
     'references/UPSTREAM.md',
     'references/upstream-vault-search/README.md',
-    'references/upstream-vault-search/SKILL.md',
+    'references/upstream-vault-search/reference.md',
     'references/upstream-vault-search/scripts/dataview.py',
     'references/upstream-vault-search/scripts/index.py',
     'references/upstream-vault-search/scripts/search.py',
@@ -29,6 +29,9 @@ test('pubwiki-search contains its active instructions and complete upstream mate
     'scripts/yaml.mjs',
   ];
   await Promise.all(required.map(mustExist));
+
+  const referenceFiles = await readdir(path.join(skillRoot, 'references'), { recursive: true });
+  assert.deepEqual(referenceFiles.filter((filename) => path.basename(filename).toLowerCase() === 'skill.md'), []);
 
   const active = await readFile(await mustExist('SKILL.md'), 'utf8');
   const state = await readFile(await mustExist('scripts/wiki-state.mjs'), 'utf8');

@@ -75,8 +75,8 @@ function renderNodes(nodes, slug) {
             type: "button", class: "knowledge-tree-toggle", "data-knowledge-expand": "tag",
             "aria-expanded": "false", "aria-controls": `knowledge-tag-${encodeURIComponent(node.path)}`,
             "aria-label": `展开 ${node.name}`,
-          }, h("svg", { viewBox: "5 8 14 8", width: 12, height: 12, fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", focusable: "false" },
-            h("polyline", { points: "6 9 12 15 18 9" }))) : h("span", { class: "knowledge-tree-spacer", "aria-hidden": "true" }),
+          }, h("svg", { viewBox: "0 0 24 24", width: 16, height: 16, fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", focusable: "false" },
+            h("path", { d: "m9 18 6-6-6-6" }))) : h("span", { class: "knowledge-tree-spacer", "aria-hidden": "true" }),
           h("a", {
             class: "knowledge-tag-link internal", title: node.path,
             href: resolveRelative(slug, `tags/${node.path}`),
@@ -135,7 +135,7 @@ export const KnowledgeTagSidebar = () => {
   padding: 0.25rem 0.5rem 0.25rem 0;
   color: var(--darkgray);
   background: transparent;
-  font-family: var(--bodyFont), system-ui, sans-serif;
+  font-family: var(--knowledge-ui-font, var(--bodyFont)), system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.4;
@@ -153,8 +153,6 @@ export const KnowledgeTagSidebar = () => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.knowledge-nav-row:has(a:hover),
-.explorer .folder-container:has(a:hover),
 .knowledge-nav-row:has(a[aria-current]),
 .explorer .folder-container:has(a[aria-current]) {
   background: var(--highlight);
@@ -186,11 +184,22 @@ export const KnowledgeTagSidebar = () => {
   color: var(--darkgray);
 }
 .knowledge-tree-toggle { cursor: pointer; touch-action: manipulation; }
-.knowledge-tree-toggle:hover { color: var(--dark); background: var(--highlight); border-radius: 0.25rem; }
-.knowledge-tree-toggle svg { pointer-events: none; transition: none; transform: rotate(-90deg); }
-.knowledge-tree-toggle[aria-expanded="true"] svg { transform: none; }
-.explorer .knowledge-tree-toggle .folder-icon { margin: 0; transform: rotate(-90deg); }
-.explorer .knowledge-tree-toggle[aria-expanded="true"] .folder-icon { transform: none; }
+.knowledge-tree-toggle svg,
+.explorer .knowledge-tree-toggle .folder-icon {
+  box-sizing: border-box; width: 16px; height: 16px; padding: 0; margin: 0;
+  flex-shrink: 0; color: currentColor; pointer-events: none;
+  transform: rotate(0); transition: none;
+}
+.knowledge-tree-toggle[aria-expanded="true"] svg,
+.explorer .knowledge-tree-toggle[aria-expanded="true"] .folder-icon { transform: rotate(90deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .knowledge-tree-toggle[data-knowledge-motion="true"] svg { transition: transform 160ms var(--knowledge-ease-out); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .knowledge-nav-row:has(a:hover),
+  .explorer .folder-container:has(a:hover) { background: var(--highlight); }
+  .knowledge-tree-toggle:hover { color: var(--dark); background: var(--highlight); border-radius: 0.25rem; }
+}
 .explorer-content .folder-outer { transition: none; }
 .explorer-content .folder-outer > ul {
   margin-left: 0.875rem;

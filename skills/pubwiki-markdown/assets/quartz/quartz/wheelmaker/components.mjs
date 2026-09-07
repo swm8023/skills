@@ -4,15 +4,17 @@ import { KnowledgeTagSidebar, directoryCounts } from "./tags.mjs"
 
 export { KnowledgeTagSidebar } from "./tags.mjs"
 
-// Lucide menu, search and x share the same stroke geometry as Quartz controls.
+// Lucide outline icons share a 24px viewBox and 2px stroke.
 function ChromeIcon({ name }) {
   return h("svg", {
-    viewBox: "0 0 24 24", width: 22, height: 22, fill: "none",
+    viewBox: "0 0 24 24", width: 20, height: 20, fill: "none",
     stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round",
     "stroke-linejoin": "round", "aria-hidden": "true", focusable: "false",
   }, name === "search"
     ? [h("path", { d: "m21 21-4.34-4.34" }), h("circle", { cx: 11, cy: 11, r: 8 })]
-    : h("path", { d: name === "menu" ? "M4 5h16M4 12h16M4 19h16" : "M18 6 6 18M6 6l12 12" }))
+    : h("path", { d: name === "menu" ? "M4 5h16M4 12h16M4 19h16"
+      : name === "book" ? "M12 5v16m8.001-2A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2a5 5 0 0 1 4-2z"
+      : "M18 6 6 18M6 6l12 12" }))
 }
 
 function MobileChrome({ cfg = {}, fileData = {} }) {
@@ -30,7 +32,7 @@ function MobileChrome({ cfg = {}, fileData = {} }) {
     h("dialog", { id: "knowledge-mobile-navigation", class: "knowledge-mobile-dialog knowledge-mobile-navigation", "aria-labelledby": "knowledge-navigation-title" }, [
       dialogHeader("navigation", "浏览知识库"),
       h("div", { class: "knowledge-mobile-navigation-body" }, [
-        h("a", { class: "knowledge-mobile-home internal", href: home }, "全部文章"),
+        h("a", { class: "knowledge-mobile-home internal", href: home }, [h(ChromeIcon, { name: "book" }), h("span", null, "全部文章")]),
         h("div", { "data-knowledge-slot": "navigation" }),
         h("section", { class: "knowledge-mobile-article-tags", hidden: true }, [
           h("h3", null, "本文标签"),
@@ -38,8 +40,11 @@ function MobileChrome({ cfg = {}, fileData = {} }) {
         ]),
       ]),
       h("footer", { class: "knowledge-mobile-settings" }, [
-        h("span", null, "切换外观"),
-        h("div", { "data-knowledge-slot": "theme" }),
+        h("span", null, "外观"),
+        h("div", { class: "knowledge-mobile-theme-control" }, [
+          h("span", { "data-knowledge-theme-label": "" }),
+          h("div", { "data-knowledge-slot": "theme" }),
+        ]),
       ]),
     ]),
     h("dialog", { id: "knowledge-mobile-search", class: "knowledge-mobile-dialog knowledge-mobile-search", "aria-labelledby": "knowledge-search-title" }, [
@@ -77,6 +82,33 @@ export const KnowledgeSidebarSwitch = () => {
   ])
 
   Component.css = `
+.page:has(.knowledge-sidebar-switch) {
+  --knowledge-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --knowledge-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.sidebar.left :is(.page-title, .knowledge-sidebar-button, .knowledge-mobile-dialog-header, .knowledge-mobile-home, .knowledge-mobile-settings, .knowledge-mobile-title) {
+  font-family: var(--knowledge-ui-font);
+}
+.sidebar.left .darkmode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--darkgray);
+  border-radius: 0.5rem;
+}
+.sidebar.left .darkmode svg {
+  position: static;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+:root .sidebar.left .darkmode > .dayIcon { display: block; }
+:root .sidebar.left .darkmode > .nightIcon { display: none; }
+:root[saved-theme="dark"] .sidebar.left .darkmode > .dayIcon { display: none; }
+:root[saved-theme="dark"] .sidebar.left .darkmode > .nightIcon { display: block; }
+.sidebar.left .darkmode:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
 .knowledge-mobile-bar,
 .knowledge-mobile-dialog {
   display: none;
@@ -265,7 +297,9 @@ export const KnowledgeSidebarSwitch = () => {
     touch-action: manipulation;
     flex-shrink: 0;
   }
-  .knowledge-icon-button:active { background: var(--highlight); }
+  .knowledge-icon-button:active,
+  .knowledge-mobile-settings .darkmode:active { background: var(--highlight); }
+  .knowledge-icon-button svg { width: 20px; height: 20px; flex-shrink: 0; }
   .knowledge-icon-button:focus-visible,
   .knowledge-mobile-title:focus-visible {
     outline: 2px solid var(--secondary);
@@ -299,8 +333,20 @@ export const KnowledgeSidebarSwitch = () => {
     overflow: hidden;
   }
   .knowledge-mobile-dialog[open] { display: flex; flex-direction: column; }
-  .knowledge-mobile-dialog::backdrop { background: rgb(0 0 0 / 40%); }
-  .knowledge-mobile-navigation { right: auto; width: min(22rem, 90vw); }
+  .knowledge-mobile-dialog::backdrop { background: rgb(0 0 0 / 48%); }
+  .knowledge-mobile-navigation {
+    right: auto;
+    width: min(21rem, calc(100vw - 3.25rem));
+    border-radius: 0 1rem 1rem 0;
+    box-shadow: 0.5rem 0 2rem rgb(0 0 0 / 16%);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .knowledge-mobile-navigation[data-knowledge-motion="true"]::backdrop { transition: background-color 220ms var(--knowledge-ease-out); }
+    .knowledge-mobile-navigation[data-knowledge-closing="true"]::backdrop { background: transparent; transition-duration: 160ms; }
+    @starting-style {
+      .knowledge-mobile-navigation[data-knowledge-motion="true"][open]::backdrop { background: transparent; }
+    }
+  }
   .knowledge-mobile-dialog-header {
     display: flex;
     align-items: center;
@@ -311,23 +357,34 @@ export const KnowledgeSidebarSwitch = () => {
     border-bottom: 1px solid var(--lightgray);
     flex-shrink: 0;
   }
-  .knowledge-mobile-dialog-header h2 { margin: 0; font-size: 1rem; }
+  .knowledge-mobile-dialog-header h2 { margin: 0; font-family: inherit; font-size: 0.9375rem; font-weight: 600; line-height: 1.4; }
   .knowledge-mobile-navigation-body {
     flex: 1;
     min-height: 0;
-    padding: 0.75rem 1rem 1.5rem;
+    padding: 0.75rem 0.75rem 1rem;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
   .knowledge-mobile-home.internal {
     display: flex;
     align-items: center;
+    gap: 0.625rem;
     min-height: 2.75rem;
-    padding: 0 0.5rem;
+    padding: 0 0.75rem;
     background: none;
-    color: var(--secondary);
+    color: var(--darkgray);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.4;
+    border-radius: 0.5rem;
   }
-  .knowledge-mobile-dialog .knowledge-sidebar-switch { margin: 0.75rem 0; }
+  .knowledge-mobile-home.internal[aria-current] { color: var(--dark); background: var(--highlight); }
+  .knowledge-mobile-home svg { color: var(--secondary); flex-shrink: 0; }
+  .knowledge-mobile-dialog .knowledge-sidebar-switch { margin: 0.625rem 0 0.75rem; padding: 0; border: 0; border-radius: 0.5rem; background: color-mix(in srgb, var(--lightgray) 42%, transparent); gap: 0; }
+  .knowledge-mobile-dialog .knowledge-sidebar-button { position: relative; min-height: 2.75rem; font-size: 0.875rem; font-weight: 500; background: transparent; }
+  .knowledge-mobile-dialog .knowledge-sidebar-button::before { content: ""; position: absolute; inset: 0.25rem; border-radius: 0.375rem; background: transparent; z-index: -1; }
+  .knowledge-mobile-dialog .knowledge-sidebar-button { isolation: isolate; }
+  .knowledge-mobile-dialog .knowledge-sidebar-button.active::before { background: var(--light); box-shadow: 0 1px 3px rgb(0 0 0 / 12%); }
   .knowledge-mobile-dialog .explorer { height: auto; width: 100%; margin: 0; }
   .knowledge-mobile-dialog .explorer[data-knowledge-visible="true"] { display: block; }
   .knowledge-mobile-dialog .explorer .explorer-toggle,
@@ -352,13 +409,6 @@ export const KnowledgeSidebarSwitch = () => {
     min-height: 2.75rem;
     overflow-wrap: anywhere;
   }
-  .knowledge-mobile-dialog .folder-icon {
-    box-sizing: content-box;
-    width: 1.25rem;
-    height: 1.25rem;
-    padding: 0.75rem;
-    margin: 0;
-  }
   .knowledge-mobile-article-tags { margin-top: 1.5rem; border-top: 1px solid var(--lightgray); }
   .knowledge-mobile-article-tags h3 { font-size: 0.8125rem; color: var(--darkgray); }
   .page > #quartz-body .knowledge-mobile-settings {
@@ -375,6 +425,8 @@ export const KnowledgeSidebarSwitch = () => {
     font-size: 0.875rem;
   }
   .knowledge-mobile-settings .darkmode { width: 2.75rem; height: 2.75rem; }
+  .knowledge-mobile-theme-control { display: flex; align-items: center; gap: 0.5rem; }
+  [data-knowledge-theme-label] { font-size: 0.8125rem; color: var(--darkgray); }
   .knowledge-mobile-search [data-knowledge-slot="search"] {
     flex: 1;
     min-height: 0;
@@ -518,6 +570,8 @@ export const KnowledgeSidebarSwitch = () => {
   if (window.__wheelmakerSidebarBound) return
   window.__wheelmakerSidebarBound = true
   const mobile = window.matchMedia("(max-width: 800px)")
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+  const dialogMotions = new Map()
   const storageKey = "wheelmaker-knowledge-sidebar-view"
   let placements = []
   let mountedSidebar = null
@@ -536,6 +590,41 @@ export const KnowledgeSidebarSwitch = () => {
       const state = JSON.parse(localStorage.getItem(tagStateKey) || "{}")
       return state && typeof state === "object" && !Array.isArray(state) ? Object.assign(Object.create(null), state) : Object.create(null)
     } catch { return Object.create(null) }
+  }
+  const outlineIcon = (icon, paths) => {
+    icon.setAttribute("viewBox", "0 0 24 24")
+    icon.setAttribute("fill", "none")
+    icon.setAttribute("stroke", "currentColor")
+    icon.setAttribute("stroke-width", "2")
+    icon.setAttribute("stroke-linecap", "round")
+    icon.setAttribute("stroke-linejoin", "round")
+    icon.setAttribute("aria-hidden", "true")
+    icon.setAttribute("focusable", "false")
+    icon.removeAttribute("style")
+    icon.removeAttribute("aria-label")
+    icon.replaceChildren(...paths.map(d => {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
+      path.setAttribute("d", d)
+      return path
+    }))
+  }
+  const updateTheme = () => {
+    const dark = document.documentElement.getAttribute("saved-theme") === "dark"
+    document.querySelectorAll(".sidebar.left .darkmode").forEach(button => {
+      button.setAttribute("aria-label", dark ? "切换至浅色模式" : "切换至深色模式")
+      button.title = button.getAttribute("aria-label")
+    })
+    document.querySelectorAll("[data-knowledge-theme-label]").forEach(label => { label.textContent = dark ? "深色" : "浅色" })
+  }
+  const enhanceTheme = () => {
+    document.querySelectorAll(".sidebar.left .darkmode:not([data-knowledge-icons])").forEach(button => {
+      const day = button.querySelector(".dayIcon")
+      const night = button.querySelector(".nightIcon")
+      if (day) outlineIcon(day, ["M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0", "M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"])
+      if (night) outlineIcon(night, ["M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"])
+      button.dataset.knowledgeIcons = "true"
+    })
+    updateTheme()
   }
   const updateExpanded = (button, open) => {
     const panel = document.getElementById(button.getAttribute("aria-controls"))
@@ -636,7 +725,7 @@ export const KnowledgeSidebarSwitch = () => {
       button.setAttribute("aria-controls", panel.id)
       icon.before(button)
       button.append(icon)
-      icon.setAttribute("aria-hidden", "true")
+      outlineIcon(icon, ["m9 18 6-6-6-6"])
       const activeAncestor = current === target || current.startsWith(target + "/")
       updateExpanded(button, panel.classList.contains("open") || activeAncestor)
     })
@@ -659,11 +748,39 @@ export const KnowledgeSidebarSwitch = () => {
       input.dispatchEvent(new Event("input", { bubbles: true }))
     }
   }
-  const closeDialog = (dialog) => {
+  const cancelDialogMotion = (dialog) => {
+    dialogMotions.get(dialog)?.animation.cancel()
+    dialogMotions.delete(dialog)
+    delete dialog.dataset.knowledgeClosing
+  }
+  const moveDialog = (dialog, opening, complete) => {
+    const previous = dialogMotions.get(dialog)
+    const from = previous ? getComputedStyle(dialog).transform : opening ? "translateX(-100%)" : "translateX(0)"
+    cancelDialogMotion(dialog)
+    if (!opening) dialog.dataset.knowledgeClosing = "true"
+    const animation = dialog.animate([
+      { transform: from }, { transform: opening ? "translateX(0)" : "translateX(-100%)" },
+    ], { duration: opening ? 220 : 160, easing: "cubic-bezier(0.32, 0.72, 0, 1)", fill: "both" })
+    const finish = () => {
+      if (dialogMotions.get(dialog)?.animation !== animation) return
+      cancelDialogMotion(dialog)
+      complete?.()
+    }
+    dialogMotions.set(dialog, { animation, finish })
+    animation.onfinish = finish
+  }
+  const canMoveDialog = (dialog, animate) => animate && !reducedMotion.matches && dialog.classList.contains("knowledge-mobile-navigation") && typeof dialog.animate === "function"
+  const closeDialog = (dialog, animate = false) => {
     if (!dialog) return
-    clearSearch(dialog)
-    if (dialog.open) dialog.close()
-    updateTrigger(dialog)
+    const finish = () => {
+      cancelDialogMotion(dialog)
+      clearSearch(dialog)
+      if (dialog.open) dialog.close()
+      updateTrigger(dialog)
+    }
+    if (dialog.open && canMoveDialog(dialog, animate)) {
+      if (dialog.dataset.knowledgeClosing !== "true") moveDialog(dialog, false, finish)
+    } else finish()
   }
   const restore = () => {
     previewObserver?.disconnect()
@@ -672,7 +789,7 @@ export const KnowledgeSidebarSwitch = () => {
     directoryObserver = null
     searchObserver?.disconnect()
     searchObserver = null
-    document.querySelectorAll(".knowledge-mobile-dialog").forEach(closeDialog)
+    document.querySelectorAll(".knowledge-mobile-dialog").forEach(dialog => closeDialog(dialog))
     for (const [node, placeholder] of placements) placeholder.replaceWith(node)
     placements = []
     mountedSidebar = null
@@ -742,7 +859,7 @@ export const KnowledgeSidebarSwitch = () => {
       button.setAttribute("aria-controls", button.dataset.knowledgeView === "tags" ? tags.id : directory.id)
     })
   }
-  const showDialog = (name, launchSearch = true) => {
+  const showDialog = (name, launchSearch = true, animate = false) => {
     if (!mobile.matches) return
     mount()
     const dialog = document.getElementById("knowledge-mobile-" + name)
@@ -750,7 +867,13 @@ export const KnowledgeSidebarSwitch = () => {
     document.querySelectorAll(".knowledge-mobile-dialog[open]").forEach((other) => {
       if (other !== dialog) closeDialog(other)
     })
-    if (!dialog.open) dialog.showModal()
+    const opening = !dialog.open || dialog.dataset.knowledgeClosing === "true"
+    if (opening) {
+      dialog.dataset.knowledgeMotion = String(canMoveDialog(dialog, animate))
+      if (!dialog.open) dialog.showModal()
+      if (canMoveDialog(dialog, animate)) moveDialog(dialog, true)
+      else cancelDialogMotion(dialog)
+    }
     updateTrigger(dialog)
     if (name === "search") {
       if (launchSearch) dialog.querySelector(".search-button")?.click()
@@ -764,13 +887,14 @@ export const KnowledgeSidebarSwitch = () => {
     if (expander) {
       event.preventDefault()
       event.stopImmediatePropagation()
+      expander.dataset.knowledgeMotion = String(event.detail > 0)
       toggleBranch(expander)
       return
     }
     const opener = target.closest?.("[data-knowledge-open]")
-    if (opener) { showDialog(opener.dataset.knowledgeOpen); return }
+    if (opener) { showDialog(opener.dataset.knowledgeOpen, true, event.detail > 0); return }
     const closer = target.closest?.("[data-knowledge-close]")
-    if (closer) { closeDialog(closer.closest("dialog")); return }
+    if (closer) { closeDialog(closer.closest("dialog"), event.detail > 0); return }
     const button = target.closest?.("[data-knowledge-view]")
     if (button) {
       event.stopImmediatePropagation()
@@ -781,7 +905,7 @@ export const KnowledgeSidebarSwitch = () => {
     }
     if (target.matches?.(".knowledge-mobile-dialog")) {
       const rect = target.getBoundingClientRect()
-      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeDialog(target)
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeDialog(target, event.detail > 0)
     }
   }, true)
   document.addEventListener("keydown", (event) => {
@@ -796,6 +920,7 @@ export const KnowledgeSidebarSwitch = () => {
   document.addEventListener("close", (event) => {
     const dialog = event.target
     if (!dialog.matches?.(".knowledge-mobile-dialog") || dialog.open) return
+    cancelDialogMotion(dialog)
     clearSearch(dialog)
     updateTrigger(dialog)
   }, true)
@@ -815,6 +940,11 @@ export const KnowledgeSidebarSwitch = () => {
     try { localStorage.setItem(storageKey, view) } catch {}
     enhanceTags()
     enhanceDirectory()
+    enhanceTheme()
+    document.querySelectorAll(".knowledge-mobile-home").forEach(link => {
+      if (canonicalPath(link.href) === canonicalPath(location.href)) link.setAttribute("aria-current", "page")
+      else link.removeAttribute("aria-current")
+    })
     const explorerList = document.querySelector(".explorer-ul")
     if (explorerList) {
       directoryObserver = new MutationObserver(enhanceDirectory)
@@ -830,6 +960,10 @@ export const KnowledgeSidebarSwitch = () => {
   document.addEventListener("prenav", restore)
   document.addEventListener("nav", reset)
   mobile.addEventListener("change", reset)
+  reducedMotion.addEventListener("change", () => {
+    if (reducedMotion.matches) [...dialogMotions.values()].forEach(motion => motion.finish())
+  })
+  new MutationObserver(updateTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["saved-theme"] })
   reset()
 })()
 `

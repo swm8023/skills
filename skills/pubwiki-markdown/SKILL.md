@@ -49,36 +49,48 @@ data/
     └── assets/                 # 共享图片和被引用的资源
 ```
 
-### 必须用 Git 命令确定实际的 repo
+### 必须用 Git 命令确定远程仓库名
 
-目录图中的 `<repo>` 只是占位符，不能原样写入路径，也不能省略第一级项目目录。处理来源项目时，必须先执行以下步骤：
+目录图中的 `<repo>` 只是占位符，不能原样写入路径，也不能用本地 checkout 目录名代替。处理来源项目时，必须从该项目的远程 URL 取得仓库名；`git rev-parse --show-toplevel` 只能用于确认来源项目属于哪个 worktree，不能用来确定 `<repo>`。
 
 1. 确定来源项目目录（即来源文件所属的项目目录）。
-2. 在来源项目目录上执行 Git 命令，取得真正的 Git 根目录。
+2. 默认读取名为 `origin` 的 remote；如果用户明确指定了其他 remote，就使用用户指定的 remote。
+3. 执行 `git remote get-url`，从 URL 最后一段取得仓库名，并去掉末尾的 `.git`。
 
-PowerShell：
+PowerShell（默认使用 `origin`）：
 
 ```powershell
-$repoRoot = (git -C "<来源项目目录>" rev-parse --show-toplevel).Trim()
-$repo = Split-Path -Leaf $repoRoot.TrimEnd('\', '/')
+$remoteName = "origin"
+$remoteUrl = (git -C "<来源项目目录>" remote get-url $remoteName 2>$null).Trim()
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($remoteUrl)) {
+  throw "无法读取来源项目的远程仓库 URL：请配置 origin，或明确指定正确的 remote。"
+}
+$repo = (($remoteUrl.TrimEnd('/', '\') -split '[/\\:]')[-1] -replace '\.git$', '')
+if ([string]::IsNullOrWhiteSpace($repo)) { throw "无法从远程 URL 解析仓库名。" }
 ```
 
-POSIX shell：
+POSIX shell（默认使用 `origin`）：
 
 ```sh
-repo_root="$(git -C "<来源项目目录>" rev-parse --show-toplevel)"
-repo="$(basename "$repo_root")"
+remote_name="origin"
+remote_url="$(git -C "<来源项目目录>" remote get-url "$remote_name")" || {
+  echo "无法读取来源项目的远程仓库 URL：请配置 origin，或明确指定正确的 remote。" >&2
+  exit 1
+}
+repo="$(basename "${remote_url%/}")"
+repo="${repo%.git}"
+test -n "$repo" || { echo "无法从远程 URL 解析仓库名。" >&2; exit 1; }
 ```
 
-例如，若命令返回 `D:\Code\WheelMaker`，实际的 `repo` 就是 `WheelMaker`，目标必须形如：
+例如，本地项目目录是 `D:\Code\wm`，但 `origin` URL 是 `git@github.com:swm8023/WheelMaker.git`，实际的 `repo` 必须是 `WheelMaker`，目标必须形如：
 
 ```text
 content/WheelMaker/<directory>/note.md
 ```
 
-如果 Git 命令失败，才可以退回使用来源项目目录名；必须在预览中明确报告这是 Git 解析失败后的 fallback。解析出来源 Git 根目录后，才应用 `wiki.config.yaml` 中的可选重命名映射。整个分类、预览、写入和发布流程都必须使用最终的实际 repo 名称。
+如果没有可用的 remote、`origin` 不存在或 URL 无法解析，必须停止并报告，不能退回使用本地目录名，也不能猜测仓库名。没有配置映射时，`repo` 默认就是远程 URL 的仓库名；只有 `wiki.config.yaml` 明确配置了重命名映射时，才使用映射后的 Wiki 一级目录名，并在预览中同时展示远程仓库名和最终目录名。整个分类、预览、写入和发布流程都必须使用最终确定的实际 repo 名称。
 
-`repo` 默认取来源 Git 根目录的名称；只有无法解析 Git 根目录时才取来源项目目录名称，也可以通过 `wiki.config.yaml` 重命名。不要引入必需的 `kind`、`slug`、`project`、`projects` 或 `references` 属性。页面关系放在 Markdown 链接或 Wikilinks 中。
+不要引入必需的 `kind`、`slug`、`project`、`projects` 或 `references` 属性。页面关系放在 Markdown 链接或 Wikilinks 中。
 
 `wiki.config.yaml` 中可选的 `site` 块控制公开 Wiki 的标题和描述：
 

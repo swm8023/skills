@@ -123,6 +123,10 @@ export const KnowledgeSidebarSwitch = () => {
   overflow-wrap: anywhere;
 }
 
+.page > #quartz-body .sidebar.left:has(.knowledge-sidebar-switch) > .page-title {
+  display: none;
+}
+
 .page > #quartz-body .sidebar.left .flex-component {
   min-width: 0;
 }
@@ -192,7 +196,12 @@ export const KnowledgeSidebarSwitch = () => {
 }
 
 @media (min-width: 801px) {
-  .page:has(.knowledge-sidebar-switch) { max-width: 100rem; padding-inline: 1.5rem; box-sizing: border-box; }
+  .page:has(.knowledge-sidebar-switch) {
+    --knowledge-desktop-top-inset: 1rem;
+    max-width: 100rem;
+    padding-inline: 1.5rem;
+    box-sizing: border-box;
+  }
   .page:has(.knowledge-sidebar-switch) > #quartz-body {
     grid-template-columns: clamp(14.5rem, 19vw, 17rem) minmax(0, 1fr);
     grid-template-areas: "grid-sidebar-left grid-header" "grid-sidebar-left grid-center" "grid-sidebar-left grid-sidebar-right" "grid-sidebar-left grid-footer";
@@ -200,7 +209,7 @@ export const KnowledgeSidebarSwitch = () => {
     padding: 0;
   }
   .page > #quartz-body .sidebar.left:has(.knowledge-sidebar-switch) {
-    padding: 2rem 1rem 1.25rem 0;
+    padding: var(--knowledge-desktop-top-inset) 1rem 1.25rem 0;
     gap: 0.875rem;
     height: 100dvh;
     border-right: 1px solid var(--lightgray);
@@ -216,10 +225,10 @@ export const KnowledgeSidebarSwitch = () => {
   .sidebar.left .knowledge-tags-sidebar { flex: 1 1 0; min-height: 0; }
   .sidebar.left .knowledge-tags-sidebar { overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
   .sidebar.left .explorer-content { min-height: 0; margin: 0; scrollbar-gutter: stable; }
-  .page > #quartz-body .page-header { margin-top: 2rem; }
+  .page:has(.knowledge-sidebar-switch) > #quartz-body .page-header { margin-top: var(--knowledge-desktop-top-inset); }
   .page > #quartz-body .center { min-width: 0; width: 100%; }
   .page > #quartz-body .center:not(:has(.knowledge-home, .knowledge-directory, .knowledge-tag-page)) { max-width: 52rem; margin-left: 0; }
-  .page > #quartz-body .sidebar.right { min-width: 0; padding: 2rem 0 1rem; gap: 1.5rem; }
+  .page > #quartz-body .sidebar.right { min-width: 0; padding: var(--knowledge-desktop-top-inset) 0 1rem; gap: 1.5rem; }
   .page > #quartz-body .sidebar.right:not(:has(> *)) { display: none; }
   .center .article-title { font-size: 1.875rem; line-height: 1.25; letter-spacing: -0.02em; }
   .center article { line-height: 1.75; overflow-wrap: anywhere; }
@@ -280,7 +289,8 @@ export const KnowledgeSidebarSwitch = () => {
     height: calc(3.5rem + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) max(0.5rem, env(safe-area-inset-right)) 0 max(0.5rem, env(safe-area-inset-left));
     border-bottom: 1px solid var(--lightgray);
-    background: var(--light);
+    background-color: var(--light);
+    background-color: color-mix(in srgb, var(--lightgray) 36%, var(--light));
   }
   .knowledge-icon-button {
     display: inline-flex;

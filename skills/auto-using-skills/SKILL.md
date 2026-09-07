@@ -1,6 +1,6 @@
 ---
 name: auto-using-skills
-description: Select skills that materially match the current task. Route bugs to debug and unresolved changes to scope, reuse existing authorization, and respect explicit-only invocation policies.
+description: Select skills that materially match the current task. Route bugs to debug and unresolved changes to scope; require explicit approval before implementing debug fixes, and respect explicit-only invocation policies.
 ---
 
 # auto-using-skills
@@ -10,7 +10,7 @@ description: Select skills that materially match the current task. Route bugs to
 ## 选择与授权
 
 - 任务开始或目标实质变化时，按用户意图和实际能力选择一个主流程；辅助 skill 仅在能改变决策或完成必要操作时加载，不因关键词、description 相似或引用自动调用。参考目录的上游材料不作为独立 skill。
-- 遵循宿主指令层级与仓库约定，保留用户目标、范围和已有授权；跨阶段、skill 转交不重复确认。仅分析、审阅或等待确认时不实施；新实质决策或越权动作才询问。进入 scope 后仍须完成设计确认、出口选择和契约批准，一般实施意愿不代表未决选择已确认。
+- 遵循宿主指令层级与仓库约定，保留用户目标、范围和已有授权；已获明确批准且覆盖同一范围时，跨阶段、skill 转交不重复确认；bug 修复仍须在 debug 提交诊断结论后获得用户明确批准。仅分析、审阅或等待确认时不实施；新实质决策或越权动作才询问。进入 scope 后仍须完成设计确认、出口选择和契约批准，一般实施意愿不代表未决选择已确认。
 - 用环境可用的 Skill／文件／资源工具读取；本任务已读且未变化的版本直接复用。
 
 ## 路由
@@ -21,8 +21,8 @@ description: Select skills that materially match the current task. Route bugs to
 
 1. **用户点名** → 先调用指定 skill。
 2. **WheelMaker session ID**：继续、总结、交接或未说明导出目的 → `handoff`；仅明确点名 `export-session` 且要求诊断 JSON 时导出，ID 本身不触发导出。
-3. **已确认实施**：已批准或明确要求执行指定 spec、scope 对话实施契约已确认、或 debug 已形成有根因证据且边界获授权的修复契约 → `implement`。spec 缺状态行不重问批准；bug 传 `source_kind: approved-fix`，优先于下一条。
-4. **新 bug / failure**：错误、测试／构建失败、flaky、性能退化或行为异常，尚无上述修复契约 → `debug`，不先走 scope。明确要求修复即授权边界内的后续实施；查证根因后交给 implement，不在 debug 内改代码。
+3. **已确认实施**：已批准或明确要求执行指定 spec、scope 对话实施契约已确认、或 debug 已形成有根因证据且用户明确批准的修复契约 → `implement`。spec 缺状态行不重问批准；bug 传 `source_kind: approved-fix`，优先于下一条。
+4. **新 bug / failure**：错误、测试／构建失败、flaky、性能退化或行为异常，尚无上述修复契约 → `debug`，不先走 scope。即使用户明确要求修复，也先由 debug 完成复现、根因调查和诊断结论，再等待用户明确批准；不在 debug 内改代码。
 5. **知识库**：仓库 `docs/wiki` → `wiki`；固定 WheelMaker Vault 检索 → `pubwiki-search`，写入／发布 → `pubwiki-markdown`。按目标和路径选择，不启动两套写入流程。
 6. **未定需求**：功能、行为／交互设计、新系统、重构、规划或 review 的范围未定 → `scope`。
 7. **其他** → 按实际能力匹配 skill。

@@ -95,13 +95,13 @@
     },
     {
       "id": 9,
-      "prompt": "用户最初明确要求修复空列表汇总抛异常的问题。debug 已用 sum([]) 的失败测试查证根因是 reduce 缺初始值，并交接完整 approved-fix：仅为 reduce 添加零初值，不改变非空行为，验收为空列表返回 0 且既有非空测试通过，verification 为原始测试及相关回归，无额外风险或诊断文件。授权依据是最初修复请求，用户未要求先等方案。git_state 为 unprepared，wiki_target 为 none。",
-      "expected_output": "继承最初修复请求的授权，以证据充分的修复契约直接实施和验证，不要求诊断之后再批准一次。",
+      "prompt": "用户最初明确要求修复空列表汇总抛异常的问题。debug 已用 sum([]) 的失败测试查证根因是 reduce 缺初始值，并交接完整 approved-fix：仅为 reduce 添加零初值，不改变非空行为，验收为空列表返回 0 且既有非空测试通过，verification 为原始测试及相关回归，无额外风险或诊断文件。但授权依据只有最初修复请求，用户尚未看到或批准 debug 的诊断方案。git_state 为 unprepared，wiki_target 为 none。",
+      "expected_output": "implement 发现 approved-fix 缺少用户在诊断结论后的明确批准，返回 debug 等待批准；不生成 plan、不修改代码。",
       "files": [],
       "expectations": [
         "不将最初修复请求等同于完整根因证据，但接受 debug 已完成的证据与契约",
-        "不询问是否批准同一修复，复用原始 RED 并完成最小修复和回归",
-        "没有扩大范围或改变非空行为，验证后完成 Git 收尾"
+        "不把最初修复请求当作诊断方案批准",
+        "没有批准时不生成 plan、不修改代码或进入 Git 收尾"
       ]
     },
     {

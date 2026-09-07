@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Complete authorized product, code, or bug-fix work from an approved or explicitly requested spec, a confirmed conversation contract, or debug's evidence-backed authorized fix. Preserve existing authorization, choose proportionate verification, and finish the configured Git workflow. Create persisted plans only for spec-backed work; resolve material requirement, root-cause, or authorization gaps before implementation.
+description: Implement approved product, code, or bug-fix work end to end after the user has approved a spec, confirmed scope's in-conversation implementation contract, or approved debug's evidence-backed fix contract. Create new persisted plans only for spec-backed work, then execute, verify, and complete the configured Git workflow. Do not use while requirements, root cause, or approval are unresolved.
 ---
 
 # implement —— 实施已确认工作
@@ -16,19 +16,19 @@ description: Complete authorized product, code, or bug-fix work from an approved
 只接受以下四个参数：
 
 - `source_kind`：`approved-spec`、`confirmed-conversation` 或 `approved-fix`。
-- `source`：已批准或用户明确要求执行的 spec 路径、当前对话已确认的完整实施契约，或证据充分且已有修复授权的完整修复契约。
+- `source`：已批准或用户明确要求执行的 spec 路径、当前对话已确认的完整实施契约，或已批准的完整修复契约。
 - `wiki_target`：已确认的 wiki 目标或 `none`。
 - `git_state`：`prepared` 或 `unprepared`。
 
-不传递单独的 approval 参数。`approved-spec` 的 `source` 指向具体 spec；`> 状态：已批准 <日期>` 是批准记录，不是唯一授权来源。用户明确要求执行这份 spec，或当前对话已有对应批准时，视为已授权，不因状态行缺失或仍为待批准而重问；读取并核对实际内容，首次写入前完成 Git prepare，再据此补记状态。当前用户的明确限制优先于旧状态行，禁止没有授权就自行批准。`confirmed-conversation` 必须来自当前对话；`approved-fix` 必须包含 debug 的根因证据和完整修复契约，授权可以来自最初的明确修复请求或既有批准。
+不传递单独的 approval 参数。`approved-spec` 的 `source` 指向具体 spec；`> 状态：已批准 <日期>` 是批准记录，不是唯一授权来源。用户明确要求执行这份 spec，或当前对话已有对应批准时，视为已授权，不因状态行缺失或仍为待批准而重问；读取并核对实际内容，首次写入前完成 Git prepare，再据此补记状态。当前用户的明确限制优先于旧状态行，禁止没有授权就自行批准。`confirmed-conversation` 必须来自当前对话；`approved-fix` 必须包含 debug 已证实并获用户批准的根因与完整修复契约。
 
-如果存在实质未决需求或没有 spec 实施授权，返回 `scope`。如果 bug 根因未查证或修复边界超出授权，返回 `debug`。不能把零散要求当作完整契约；用户最初的“修一下”授权调查后的范围内修复，但不能代替 debug 的证据与契约。正常 scope 流程仍保留设计确认、出口选择和契约批准，不借授权继承跳过未决需求。
+如果存在实质未决需求或没有 spec 实施授权，返回 `scope`。如果 bug 根因未查证、用户尚未批准修复方案或修复边界超出授权，返回 `debug`。不能把零散要求或用户最初的“修一下”当作 `confirmed-conversation` 或 `approved-fix`；正常 scope 流程仍保留设计确认、出口选择和契约批准，不借授权继承跳过未决需求。
 
 `confirmed-conversation` 与 `approved-fix` 契约只存在于对话中，会话中断后无法恢复；此时不得凭残缺记忆执行，返回 `scope` 或 `debug` 重新确认契约。
 
 ## 阶段 1：加载与审查
 
-1. 按 `source_kind` 加载 `source`。approved-spec 核对具体 spec、状态记录和当前对话授权；有明确执行指令或既有批准时接受输入，需补记状态则在第 5 步 prepare 后写入；确无授权才返回 scope。confirmed-conversation 核对当前对话中的完整确认记录；approved-fix 核对根因、证据、repro、fix scope、验收、验证、风险、诊断产物及 source 或当前对话中的授权依据，不重新要求诊断之后的批准。
+1. 按 `source_kind` 加载 `source`。approved-spec 核对具体 spec、状态记录和当前对话授权；有明确执行指令或既有批准时接受输入，需补记状态则在第 5 步 prepare 后写入；确无授权才返回 scope。confirmed-conversation 核对当前对话中的完整确认记录；approved-fix 核对根因、证据、repro、fix scope、验收、验证、风险、诊断产物及用户批准依据；契约已包含用户批准时，不重复要求同一批准。
 2. 检查输入是否完整、一致、可由一个实施流程完成。多个独立子系统应拆成多个 spec 或多个 plan，每个 plan 都必须能产出可工作、可测试的软件。
 3. 先规划文件结构：哪些文件会创建或修改、每个文件负责什么、边界和接口在哪里。预估改动面只作为代码探索起点，可以依据仓库事实补充或修正精确文件而不请求二次确认。遵循既有代码模式；只在被修改文件已经难以维护时，把拆分纳入计划。
 4. 有实质歧义、缺失决定、危险动作、计划过时或仓库事实冲突时，在写入前提出并等待用户决定；不要用实现细节替用户补产品决策。

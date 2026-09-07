@@ -25,7 +25,7 @@ description: Manually review an existing spec against conversation and repositor
    - **Codex**：使用当前可用的 `spawn_agent`。当前参数是 `model`、`reasoning_effort` 和布尔型 `fork_context`；不要传已经废弃的 `fork_turns`。
      - 如果产生该 spec 的完整需求对话就在当前线程上下文中，使用 `fork_context: true`，并在 prompt 的 `source_conversation` 中明确覆盖范围。
      - 如果只能提供部分对话，或需要严格限制上下文，使用 `fork_context: false`，把可用的 `source_conversation` 和 `evidence_limits` 完整写入 prompt；不要假装 reviewer 看到了缺失的对话。
-     - 只有用户明确要求本次审查使用 `gpt-6-astra` 时，才传 `model: "gpt-6-astra"`；同时可传 `reasoning_effort: "xhigh"`。否则省略 `model`，让 reviewer 继承当前会话模型。
+     - Codex 下固定传 `model: "gpt-6-astra"` 和 `reasoning_effort: "xhigh"`，即使当前会话模型不同也不能省略 `model` 或让 reviewer 继承父模型。
      - `agents/openai.yaml` 只负责 UI 元数据和默认提示词，不负责选择 reviewer。具体 reviewer 由 `spawn_agent` 的 `model` 参数选择；返回的 nickname 不是模型标识。
    - **非 Codex**：使用当前环境原生的 subagent 机制，不传入 Codex 专用模型名或参数。
 4. reviewer prompt 必须要求：读取 `spec_path` 指向的文件，遵循本 skill 的审查契约，只返回最终审查报告，不修改任何文件，也不进入 scope、计划或实施。

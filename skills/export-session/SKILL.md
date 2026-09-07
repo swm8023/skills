@@ -1,6 +1,7 @@
 ---
 name: export-session
-description: Export an active WheelMaker session tree and its durable diagnostic data to one raw JSON file. Use when a user asks to diagnose, archive for investigation, or inspect a WheelMaker session, its child sessions, status, durable turns, or artifact references.
+description: Export an active WheelMaker session tree as diagnostic JSON only when the user explicitly invokes export-session; a session ID alone or a handoff request must not invoke this skill.
+disable-model-invocation: true
 ---
 
 # Export Session

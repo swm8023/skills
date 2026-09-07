@@ -23,13 +23,14 @@ description: Select skills that materially match the current task. Route bugs to
 
 1. **用户点名 skill**：先调用被点名的 skill。
 2. **仅限手动触发**：遵守 skill 的显式限制，包括 `disable-model-invocation: true`、`agents/openai.yaml` 中的 `allow_implicit_invocation: false` 或仅限手动触发的说明。`$skill-name`、`/skill-name` 或明确要求使用该 skill 才算点名；普通的“review”“审查”“audit”不等于点名 `review-spec` 或 `review-code`。参考目录中的上游材料不作为独立 skill 路由。
-3. **执行已确认范围或修复**：用户已批准或明确要求执行指定 spec、scope 已取得对话内实施契约确认，或 debug 已形成有根因证据且修复边界获授权的契约时，调用 `implement`。bug 使用 `source_kind: approved-fix`；此项优先于通用 bug 路由，即使确认消息再次提到“bug”“失败”或“修复”。
-4. **新的 bug / failure**：用户报告坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，且尚无证据充分的修复契约时，调用 `debug`。先调查而不是先走 `scope`；调查完成后是否实施由已有授权决定。
-5. **项目知识 / wiki**：维护仓库 `docs/wiki` 时调用 `wiki`；固定 WheelMaker Vault 的检索用 `pubwiki-search`，写入和发布用 `pubwiki-markdown`。按用户目标和已有路径确定知识库，不同时启动两套写入流程。
-6. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
-7. **Git 工作流**：普通仓库修改由 `git-workflow` 独占生命周期：首次写入前 `prepare`，已验证的独立工作单元按需 `checkpoint`，生命周期结束或外部 handoff 前 `finalize`。转交时继承 `git_state: prepared`，只有 `unprepared` 才执行 prepare。纯只读调查、对话讨论、不落盘计划和仓库外私有搜索索引不启动 Git 生命周期。用户点名的 `git-check` 按其已授权清单独立负责对应 Git 操作；PubWiki 数据仓库由专用 helper 负责，不再叠加通用 prepare/checkpoint/finalize。调用时写明阶段或所有者，不能只说“参考 Git 偏好”。
-8. **即将写生产代码**：统一由 `implement` 按内置验证契约执行；验证方法与变更相称。bug 必须先由 debug 形成证据充分且在用户授权范围内的 `approved-fix`，不能以授权代替根因调查。
-9. **其他匹配 skill**：仅在实际能力与当前任务实质匹配时调用，不绕过第 2 条，也不因阅读到引用就自动执行另一个流程。
+3. **WheelMaker session 默认交接**：用户提供 session ID 并要求继续、总结、交接或未说明导出目的时，调用 `handoff`。只有用户明确点名 `export-session`/`$export-session` 并要求导出诊断 JSON 时才调用 `export-session`；session ID 本身永远不触发导出。
+4. **执行已确认范围或修复**：用户已批准或明确要求执行指定 spec、scope 已取得对话内实施契约确认，或 debug 已形成有根因证据且修复边界获授权的契约时，调用 `implement`。bug 使用 `source_kind: approved-fix`；此项优先于通用 bug 路由，即使确认消息再次提到“bug”“失败”或“修复”。
+5. **新的 bug / failure**：用户报告坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，且尚无证据充分的修复契约时，调用 `debug`。先调查而不是先走 `scope`；调查完成后是否实施由已有授权决定。
+6. **项目知识 / wiki**：维护仓库 `docs/wiki` 时调用 `wiki`；固定 WheelMaker Vault 的检索用 `pubwiki-search`，写入和发布用 `pubwiki-markdown`。按用户目标和已有路径确定知识库，不同时启动两套写入流程。
+7. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
+8. **Git 工作流**：普通仓库修改由 `git-workflow` 独占生命周期：首次写入前 `prepare`，已验证的独立工作单元按需 `checkpoint`，生命周期结束或外部 handoff 前 `finalize`。转交时继承 `git_state: prepared`，只有 `unprepared` 才执行 prepare。纯只读调查、对话讨论、不落盘计划和仓库外私有搜索索引不启动 Git 生命周期。用户点名的 `git-check` 按其已授权清单独立负责对应 Git 操作；PubWiki 数据仓库由专用 helper 负责，不再叠加通用 prepare/checkpoint/finalize。调用时写明阶段或所有者，不能只说“参考 Git 偏好”。
+9. **即将写生产代码**：统一由 `implement` 按内置验证契约执行；验证方法与变更相称。bug 必须先由 debug 形成证据充分且在用户授权范围内的 `approved-fix`，不能以授权代替根因调查。
+10. **其他匹配 skill**：仅在实际能力与当前任务实质匹配时调用，不绕过第 2 条，也不因阅读到引用就自动执行另一个流程。
 
 ## 调用后
 

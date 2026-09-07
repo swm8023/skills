@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: 将当前对话或指定的 WheelMaker session 压缩为可供另一个 agent 继续工作的交接摘要；未提供 session ID 时按当前上下文总结。
+description: 将当前对话或指定的 WheelMaker session 压缩为交接摘要；提供 session ID 时默认使用本 skill，除非用户明确调用 export-session。
 ---
 
 # WheelMaker 会话交接

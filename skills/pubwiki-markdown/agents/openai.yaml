@@ -1,7 +1,7 @@
 interface:
   display_name: "PubWiki Markdown"
-  short_description: "Create, organize, and publish Wiki Markdown"
-  default_prompt: "Use $pubwiki-markdown to organize this durable knowledge into the local WheelMaker Wiki."
+  short_description: "创建、整理并发布 Wiki Markdown"
+  default_prompt: "使用 $pubwiki-markdown 将这些长期知识整理到本地 WheelMaker Wiki。"
 
 policy:
   allow_implicit_invocation: true

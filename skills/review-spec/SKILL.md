@@ -22,7 +22,7 @@ description: Manually review an existing spec against conversation and repositor
    - `source_conversation`：产生该 spec 的完整需求对话，或 reviewer 能访问的原始对话位置与覆盖范围；
    - `evidence_limits`：已知缺失的对话、代码或文档证据。
 3. 根据当前环境实际提供的 agent 工具和参数选择委派方式，不根据模型自称猜测环境：
-   - **Codex**：使用 `spawn_agent`，指定 `model: "gpt-5.6-sol"` 和 `reasoning_effort: "xhigh"`。模型覆盖不兼容 `fork_turns: "all"`；使用能够覆盖产生该 spec 的完整需求对话的具体正整数轮数。无法保证完整覆盖时，在 prompt 的 `source_conversation` 和 `evidence_limits` 中明确实际边界。
+   - **Codex**：使用 `spawn_agent`，默认指定 `model: "gpt-6-astra"` 和 `reasoning_effort: "xhigh"`。模型覆盖不兼容 `fork_turns: "all"`；使用能够覆盖产生该 spec 的完整需求对话的具体正整数轮数。无法保证完整覆盖时，在 prompt 的 `source_conversation` 和 `evidence_limits` 中明确实际边界。
    - **非 Codex**：使用当前环境原生的 subagent 机制，不传入 Codex 专用模型名或参数。
 4. reviewer prompt 必须要求：读取 `spec_path` 指向的文件，遵循本 skill 的审查契约，只返回最终审查报告，不修改任何文件，也不进入 scope、计划或实施。
 5. 当前环境没有 subagent 能力、委派失败或无法启动 reviewer 时，由当前 agent 降级执行完整审查。降级报告必须在“审查概览”中明确写出 `执行方式：当前 agent 降级审查（原因：<原因>）`，并照常列出证据边界；不要静默降级。

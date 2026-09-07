@@ -43,7 +43,7 @@ description: Manually perform a read-only static review of completed code agains
 默认把审查委派给一个专用 subagent；主 agent 负责准备输入和返回最终报告，不在 subagent 之外并行执行第二份审查。
 
 1. 根据当前环境实际提供的 agent 工具和参数选择委派方式，不根据模型自称猜测环境：
-   - **Codex**：使用 `spawn_agent`，指定 `model: "gpt-5.6-sol"`、`reasoning_effort: "xhigh"` 和 `fork_turns: "none"`。reviewer 不依赖继承的会话历史，全部审查输入必须写入 prompt。
+   - **Codex**：使用 `spawn_agent`，默认指定 `model: "gpt-6-astra"`、`reasoning_effort: "xhigh"` 和 `fork_turns: "none"`。reviewer 不依赖继承的会话历史，全部审查输入必须写入 prompt。
    - **非 Codex**：使用当前环境原生的 subagent 机制，不传入 Codex 专用模型名或参数。
 2. reviewer prompt 必须要求：读取 `spec_path`，只审查明确的代码范围，遵循本 skill 的静态审查契约，只返回最终报告，不修改文件，也不进入 scope、修复或实施。
 3. 当前环境没有 subagent 能力、委派失败或无法启动 reviewer 时，由当前 agent 降级执行完整审查。降级报告必须在“审查概览”中明确写出 `执行方式：当前 agent 降级审查（原因：<原因>）`；不要静默降级。

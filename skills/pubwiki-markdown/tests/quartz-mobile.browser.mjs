@@ -412,6 +412,11 @@ try {
       await page.locator('.knowledge-page-card-link').first().click();
       await page.locator('.article-title').waitFor();
       await page.locator('.explorer [aria-current="location"]').waitFor();
+      if (width >= 1201) {
+        const toc = page.locator('.sidebar.right > .toc');
+        await toc.waitFor({ state: 'visible' });
+        assert.ok(await toc.locator('a').count() > 0, `${width}: article TOC contains heading links`);
+      }
       if (artifacts && width === 1440) await page.screenshot({ path: path.join(artifacts, 'after-desktop-article.png') });
       // A long tag list scrolls inside the sidebar without covering its controls.
       await tagsTab.click();

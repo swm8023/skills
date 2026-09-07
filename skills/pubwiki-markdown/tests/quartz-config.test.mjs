@@ -11,6 +11,7 @@ const REQUIRED_EXTERNAL_PLUGINS = [
   'syntax-highlighting',
   'obsidian-flavored-markdown',
   'github-flavored-markdown',
+  'table-of-contents',
   'crawl-links',
   'description',
   'latex',
@@ -33,7 +34,6 @@ const REQUIRED_EXTERNAL_PLUGINS = [
 
 const REMOVED_EXTERNAL_PLUGINS = [
   'tag-page',
-  'table-of-contents',
   'favicon',
   'og-image',
   'canvas-page',

@@ -21,6 +21,11 @@
       "resolved": "https://github.com/quartz-community/github-flavored-markdown.git",
       "commit": "628366ec62c1122da1eaef7c988d53bdaae3d19a"
     },
+    "table-of-contents": {
+      "source": "github:quartz-community/table-of-contents",
+      "resolved": "https://github.com/quartz-community/table-of-contents.git",
+      "commit": "70b12d85cb873ce42d95111ffb4d8092644c1763"
+    },
     "crawl-links": {
       "source": "github:quartz-community/crawl-links",
       "resolved": "https://github.com/quartz-community/crawl-links.git",

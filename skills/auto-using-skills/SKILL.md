@@ -1,41 +1,53 @@
 ---
 name: auto-using-skills
-description: Use at the start of every task to select the primary skill. Route bugs to debug and unresolved changes to scope; require explicit approval before implementing debug fixes, and respect explicit-only invocation policies.
+description: Use at the start of every task to select applicable skills. Routes bugs to debug and unclear changes to scope; never auto-selects manual-only review-spec or review-code.
 ---
+
+<SUBAGENT-STOP>
+如果你是作为 subagent 被派遣来执行某个特定任务，请跳过这个 skill。
+</SUBAGENT-STOP>
 
 # auto-using-skills
 
-被派遣执行特定任务的 subagent 跳过本 skill。
+## 核心规则
 
-## 选择与授权
+在任何回复、澄清、读文件、写代码或运行命令之前，先检查 skill。只要某个 skill 有 1% 的可能适用，就必须调用 Skill 工具读取它。
 
-- 除了被上层明确派遣执行特定任务的 subagent 外，任务开始或目标实质变化时必须先调用本 skill 选择一个主流程；在路由前不得开始普通回复、澄清、读取其他 Skill、读写文件或运行命令。辅助 skill 仅在能改变决策或完成必要操作时加载，不因关键词、description 相似或引用自动调用。参考目录的上游材料不作为独立 skill。
-- 遵循宿主指令层级与仓库约定，保留用户目标、范围和已有授权；已获明确批准且覆盖同一范围时，跨阶段、skill 转交不重复确认；bug 修复仍须在 debug 提交诊断结论后获得用户明确批准。仅分析、审阅或等待确认时不实施；新实质决策或越权动作才询问。进入 scope 后仍须完成设计确认、出口选择和契约批准，一般实施意愿不代表未决选择已确认。
-- 用环境可用的 Skill／文件／资源工具读取；本任务已读且未变化的版本直接复用。
+用户指令始终最高优先级；skill 决定的是**怎么做**，不覆盖用户明确说的**做什么**。如果调用后发现某个 skill 不适用，说明原因并继续检查其他 skill。
 
 ## 路由
 
-先应用触发限制，再按顺序选择：
+按顺序判断：
 
-- 仅手动触发的 skill（`disable-model-invocation: true`、`agents/openai.yaml` 的 `allow_implicit_invocation: false` 或文字限制）须由用户以 `$skill-name`、`/skill-name` 或明确要求使用来点名。普通“review／审查／audit”不等于点名 `review-spec`／`review-code`。
+1. **用户点名 skill**：先调用被点名的 skill。
+2. **仅限手动触发**：遵守 skill 的显式限制，包括 `disable-model-invocation: true`、`agents/openai.yaml` 中的 `allow_implicit_invocation: false` 或仅限手动触发的说明。`$skill-name`、`/skill-name` 或明确要求使用该 skill 才算点名；普通的“review”“审查”“audit”不算。没有点名时继续执行后续路由，不要因意图或 description 相似而自动选择它们。
+3. **WheelMaker session 默认交接**：用户提供 session ID 并要求继续、总结、交接或未说明导出目的时，调用 `handoff`。只有用户明确点名 `export-session`/`$export-session` 并要求导出诊断 JSON 时才调用 `export-session`；session ID 本身永远不触发导出。
+4. **执行已确认范围或修复**：用户已批准 spec、scope 已取得对话内实施契约确认，或 debug 已提交证据充分的修复契约且用户明确批准时，调用 `implement`。bug 使用 `source_kind: approved-fix`；此项优先于通用 bug 路由，即使确认消息再次提到“bug”“失败”或“修复”。
+5. **新的 bug / failure**：用户报告坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，且还没有获批修复契约时，调用 `debug`。不要先走 `scope`。
+6. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki` 时调用 `wiki`；固定 WheelMaker Vault 的检索用 `pubwiki-search`，写入和发布用 `pubwiki-markdown`。按用户目标和已有路径确定知识库，不同时启动两套写入流程。
+7. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
+8. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow`。首次持久化写入前必须已有 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；任务结束或外部 handoff 前必须调用 `finalize`。同一任务在 Skill 间转交时，`git_state: prepared` 继承现有 Git 生命周期，`git_state: unprepared` 才执行 `prepare`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
+9. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，统一由 `implement` 按内置测试先行契约执行。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接开始修改生产代码。
+10. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它，但不得绕过第 2 条的手动触发限制。
 
-1. **用户点名** → 先调用指定 skill。
-2. **WheelMaker session ID**：继续、总结、交接或未说明导出目的 → `handoff`；仅明确点名 `export-session` 且要求诊断 JSON 时导出，ID 本身不触发导出。
-3. **已确认实施**：已批准或明确要求执行指定 spec、scope 对话实施契约已确认、或 debug 已形成有根因证据且用户明确批准的修复契约 → `implement`。spec 缺状态行不重问批准；bug 传 `source_kind: approved-fix`，优先于下一条。
-4. **新 bug / failure**：错误、测试／构建失败、flaky、性能退化或行为异常，尚无上述修复契约 → `debug`，不先走 scope。即使用户明确要求修复，也先由 debug 完成复现、根因调查和诊断结论，再等待用户明确批准；不在 debug 内改代码。
-5. **知识库**：仓库 `docs/wiki` → `wiki`；固定 WheelMaker Vault 检索 → `pubwiki-search`，写入／发布 → `pubwiki-markdown`。按目标和路径选择，不启动两套写入流程。
-6. **未定需求**：功能、行为／交互设计、新系统、重构、规划或 review 的范围未定 → `scope`。
-7. **其他** → 按实际能力匹配 skill。
+## 调用后
 
-生产代码统一交给 `implement`，按其内置契约选择与变更相称的验证。
+调用 skill 后：
 
-## Git 生命周期
+1. 告诉用户：`Using [skill] to [purpose]`。
+2. 如果 skill 有 checklist，把每项登记为 todo。
+3. 严格按 skill 内容执行，再回复用户。
 
-- 普通仓库修改由 `git-workflow` 独占：首次写入前 `prepare`，独立工作单元验证后按需 `checkpoint`，结束或外部 handoff 前 `finalize`。转交继承 `git_state: prepared`，仅 `unprepared` 才 prepare；调用须明确阶段或所有者。
-- 只读、讨论、不落盘计划、仓库外私有搜索索引不启动生命周期。用户点名的 `git-check` 按授权清单独立管理对应操作；PubWiki 数据仓库由专用 helper 管理，不叠加通用 Git 流程。
-- 按偏好完成 commit／push，否则报告明确 blocker。
+## 警示信号
 
-## 执行
+出现这些想法时，停下来重新检查 skill：
 
-- 告知所用 skill 及目的，将适用 checklist 记入 Todo；无专用工具则用简短对话工作项，不为此安装工具或生成计划文件。
-- 在授权范围内执行并报告有意义的进展。
+- "先问个澄清问题再说"：澄清前也要检查 skill。
+- "先看文件 / 跑命令"：行动前也要检查 skill。
+- "这很简单"：简单任务也可能有适用 skill。
+- "我记得这个 skill"：读取当前版本，不凭记忆执行。
+- "用户说了修 bug，所以直接修"：用户说的是目标，不是允许跳过 debug。
+- "已经 scoped / debug 过了，可以直接写代码"：先把已确认契约交给 implement，由它建立 Git 所有权并执行测试先行流程。
+- "用户确认了 bug 方案，直接开始修"：先把 `approved-fix` 交给 implement，不在 debug 内实施。
+- "开始时已经调用过 Git skill，结束时不用再调"：prepare 不能替代 finalize。
+- "写一句未提交就可以结束"：如果偏好要求自动提交或推送，必须完成动作或给出明确 blocker。

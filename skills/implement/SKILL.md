@@ -22,7 +22,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 不传递单独的 approval 参数。`approved-spec` 的 `source` 指向具体 spec；`> 状态：已批准 <日期>` 是批准记录，不是唯一授权来源。用户明确要求执行这份 spec，或当前对话已有对应批准时，视为已授权，不因状态行缺失或仍为待批准而重问；读取并核对实际内容，首次写入前完成 Git prepare，再据此补记状态。当前用户的明确限制优先于旧状态行，禁止没有授权就自行批准。`confirmed-conversation` 必须来自当前对话；`approved-fix` 必须包含 debug 已证实并获用户批准的根因与完整修复契约。
 
-如果存在实质未决需求或没有 spec 实施授权，返回 `scope`。如果 bug 根因未查证、用户尚未批准修复方案或修复边界超出授权，返回 `debug`。不能把零散要求或用户最初的“修一下”当作 `confirmed-conversation` 或 `approved-fix`；正常 scope 流程仍保留设计确认、出口选择和契约批准，不借授权继承跳过未决需求。
+按 `source_kind` 分支检查入口：`approved-spec` 需要 spec 已批准或当前明确要求执行该 spec；`confirmed-conversation` 不要求 spec，但必须来自当前对话中的完整实施契约；`approved-fix` 不要求 spec，但必须包含 debug 已证实的根因、完整修复契约和用户批准。存在实质未决需求时返回 `scope`；`approved-spec` 缺少实施授权时返回 `scope`；`approved-fix` 缺少根因证据、用户批准或修复边界超出授权时返回 `debug`。不能把零散要求或用户最初的“修一下”当作 `confirmed-conversation` 或 `approved-fix`；正常 scope 流程仍保留设计确认、出口选择和契约批准，不借授权继承跳过未决需求。
 
 `confirmed-conversation` 与 `approved-fix` 契约只存在于对话中，会话中断后无法恢复；此时不得凭残缺记忆执行，返回 `scope` 或 `debug` 重新确认契约。
 

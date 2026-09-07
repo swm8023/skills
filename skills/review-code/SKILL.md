@@ -45,7 +45,7 @@ description: Manually perform a read-only static review of completed code agains
 1. 按运行环境委派：
    - **Codex**：调用 `spawn_agent`。
      - 代码审查使用 `fork_context: false`，让 reviewer 只依赖 prompt 中显式传入的 `spec_path`、仓库、范围和证据边界。
-     - Codex 下固定传 `model: "gpt-6-astra"` 和 `reasoning_effort: "xhigh"`，即使当前会话模型不同也不能省略 `model` 或让 reviewer 继承父模型。
+     - Codex 下固定传 `model: "gpt-6-astra"` 和 `reasoning_effort: "high"`，即使当前会话模型不同也不能省略 `model` 或让 reviewer 继承父模型。
      - `agents/openai.yaml` 只提供 UI 元数据；reviewer 模型由 `spawn_agent.model` 指定。
    - **非 Codex**：使用当前环境原生的 subagent 机制，不传入 Codex 专用模型名或参数。
 2. reviewer prompt 必须要求：读取 `spec_path`，只审查明确的代码范围，遵循本 skill 的静态审查契约，只返回最终报告，不修改文件，也不进入 scope、修复或实施。

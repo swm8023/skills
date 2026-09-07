@@ -1,6 +1,6 @@
 ---
 name: auto-using-skills
-description: Select skills that materially match the current task. Route bugs to debug and unresolved changes to scope; require explicit approval before implementing debug fixes, and respect explicit-only invocation policies.
+description: Use at the start of every task to select the primary skill. Route bugs to debug and unresolved changes to scope; require explicit approval before implementing debug fixes, and respect explicit-only invocation policies.
 ---
 
 # auto-using-skills
@@ -9,7 +9,7 @@ description: Select skills that materially match the current task. Route bugs to
 
 ## 选择与授权
 
-- 任务开始或目标实质变化时，按用户意图和实际能力选择一个主流程；辅助 skill 仅在能改变决策或完成必要操作时加载，不因关键词、description 相似或引用自动调用。参考目录的上游材料不作为独立 skill。
+- 除了被上层明确派遣执行特定任务的 subagent 外，任务开始或目标实质变化时必须先调用本 skill 选择一个主流程；在路由前不得开始普通回复、澄清、读取其他 Skill、读写文件或运行命令。辅助 skill 仅在能改变决策或完成必要操作时加载，不因关键词、description 相似或引用自动调用。参考目录的上游材料不作为独立 skill。
 - 遵循宿主指令层级与仓库约定，保留用户目标、范围和已有授权；已获明确批准且覆盖同一范围时，跨阶段、skill 转交不重复确认；bug 修复仍须在 debug 提交诊断结论后获得用户明确批准。仅分析、审阅或等待确认时不实施；新实质决策或越权动作才询问。进入 scope 后仍须完成设计确认、出口选择和契约批准，一般实施意愿不代表未决选择已确认。
 - 用环境可用的 Skill／文件／资源工具读取；本任务已读且未变化的版本直接复用。
 

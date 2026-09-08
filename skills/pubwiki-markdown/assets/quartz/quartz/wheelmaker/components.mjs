@@ -109,6 +109,8 @@ export const KnowledgeSidebarSwitch = () => {
 :root[saved-theme="dark"] .sidebar.left .darkmode > .dayIcon { display: none; }
 :root[saved-theme="dark"] .sidebar.left .darkmode > .nightIcon { display: block; }
 .sidebar.left .darkmode:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
+:root[data-wheelmaker-theme-source="host"] .sidebar.left .darkmode,
+:root[data-wheelmaker-theme-source="host"] .knowledge-mobile-theme-control { display: none; }
 .knowledge-mobile-bar,
 .knowledge-mobile-dialog {
   display: none;
@@ -522,6 +524,17 @@ export const KnowledgeSidebarSwitch = () => {
 (() => {
   if (window.__wheelmakerWikiFetchPatched) return
   window.__wheelmakerWikiFetchPatched = true
+
+  if (window.parent !== window) {
+    document.documentElement.setAttribute("data-wheelmaker-theme-source", "host")
+    window.addEventListener("message", (event) => {
+      if (event.source !== window.parent || event.origin !== window.location.origin) return
+      const message = event.data
+      const mode = message?.type === "wheelmaker-theme" ? message.mode : null
+      if (mode !== "dark" && mode !== "light") return
+      document.documentElement.setAttribute("saved-theme", mode)
+    })
+  }
 
   const marker = "/wiki/"
   const pathname = window.location.pathname

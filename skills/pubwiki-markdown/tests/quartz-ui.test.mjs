@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -69,6 +70,69 @@ test('WheelMaker sidebar keeps Quartz root-relative navigation inside the Wiki m
   assert.match(source, /rewriteNavigation/u);
   assert.match(source, /MutationObserver/u);
   assert.match(source, /startsWith\(wikiRoot\)/u);
+});
+
+test('WheelMaker Wiki accepts host themes only when embedded and keeps standalone theme ownership', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+
+  assert.match(source, /window\.parent !== window/u);
+  assert.match(source, /event\.source !== window\.parent/u);
+  assert.match(source, /event\.origin !== window\.location\.origin/u);
+  assert.match(source, /message\??\.type === "wheelmaker-theme"/u);
+  assert.match(source, /document\.documentElement\.setAttribute\("saved-theme", mode\)/u);
+  assert.match(source, /data-wheelmaker-theme-source/u);
+  assert.match(source, /data-wheelmaker-theme-source="host"[\s\S]*?\.darkmode/u);
+});
+
+test('WheelMaker Wiki theme bridge validates embedded messages and ignores standalone pages', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+  const startMarker = '  Component.beforeDOMLoaded = `';
+  const endMarker = '`\n\n  Component.afterDOMLoaded = `';
+  const start = source.indexOf(startMarker);
+  const end = source.indexOf(endMarker, start + startMarker.length);
+  assert.ok(start >= 0 && end > start, 'WheelMaker sidebar must expose its before-DOM script');
+  const script = source.slice(start + startMarker.length, end);
+
+  const createRuntime = embedded => {
+    const origin = 'https://wiki.example.test';
+    const parent = {};
+    const listeners = new Map();
+    const attributes = new Map();
+    const html = {
+      setAttribute(name, value) { attributes.set(name, value); },
+      getAttribute(name) { return attributes.get(name) ?? null; },
+    };
+    const document = { documentElement: html };
+    const window = {
+      parent: embedded ? parent : null,
+      location: { origin, pathname: '/wiki/' },
+      fetch() {},
+      addEventListener(type, listener) { listeners.set(type, listener); },
+    };
+    if (!embedded) window.parent = window;
+    class MutationObserver {
+      observe() {}
+    }
+    runInNewContext(script, { URL, MutationObserver, document, window });
+    return {
+      attributes,
+      emit(message) { listeners.get('message')?.(message); },
+      origin,
+      parent,
+    };
+  };
+
+  const embedded = createRuntime(true);
+  assert.equal(embedded.attributes.get('data-wheelmaker-theme-source'), 'host');
+  embedded.emit({ source: {}, origin: embedded.origin, data: { type: 'wheelmaker-theme', mode: 'light' } });
+  assert.equal(embedded.attributes.get('saved-theme'), undefined, 'untrusted source is ignored');
+  embedded.emit({ source: embedded.parent, origin: 'https://attacker.example.test', data: { type: 'wheelmaker-theme', mode: 'light' } });
+  assert.equal(embedded.attributes.get('saved-theme'), undefined, 'untrusted origin is ignored');
+  embedded.emit({ source: embedded.parent, origin: embedded.origin, data: { type: 'wheelmaker-theme', mode: 'light' } });
+  assert.equal(embedded.attributes.get('saved-theme'), 'light');
+
+  const standalone = createRuntime(false);
+  assert.equal(standalone.attributes.get('data-wheelmaker-theme-source'), undefined);
 });
 
 test('WheelMaker bundle composes the sidebar switch and hierarchical tag sidebar', async () => {

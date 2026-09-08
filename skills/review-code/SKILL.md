@@ -8,7 +8,8 @@ description: Manually perform a read-only static review of completed code agains
 依据 spec 和明确的代码变更范围执行实现后静态审查。把 diff 当作入口，不要把 diff 当作全部上下文。
 
 <REVIEWER-SUBAGENT-STOP>
-如果你是主 agent 派遣来执行本次代码审查的 reviewer，跳过“调度 reviewer”，直接从“审查契约”开始执行。不要再次委派 subagent。
+如果你是主 agent 派遣来执行本次代码审查的 reviewer，跳过“调度 reviewer”，直接从“审查契约”开始执行。不要再次委派 subagent，也不要执行主 agent 的降级判断或最终报告包装。
+reviewer 只返回审查结果：Findings、证据缺口和总体建议；可以说明静态证据边界，但不要输出 `# Code review`、`审查概览`、`执行方式`、`验证边界` 或降级原因。完整报告由主 agent 汇总。
 </REVIEWER-SUBAGENT-STOP>
 
 ## 审查契约
@@ -48,8 +49,14 @@ description: Manually perform a read-only static review of completed code agains
      - Codex 下固定传 `model: "gpt-6-astra"` 和 `reasoning_effort: "high"`，即使当前会话模型不同也不能省略 `model` 或让 reviewer 继承父模型。
      - `agents/openai.yaml` 只提供 UI 元数据；reviewer 模型由 `spawn_agent.model` 指定。
    - **非 Codex**：使用当前环境原生的 subagent 机制，不传入 Codex 专用模型名或参数。
-2. reviewer prompt 必须要求：读取 `spec_path`，只审查明确的代码范围，遵循本 skill 的静态审查契约，只返回最终报告，不修改文件，也不进入 scope、修复或实施。
+2. reviewer prompt 必须要求：读取 `spec_path`，只审查明确的代码范围，遵循本 skill 的静态审查契约，只返回 reviewer 结果（Findings、证据缺口和总体建议），不输出主 agent 的最终报告表格、执行方式、验证边界或降级说明，不修改文件，也不进入 scope、修复或实施。
 3. 当前环境没有 subagent 能力、委派失败或无法启动 reviewer 时，由当前 agent 降级执行完整审查。降级报告必须在“审查概览”中明确写出 `执行方式：当前 agent 降级审查（原因：<原因>）`；不要静默降级。
+
+## 主 agent 与 reviewer 的输出边界
+
+- reviewer 成功启动且主 agent 收到 reviewer 的最终结果时，主 agent 必须将执行方式记为 `专用 subagent`；不能因为 reviewer 没有自行填写执行方式，或因为当前 agent 没有再次调用 `spawn_agent`，就改写成降级审查。
+- 只有没有发起委派、委派调用失败、reviewer 无法启动，或没有收到 reviewer 的最终结果时，主 agent 才能执行降级审查；降级原因必须对应实际发生的阶段，不要笼统写成“没有可用的 spawn_agent”。
+- 主 agent 负责把 reviewer 结果汇总成最终报告、统计 P0/P1/P2、补齐输入、验证边界和证据边界；不要把 reviewer 的输出协议当成最终报告协议，也不要在 reviewer 之外并行执行第二份完整审查。
 
 ## 收集证据
 
@@ -109,6 +116,8 @@ description: Manually perform a read-only static review of completed code agains
 - 没有实质 Finding：`未发现实质问题`。
 
 ## 输出报告
+
+以下完整报告模板仅由主 agent 使用；reviewer subagent 不输出该模板，只返回 reviewer 结果。
 
 按以下结构输出；没有内容的章节直接省略：
 

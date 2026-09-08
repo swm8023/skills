@@ -1,0 +1,27 @@
+{
+  "skill_name": "review-code",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "主 agent 已成功派遣 reviewer 并收到最终静态审查结果。请汇总 reviewer 的 Findings、证据缺口和总体建议，生成完整 code review 报告。",
+      "expected_output": "主 agent 输出完整报告并将执行方式记为专用 subagent；补齐 spec、commits、local changes、验证边界和证据边界；不因为 reviewer 未填写执行方式而降级。",
+      "files": [],
+      "expectations": [
+        "完整报告的执行方式为专用 subagent",
+        "主 agent 负责最终报告和 P0/P1/P2 汇总",
+        "没有把 reviewer 缺少执行方式字段解释成降级审查"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "你是被主 agent 派遣的 review-code reviewer。只对明确的 spec 和代码范围执行静态审查并返回结果。",
+      "expected_output": "只返回 Findings、证据缺口和总体建议，可说明静态证据边界；不运行验证命令，不再次委派，不输出主 agent 的最终报告包装、执行方式或降级原因。",
+      "files": [],
+      "expectations": [
+        "reviewer 不再次委派 subagent",
+        "reviewer 不运行测试、lint、构建或其他验证命令",
+        "reviewer 不输出审查概览、执行方式、验证边界或降级原因"
+      ]
+    }
+  ]
+}

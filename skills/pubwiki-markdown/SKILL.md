@@ -5,7 +5,7 @@ description: 在固定的 WheelMaker Wiki Vault 中创建、导入、分类、�
 
 # pubwiki-markdown
 
-本 Skill 将完整的 Obsidian Markdown 规范（`references/obsidian-markdown/obsidian-format.md` 及其引用的三个参考文件）与下面的 WheelMaker 知识工作流结合起来。编辑 Obsidian 特有语法时要阅读上游参考文件；下面的规则额外规定仓库目录、确认和发布契约。
+本 Skill 将完整的 Obsidian Markdown 规范（`references/obsidian-markdown/obsidian-format.md` 及其引用的三个参考文件）与下面的 WheelMaker 知识工作流结合起来。编辑 Obsidian 特有语法时要阅读上游参考文件；起草或规范化 Wiki 页面时还要遵循 `references/OBSIDIAN-WIKI-PATTERNS.md`，把语法能力转化为有依据的知识网络关系。下面的规则额外规定仓库目录、确认和发布契约。
 
 ## 固定工作区
 
@@ -116,6 +116,19 @@ site:
 
 在模型准备好逐文件目录预览后，使用 `scripts/normalize-note.mjs` 对 frontmatter、摘要、标签、日期和链接映射做确定性规范化。该脚本只是格式化和诊断助手；分类和确认对话仍由本 Skill 负责。
 
+## Obsidian 知识网络生成
+
+生成或更新页面时，必须把页面视为固定 Vault 中的知识节点，而不是孤立的 Markdown 文件。读取 `references/OBSIDIAN-WIKI-PATTERNS.md`，并在逐文件分类和预览阶段完成以下检查：
+
+1. 先检查同一 `repo`，再检查其他 `repo` 的已有笔记、标题、`aliases`、标签和相似内容。
+2. 为每篇页面识别有内容依据的关联目标，通常加入约 2–5 个高价值 Wikilinks；没有合适目标时不得强行添加。
+3. 内部笔记使用已确认目标的 `[[Wikilinks]]`；需要精确引用时再使用标题链接或稳定的块链接。外部目标继续使用普通 Markdown 链接。
+4. 明确区分出链和反向链接：不写 `backlinks` 属性；仅当已有笔记确实应指向新页面时，提出该已有笔记的修改建议。
+5. 按语义提示使用 Properties、层级标签、Callout 和 Embed；不为了展示语法而添加特性，也不默认引入 Bases、Canvas 或 Dataview 文件。
+6. 将新增出链、反向链接建议、特性选择、未解析链接、重复目标和资源冲突放进同一份完整预览。反向链接建议与新页面修改共用当前确认，不增加单独确认轮次。
+
+这套规则不要求链接人为双向对称，也不允许批量改写整个 Vault；关系不清晰时报告候选或明确不添加。
+
 ## Frontmatter 和确认
 
 每篇新建或规范化后要发布的笔记至少包含以下 frontmatter：
@@ -147,6 +160,7 @@ draft: false
 - 重复笔记处理选择；
 - 资源移动；
 - 链接改写；
+- Obsidian 特性选择和知识网络变更（新增出链、反向链接建议、特性理由及诊断）；
 - 本次操作是仅本地保存，还是保存并发布。
 
 展示预览后必须停下来，等待用户对该预览作出明确确认。正式确认前，不得正式写入笔记或资源，也不得执行 Git add、commit、pull、push、发布助手或 `wheelmaker wiki publish`。如果用户在当前请求中已经明确批准了完全相同的内容、路径和处理方式，或此前已批准且预览没有实质变化，可以继承该批准。

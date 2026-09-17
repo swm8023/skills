@@ -22,7 +22,10 @@ Git safety, and WheelMaker/Quartz publishing.
 The copied upstream files are reference material and are not fetched at runtime.
 The active Skill's fixed-path rules take precedence where an upstream example uses
 an arbitrary Vault path, manual index setup, a different Skill name, or a different
-publishing workflow.
+publishing workflow. The local `OBSIDIAN-WIKI-PATTERNS.md` reference further defines
+how the syntax is selected during knowledge generation, including confirmed
+Wikilinks, derived backlinks, feature prompts, and preview diagnostics; it is a
+local workflow extension, not upstream syntax material.
 
 ## Quartz runtime and local adapter
 

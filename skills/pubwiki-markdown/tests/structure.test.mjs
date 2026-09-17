@@ -17,6 +17,7 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
     'SKILL.md',
     'agents/openai.yaml',
     'references/UPSTREAM.md',
+    'references/OBSIDIAN-WIKI-PATTERNS.md',
     'references/obsidian-markdown/obsidian-format.md',
     'references/obsidian-markdown/CALLOUTS.md',
     'references/obsidian-markdown/EMBEDS.md',
@@ -44,6 +45,9 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
   assert.match(active, /wiki\.config\.yaml/u);
   assert.doesNotMatch(active, /knowledge\.yaml/u);
   assert.match(active, /wheelmaker wiki publish/u);
+  assert.match(active, /OBSIDIAN-WIKI-PATTERNS\.md/u);
+  assert.match(active, /反向链接/u);
+  assert.match(active, /Obsidian 特性选择和知识网络变更/u);
   assert.match(upstream, /a1dc48e68138490d522c04cbf5822214c6eb1202/u);
   assert.doesNotMatch(active, /(?:^|[\/`])(?:lookup-knowledge|publish-knowledge)(?:$|[\/`])/u);
   assert.doesNotMatch(active, /--(?:config|data)\b/u);

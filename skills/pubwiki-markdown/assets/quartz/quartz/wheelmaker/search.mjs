@@ -10,11 +10,11 @@ const searchIcon = h("svg", {
   h("circle", { stroke: "currentColor", cx: 8, cy: 8, r: 7 }),
 ]))
 
-export const WheelMakerSearch = ({ cfg = {} } = {}) => {
+export const WheelMakerSearch = ({ cfg = {}, enablePreview = true } = {}) => {
   const isChinese = String(cfg.locale || "").toLowerCase().startsWith("zh")
   const title = isChinese ? "搜索" : "Search"
   const placeholder = isChinese ? "搜索文章" : "Search for something"
-  return h("div", { class: "search" }, [
+  return h("div", { class: "search", "data-search-locale": isChinese ? "zh" : "en" }, [
     h("button", { class: "search-button", type: "button", "aria-label": title }, [
       searchIcon,
       h("p", null, title),
@@ -28,8 +28,8 @@ export const WheelMakerSearch = ({ cfg = {} } = {}) => {
         "aria-label": placeholder,
         placeholder,
       }),
-      h("div", { class: "search-layout", "data-preview": "true" }, [
-        h("div", { class: "results-container" }),
+      h("div", { class: "search-layout", "data-preview": String(enablePreview) }, [
+        h("div", { class: "results-container", "aria-live": "polite" }),
         h("div", { class: "preview-container" }),
       ]),
     ])),
@@ -100,6 +100,8 @@ WheelMakerSearch.css = `
   font-weight: 400;
   line-height: 1.5em;
 }
+.search-layout[data-preview="false"] > .preview-container { display: none; }
+.search-layout[data-preview="false"] > .results-container { flex-basis: 100%; }
 .search-layout .highlight {
   border-radius: 5px;
   background: color-mix(in srgb, var(--tertiary) 60%, transparent);
@@ -124,6 +126,8 @@ WheelMakerSearch.css = `
 .search-layout .result-card > h3 { margin: 0; color: var(--secondary); }
 .search-layout .result-card > p { margin: 0.5em 0 0; color: var(--gray); font-size: 0.9em; }
 .search-layout .result-card.no-match { cursor: default; }
+.search-layout .search-status { padding: 1em; }
+.search-layout .search-status button { cursor: pointer; font: inherit; }
 .search-layout .result-card > ul.tags { margin: 0.45rem 0 0; padding: 0; list-style: none; }
 .search-layout .result-card > ul.tags > li { display: inline-block; margin-right: 0.3rem; }
 .search-layout .result-card > ul.tags > li > p {
@@ -148,8 +152,8 @@ WheelMakerSearch.css = `
 }
 `
 
-WheelMakerSearch.afterDOMLoaded = `
-(() => {
+// Serialized for Quartz's script resource API; keep browser dependencies local.
+function installSearch() {
   if (window.__wheelmakerSearchLoaded) return
   window.__wheelmakerSearchLoaded = true
 
@@ -157,7 +161,8 @@ WheelMakerSearch.afterDOMLoaded = `
   const contextCharacters = 220
   const parser = new DOMParser()
   let searchIndexPromise = null
-  let currentTerm = ""
+  const previewCache = new Map()
+  const mobile = window.matchMedia("(max-width: 800px)")
   const cleanupFns = []
 
   const addCleanup = (fn) => cleanupFns.push(fn)
@@ -187,12 +192,37 @@ WheelMakerSearch.afterDOMLoaded = `
     if (word) tokens.push(word)
     return [...new Set(tokens.filter(Boolean))]
   }
-  const appendHighlighted = (root, value) => {
+  const appendHighlighted = (root, value, terms = []) => {
     const text = String(value || "")
-    root.append(document.createTextNode(text))
+    const lower = text.toLocaleLowerCase()
+    const matches = terms.flatMap(term => {
+      const found = []
+      let position = 0
+      while (term && (position = lower.indexOf(term, position)) !== -1) {
+        found.push([position, position + term.length])
+        position += term.length
+      }
+      return found
+    }).sort((a, b) => a[0] - b[0] || b[1] - a[1])
+    const ranges = []
+    for (const range of matches) {
+      const last = ranges.at(-1)
+      if (last && range[0] < last[1]) last[1] = Math.max(last[1], range[1])
+      else ranges.push(range)
+    }
+    let position = 0
+    for (const [start, end] of ranges) {
+      root.append(document.createTextNode(text.slice(position, start)))
+      const highlight = document.createElement("span")
+      highlight.className = "highlight"
+      highlight.textContent = text.slice(start, end)
+      root.append(highlight)
+      position = end
+    }
+    root.append(document.createTextNode(text.slice(position)))
   }
   const makeSnippet = (content, terms) => {
-    const text = String(content || "").split(/\\s+/gu).join(" ").trim()
+    const text = String(content || "").split(/\s+/gu).join(" ").trim()
     if (!text) return ""
     const lower = text.toLocaleLowerCase()
     const firstMatch = terms.map((term) => lower.indexOf(term)).filter((index) => index >= 0).sort((a, b) => a - b)[0]
@@ -245,82 +275,50 @@ WheelMakerSearch.afterDOMLoaded = `
       .slice(0, resultLimit)
       .map((item) => ({ ...item, terms, tagOnly }))
   }
-  const clearResults = (results, preview, layout) => {
-    results.replaceChildren()
-    preview?.replaceChildren()
-    layout.classList.remove("display-results")
-  }
-  const renderResults = (results, preview, layout, items) => {
-    results.replaceChildren()
-    layout.classList.toggle("display-results", currentTerm !== "")
-    if (!items.length) {
-      const empty = document.createElement("div")
-      empty.className = "result-card no-match"
-      empty.innerHTML = "<h3>没有找到结果</h3><p>请换一个关键词。</p>"
-      results.append(empty)
-      return
-    }
-    for (const item of items) {
-      const card = document.createElement("a")
-      card.className = "result-card"
-      card.href = "/" + item.slug
-      card.dataset.slug = item.slug
-      const title = document.createElement("h3")
-      appendHighlighted(title, item.data?.title || item.slug)
-      card.append(title)
-      const tags = Array.isArray(item.data?.tags) ? item.data.tags : []
-      if (tags.length) {
-        const list = document.createElement("ul")
-        list.className = "tags"
-        for (const tag of tags.slice(0, 5)) {
-          const entry = document.createElement("li")
-          const label = document.createElement("p")
-          label.textContent = "#" + tag
-          entry.append(label)
-          list.append(entry)
+  const articleURL = slug => new URL(slug.split("/").map(encodeURIComponent).join("/"),
+    window.location.origin + (window.__wheelmakerWikiRoot || "/")).href
+  const fetchPreview = slug => {
+    if (!previewCache.has(slug)) {
+      const url = articleURL(slug)
+      const pending = fetch(url).then(async response => {
+        if (!response.ok) throw new Error("Preview request failed: " + response.status)
+        const html = parser.parseFromString(await response.text(), "text/html")
+        const base = response.url || url
+        const absolute = value => {
+          try { return new URL(value, base).href } catch { return value }
         }
-        card.append(list)
-      }
-      const description = document.createElement("p")
-      appendHighlighted(description, makeSnippet(item.data?.content, item.terms))
-      card.append(description)
-      card.addEventListener("mouseenter", () => {
-        card.classList.add("focus")
-        void updatePreview(preview, item.slug, item.terms)
-      })
-      card.addEventListener("mouseleave", () => card.classList.remove("focus"))
-      card.addEventListener("click", () => {
-        card.closest(".search-container")?.classList.remove("active")
-      })
-      results.append(card)
-    }
-    void updatePreview(preview, items[0].slug, items[0].terms)
-  }
-  const updatePreview = async (preview, slug, terms) => {
-    if (!preview) return
-    try {
-      const response = await fetch("/" + slug)
-      const html = await response.text()
-      const documentFragment = parser.parseFromString(html, "text/html")
-      preview.replaceChildren(...Array.from(documentFragment.getElementsByClassName("popover-hint"), (node) => node.cloneNode(true)))
-      if (terms.length) {
-        preview.querySelectorAll(".popover-hint").forEach((node) => {
-          const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
-          const textNodes = []
-          let current = walker.nextNode()
-          while (current) textNodes.push(current), current = walker.nextNode()
-          textNodes.forEach((textNode) => {
-            const parent = textNode.parentNode
-            if (!parent || parent.closest("script,style")) return
-            const replacement = document.createDocumentFragment()
-            appendHighlighted(replacement, textNode.nodeValue)
-            parent.replaceChild(replacement, textNode)
-          })
+        html.querySelectorAll("[href], [src], [poster], [srcset]").forEach(node => {
+          for (const attribute of ["href", "src", "poster"]) {
+            if (node.hasAttribute(attribute)) node.setAttribute(attribute, absolute(node.getAttribute(attribute)))
+          }
+          // Parse URL tokens separately so commas in data URLs remain intact.
+          if (node.hasAttribute("srcset")) {
+            const candidates = []
+            const source = node.getAttribute("srcset")
+            let position = 0
+            while (position < source.length) {
+              while (/[\s,]/.test(source[position] || "") && position < source.length) position++
+              const start = position
+              while (position < source.length && !/\s/.test(source[position])) position++
+              let target = source.slice(start, position)
+              if (!target) break
+              let descriptor = ""
+              if (target.endsWith(",")) target = target.replace(/,+$/, "")
+              else {
+                const startDescriptor = position
+                while (position < source.length && source[position] !== ",") position++
+                descriptor = source.slice(startDescriptor, position).trim()
+              }
+              candidates.push(absolute(target) + (descriptor ? " " + descriptor : ""))
+            }
+            node.setAttribute("srcset", candidates.join(", "))
+          }
         })
-      }
-    } catch {
-      preview.replaceChildren()
+        return [...html.getElementsByClassName("popover-hint")]
+      }).catch(error => { previewCache.delete(slug); throw error })
+      previewCache.set(slug, pending)
     }
+    return previewCache.get(slug)
   }
   const setupSearch = () => {
     for (const search of document.querySelectorAll(".search")) {
@@ -332,67 +330,211 @@ WheelMakerSearch.afterDOMLoaded = `
       const preview = search.querySelector(".preview-container")
       if (!container || !button || !input || !layout || !results) continue
 
-      const hide = () => {
+      const chinese = search.dataset.searchLocale === "zh"
+      const messages = chinese
+        ? { loading: "正在加载搜索…", empty: "没有找到结果", hint: "请换一个关键词。", error: "搜索暂时无法加载", retry: "重试", preview: "预览暂时无法加载" }
+        : { loading: "Loading search…", empty: "No results", hint: "Try another search term.", error: "Search could not load", retry: "Retry", preview: "Preview could not load" }
+      let generation = 0
+      let previewGeneration = 0
+      let selected = -1
+      let items = []
+      let returnFocus = button
+      let disposed = false
+      const invalidatePreview = () => { previewGeneration++; preview?.replaceChildren() }
+      const clear = () => {
+        invalidatePreview()
+        results.replaceChildren()
+        layout.classList.remove("display-results")
+        items = []
+        selected = -1
+        input.removeAttribute("aria-activedescendant")
+      }
+      const hide = (restoreFocus = true) => {
+        generation++
         container.classList.remove("active")
         input.value = ""
-        currentTerm = ""
-        clearResults(results, preview, layout)
+        clear()
+        if (restoreFocus && !search.closest("dialog")) returnFocus?.focus()
       }
-      const show = () => {
-        container.classList.add("active")
-        input.focus()
-        void loadSearchIndex().catch(() => {})
+      const status = (kind, text, detail) => {
+        clear()
+        layout.classList.add("display-results")
+        const message = document.createElement("div")
+        message.className = kind === "no-match" ? "result-card no-match" : "search-status " + kind
+        message.setAttribute("role", kind === "search-error" ? "alert" : "status")
+        const title = document.createElement("h3")
+        title.textContent = text
+        message.append(title)
+        if (detail) {
+          const description = document.createElement("p")
+          description.textContent = detail
+          message.append(description)
+        }
+        if (kind === "search-error") {
+          const retry = document.createElement("button")
+          retry.type = "button"
+          retry.textContent = messages.retry
+          retry.addEventListener("click", () => { void updateResults() })
+          message.append(retry)
+        }
+        results.append(message)
       }
-      const onButton = (event) => { event.preventDefault(); show() }
-      const onFocus = () => { void loadSearchIndex().catch(() => {}) }
-      const onInput = async () => {
-        currentTerm = input.value
-        const term = currentTerm
-        if (!term.trim()) { clearResults(results, preview, layout); return }
+      const updatePreview = async () => {
+        invalidatePreview()
+        const item = items[selected]
+        if (!preview || !item || mobile.matches || layout.dataset.preview !== "true") return
+        const token = previewGeneration
         try {
-          const items = await findResults(term)
-          if (input.value === term) renderResults(results, preview, layout, items)
+          const nodes = await fetchPreview(item.slug)
+          if (disposed || token !== previewGeneration) return
+          const fragments = nodes.map(node => node.cloneNode(true))
+          for (const fragment of fragments) {
+            const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT)
+            const textNodes = []
+            while (walker.nextNode()) textNodes.push(walker.currentNode)
+            for (const node of textNodes) {
+              if (node.parentElement?.closest("script,style,textarea,.highlight")) continue
+              const replacement = document.createDocumentFragment()
+              appendHighlighted(replacement, node.nodeValue, item.terms)
+              node.replaceWith(replacement)
+            }
+          }
+          preview.replaceChildren(...fragments)
         } catch {
-          if (input.value === term) renderResults(results, preview, layout, [])
+          if (!disposed && token === previewGeneration) preview.textContent = messages.preview
         }
       }
+      const select = index => {
+        selected = Math.min(Math.max(index, 0), items.length - 1)
+        const cards = [...results.querySelectorAll(".result-card:not(.no-match)")]
+        cards.forEach((card, i) => card.classList.toggle("focus", i === selected))
+        const card = cards[selected]
+        if (card) {
+          input.setAttribute("aria-activedescendant", card.id)
+          card.scrollIntoView({ block: "nearest" })
+        }
+        void updatePreview()
+      }
+      const renderResults = matches => {
+        clear()
+        if (!matches.length) { status("no-match", messages.empty, messages.hint); return }
+        items = matches
+        layout.classList.add("display-results")
+        for (const [index, item] of items.entries()) {
+          const card = document.createElement("a")
+          card.className = "result-card"
+          card.id = "wheelmaker-search-result-" + index
+          card.href = articleURL(item.slug)
+          card.dataset.slug = item.slug
+          const title = document.createElement("h3")
+          appendHighlighted(title, item.data?.title || item.slug, item.terms)
+          card.append(title)
+          const tags = Array.isArray(item.data?.tags) ? item.data.tags : []
+          if (tags.length) {
+            const list = document.createElement("ul")
+            list.className = "tags"
+            for (const tag of tags.slice(0, 5)) {
+              const entry = document.createElement("li")
+              const label = document.createElement("p")
+              appendHighlighted(label, "#" + tag, item.terms)
+              entry.append(label)
+              list.append(entry)
+            }
+            card.append(list)
+          }
+          const description = document.createElement("p")
+          appendHighlighted(description, makeSnippet(item.data?.content, item.terms), item.terms)
+          card.append(description)
+          card.addEventListener("mouseenter", () => select(index))
+          card.addEventListener("focus", () => select(index))
+          card.addEventListener("click", event => {
+            if (!(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) hide(false)
+          })
+          results.append(card)
+        }
+        select(0)
+      }
+      const updateResults = async () => {
+        const token = ++generation
+        const term = input.value
+        clear()
+        const current = () => !disposed && token === generation && input.value === term
+        status("search-loading", messages.loading)
+        try {
+          if (!term.trim()) {
+            await loadSearchIndex()
+            if (current()) clear()
+          } else {
+            const matches = await findResults(term)
+            if (current()) renderResults(matches)
+          }
+        } catch {
+          if (current()) status("search-error", messages.error)
+        }
+      }
+      const show = (tagOnly = false) => {
+        if (!container.classList.contains("active")) {
+          returnFocus = document.activeElement === document.body ? button : document.activeElement
+        }
+        container.classList.add("active")
+        if (tagOnly) input.value = "#"
+        const wasFocused = document.activeElement === input
+        input.focus()
+        if (wasFocused || tagOnly) void updateResults()
+      }
+      const onButton = (event) => { event.preventDefault(); show() }
+      const onFocus = () => { if (!items.length) void updateResults() }
+      const onInput = () => {
+        if (input.value.trim()) void updateResults()
+        else { generation++; clear() }
+      }
       const onKeydown = (event) => {
-        if (event.key === "Escape") { event.preventDefault(); hide() }
-        if (event.key === "Enter") {
-          const first = results.querySelector(".result-card:not(.no-match)")
-          if (first) first.click()
+        if (event.isComposing) return
+        if (event.key === "Escape") { event.preventDefault(); hide(); return }
+        if (event.target !== input) return
+        if (items.length && ["ArrowUp", "ArrowDown", "Tab"].includes(event.key)) {
+          event.preventDefault()
+          select(selected + (event.key === "ArrowUp" || (event.key === "Tab" && event.shiftKey) ? -1 : 1))
+        } else if (event.key === "Enter" && items[selected]) {
+          event.preventDefault()
+          results.querySelectorAll(".result-card")[selected]?.click()
         }
       }
       const onBackdrop = (event) => { if (event.target === container) hide() }
+      const onShortcut = event => {
+        if (event.isComposing || event.key.toLowerCase() !== "k" || (!event.ctrlKey && !event.metaKey)) return
+        event.preventDefault()
+        if (event.shiftKey) show(true)
+        else if (container.classList.contains("active")) hide()
+        else show()
+      }
+      const onViewport = () => { void updatePreview() }
       button.addEventListener("click", onButton)
       input.addEventListener("focus", onFocus)
       input.addEventListener("input", onInput)
-      input.addEventListener("keydown", onKeydown)
+      container.addEventListener("keydown", onKeydown)
       container.addEventListener("click", onBackdrop)
-      addCleanup(() => button.removeEventListener("click", onButton))
-      addCleanup(() => input.removeEventListener("focus", onFocus))
-      addCleanup(() => input.removeEventListener("input", onInput))
-      addCleanup(() => input.removeEventListener("keydown", onKeydown))
-      addCleanup(() => container.removeEventListener("click", onBackdrop))
+      document.addEventListener("keydown", onShortcut)
+      mobile.addEventListener("change", onViewport)
+      addCleanup(() => {
+        disposed = true
+        hide(false)
+        button.removeEventListener("click", onButton)
+        input.removeEventListener("focus", onFocus)
+        input.removeEventListener("input", onInput)
+        container.removeEventListener("keydown", onKeydown)
+        container.removeEventListener("click", onBackdrop)
+        document.removeEventListener("keydown", onShortcut)
+        mobile.removeEventListener("change", onViewport)
+      })
     }
-
-    const onShortcut = (event) => {
-      if (event.key.toLowerCase() !== "k" || (!event.ctrlKey && !event.metaKey)) return
-      const search = document.querySelector(".search")
-      if (!search) return
-      event.preventDefault()
-      const container = search.querySelector(".search-container")
-      const button = search.querySelector(".search-button")
-      if (container?.classList.contains("active")) search.querySelector(".search-bar")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
-      else button?.click()
-    }
-    document.addEventListener("keydown", onShortcut)
-    addCleanup(() => document.removeEventListener("keydown", onShortcut))
   }
 
   const onNavigation = () => { runCleanups(); setupSearch() }
+  document.addEventListener("prenav", runCleanups)
   document.addEventListener("nav", onNavigation)
   document.addEventListener("render", onNavigation)
   setupSearch()
-})()
-`
+}
+
+WheelMakerSearch.afterDOMLoaded = `(${installSearch.toString()})()`

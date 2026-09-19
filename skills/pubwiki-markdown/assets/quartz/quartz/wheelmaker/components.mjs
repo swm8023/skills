@@ -558,14 +558,14 @@ export const KnowledgeSidebarSwitch = () => {
   }
 
   const rewriteRequest = (input) => {
-    const rawURL = typeof input === "string" ? input : input?.url
+    const rawURL = input instanceof URL ? input.href : typeof input === "string" ? input : input?.url
     if (!rawURL) return input
     const requestedURL = new URL(rawURL, window.location.href)
     const mountedURL = rewriteWikiURL(requestedURL)
     if (mountedURL.href === requestedURL.href) {
       return input
     }
-    return typeof input === "string" ? mountedURL.href : new Request(mountedURL.href, input)
+    return input instanceof Request ? new Request(mountedURL.href, input) : mountedURL.href
   }
 
   const rewriteNavigation = (root) => {
@@ -583,17 +583,21 @@ export const KnowledgeSidebarSwitch = () => {
 
   window.fetch = (input, init) => {
     const rewritten = rewriteRequest(input)
-    const method = typeof input === "string" ? (init?.method || "GET") : input?.method || "GET"
-    const requestedURL = new URL(typeof rewritten === "string" ? rewritten : rewritten.url, window.location.href)
+    const method = init?.method || input?.method || "GET"
+    const requestedURL = new URL(rewritten instanceof Request ? rewritten.url : rewritten, window.location.href)
     const shared = method.toUpperCase() === "GET"
       && !init?.signal
-      && (requestedURL.pathname.endsWith("/static/contentIndex.json")
-        || requestedURL.pathname.endsWith("/static/searchIndex.json"))
+      && !(input instanceof Request && input.signal)
+      && init?.cache !== "no-store"
+      && requestedURL.pathname.endsWith("/static/contentIndex.json")
     if (!shared) return nativeFetch(rewritten, init)
     const key = requestedURL.href
     let responsePromise = sharedResponses.get(key)
     if (!responsePromise) {
-      responsePromise = nativeFetch(rewritten, init)
+      responsePromise = nativeFetch(rewritten, init).then(response => {
+        if (!response.ok) sharedResponses.delete(key)
+        return response
+      })
       sharedResponses.set(key, responsePromise)
       responsePromise.catch(() => sharedResponses.delete(key))
     }
@@ -1016,12 +1020,12 @@ export const KnowledgeSidebarSwitch = () => {
   return Component
 }
 
-export const WheelMakerSidebar = () => {
+export const WheelMakerSidebar = ({ enablePreview = true } = {}) => {
   const SidebarSwitch = KnowledgeSidebarSwitch()
   const TagSidebar = KnowledgeTagSidebar()
   const Component = (props) =>
     h(Fragment, null, [
-      h("div", { class: "flex-component", style: "flex-direction: row; gap: 0.5rem;" }, h(WheelMakerSearch, props)),
+      h("div", { class: "flex-component", style: "flex-direction: row; gap: 0.5rem;" }, h(WheelMakerSearch, { ...props, enablePreview })),
       h(SidebarSwitch, props),
       h(TagSidebar, props),
     ])

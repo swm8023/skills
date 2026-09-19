@@ -73,7 +73,7 @@ test('WheelMaker owns the search component and loads the full-text index lazily'
   assert.match(source, /searchIndexPromise/u);
   assert.match(source, /loadSearchIndex/u);
   assert.match(source, /fetch\("\/static\/searchIndex\.json"\)/u);
-  assert.match(source, /void loadSearchIndex\(\)\.catch/u);
+  assert.match(source, /await loadSearchIndex\(\)/u);
   assert.doesNotMatch(source, /fetch\("\/static\/contentIndex\.json"\)/u);
 });
 
@@ -82,7 +82,7 @@ test('WheelMaker sidebar includes its search component without the Quartz search
   const config = await readFile(path.join(assetRoot, 'quartz.config.yaml'), 'utf8');
 
   assert.match(components, /import \{ WheelMakerSearch \} from "\.\/search\.mjs"/u);
-  assert.match(components, /h\(WheelMakerSearch, props\)/u);
+  assert.match(components, /h\(WheelMakerSearch, \{ \.\.\.props, enablePreview \}\)/u);
   assert.match(components, /WheelMakerSearch\.afterDOMLoaded/u);
   assert.doesNotMatch(config, /github:quartz-community\/search/u);
 });

@@ -20,9 +20,9 @@ const CUSTOM_ASSETS = [
   ['quartz.lock.json'],
   ['quartz', 'wheelmaker', 'package.json'],
   ['quartz', 'wheelmaker', 'index.mjs'],
-  ['quartz', 'wheelmaker', 'home.mjs'],
-  ['quartz', 'wheelmaker', 'components.mjs'],
-  ['quartz', 'wheelmaker', 'tags.mjs'],
+  ['quartz', 'wheelmaker', 'pages.mjs'],
+  ['quartz', 'wheelmaker', 'layout.mjs'],
+  ['quartz', 'wheelmaker', 'navigation.mjs'],
 ];
 const LOCAL_PLUGIN_NAMES = ['wheelmaker'];
 const OPTIONAL_PLUGIN_COMPATIBILITY = 'export const CustomOgImagesEmitterName = "CustomOgImages";';
@@ -105,7 +105,7 @@ async function validateSkillPlugin(source) {
   }
   const manifest = JSON.parse(await readFile(path.join(source, 'package.json'), 'utf8'));
   if (manifest.name !== 'wheelmaker' || manifest.type !== 'module'
-    || manifest.exports?.['.'] !== './index.mjs' || manifest.exports?.['./components'] !== './components.mjs'
+    || manifest.exports?.['.'] !== './index.mjs' || manifest.exports?.['./components'] !== './layout.mjs'
     || manifest.quartz?.quartzVersion !== QUARTZ_VERSION.slice(1)) {
     throw new Error('Skill plugin manifest is not compatible with the pinned Quartz runtime.');
   }

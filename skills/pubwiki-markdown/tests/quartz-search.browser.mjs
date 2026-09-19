@@ -19,7 +19,7 @@ registerHooks({ resolve(specifier, context, next) {
 const { h } = await import('preact');
 const { render } = await import('preact-render-to-string');
 const { WheelMakerSearch } = await import('../assets/quartz/quartz/wheelmaker/search.mjs');
-const { KnowledgeSidebarSwitch } = await import('../assets/quartz/quartz/wheelmaker/components.mjs');
+const { KnowledgeSidebarSwitch } = await import('../assets/quartz/quartz/wheelmaker/layout.mjs');
 const { chromium } = await import(pathToFileURL(path.resolve(values.playwright)).href);
 const documents = {
   'search-fixture/a': { title: 'ACP alpha <b>', tags: ['protocol/acp'], content: 'ACP 正文 中文测试 <img onerror=alert(1)>' },

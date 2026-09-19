@@ -1,9 +1,9 @@
 import { Fragment, h } from "preact"
 import { resolveRelative } from "@quartz-community/utils"
-import { KnowledgeTagSidebar, directoryCounts } from "./tags.mjs"
+import { KnowledgeTagSidebar, directoryCounts } from "./navigation.mjs"
 import { WheelMakerSearch } from "./search.mjs"
 
-export { KnowledgeTagSidebar } from "./tags.mjs"
+export { KnowledgeTagSidebar } from "./navigation.mjs"
 
 // Lucide outline icons share a 24px viewBox and 2px stroke.
 function ChromeIcon({ name }) {

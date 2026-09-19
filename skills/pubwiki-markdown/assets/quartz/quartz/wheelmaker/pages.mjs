@@ -1,6 +1,6 @@
 import { h } from "preact"
 import { resolveRelative } from "@quartz-community/utils"
-import { buildTagTree, normalizedTags, pagesForTag, sortedNodes } from "./tags.mjs"
+import { buildTagTree, normalizedTags, pagesForTag, sortedNodes } from "./navigation.mjs"
 
 const DEFAULT_SITE_TITLE = "WheelMaker Knowledge"
 const DEFAULT_SITE_DESCRIPTION = "Browse the WheelMaker knowledge base."

@@ -1,7 +1,7 @@
-export { default, WheelMakerHomePage } from "./home.mjs"
+export { default, WheelMakerHomePage } from "./pages.mjs"
 export { WheelMakerContentIndex } from "./content-index.mjs"
 export {
   KnowledgeSidebarSwitch,
   KnowledgeTagSidebar,
   WheelMakerSidebar,
-} from "./components.mjs"
+} from "./layout.mjs"

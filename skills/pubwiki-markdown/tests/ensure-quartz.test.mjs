@@ -25,9 +25,9 @@ async function fakeInstaller(stage) {
     'quartz.lock.json',
     'quartz/wheelmaker/package.json',
     'quartz/wheelmaker/index.mjs',
-    'quartz/wheelmaker/home.mjs',
-    'quartz/wheelmaker/components.mjs',
-    'quartz/wheelmaker/tags.mjs',
+    'quartz/wheelmaker/pages.mjs',
+    'quartz/wheelmaker/layout.mjs',
+    'quartz/wheelmaker/navigation.mjs',
   ]) {
     await mkdir(path.dirname(path.join(stage, relativePath)), { recursive: true });
     await writeFile(path.join(stage, relativePath), `${relativePath}\n`);
@@ -117,10 +117,10 @@ test('linked installation reads Skill edits without reinstalling Quartz', async 
   const cached = path.join(result.runtime, '.quartz', 'plugins', 'wheelmaker');
   assert.equal((await lstat(local)).isSymbolicLink(), true);
   assert.equal(await realpath(cached), await realpath(skill.plugin));
-  await writeFile(path.join(skill.plugin, 'components.mjs'), 'export const revision = 2;\n');
+  await writeFile(path.join(skill.plugin, 'layout.mjs'), 'export const revision = 2;\n');
   const ready = await skill.ensure({ env, installer: () => assert.fail('must not reinstall') });
   assert.equal(ready.status, 'ready', ready.message);
-  assert.equal(await readFile(path.join(cached, 'components.mjs'), 'utf8'), 'export const revision = 2;\n');
+  assert.equal(await readFile(path.join(cached, 'layout.mjs'), 'utf8'), 'export const revision = 2;\n');
 });
 
 test('opt-in migrates a valid snapshot and preserves the core and dependencies', async (t) => {

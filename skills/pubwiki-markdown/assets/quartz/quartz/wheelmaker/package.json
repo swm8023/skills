@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./index.mjs",
-    "./components": "./components.mjs"
+    "./components": "./layout.mjs"
   },
   "quartz": {
     "name": "wheelmaker",

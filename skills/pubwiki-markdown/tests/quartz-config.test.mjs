@@ -49,9 +49,9 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
   await access(path.join(assets, 'quartz.ts'));
   await access(path.join(assets, 'quartz', 'wheelmaker', 'package.json'));
   await access(path.join(assets, 'quartz', 'wheelmaker', 'index.mjs'));
-  await access(path.join(assets, 'quartz', 'wheelmaker', 'home.mjs'));
-  await access(path.join(assets, 'quartz', 'wheelmaker', 'components.mjs'));
-  await access(path.join(assets, 'quartz', 'wheelmaker', 'tags.mjs'));
+  await access(path.join(assets, 'quartz', 'wheelmaker', 'pages.mjs'));
+  await access(path.join(assets, 'quartz', 'wheelmaker', 'layout.mjs'));
+  await access(path.join(assets, 'quartz', 'wheelmaker', 'navigation.mjs'));
   await assert.rejects(() => access(path.join(assets, 'quartz.config.ts')));
   await assert.rejects(() => access(path.join(assets, 'quartz.layout.ts')));
   assert.match(config, /source:\s*github:quartz-community\/obsidian-flavored-markdown/u);

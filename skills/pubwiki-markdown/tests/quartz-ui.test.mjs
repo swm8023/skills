@@ -9,7 +9,7 @@ const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const assetRoot = path.join(skillRoot, 'assets', 'quartz');
 
 test('WheelMaker home lists only real knowledge pages and uses a full-width card layout', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'home.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'pages.mjs'), 'utf8');
 
   assert.match(source, /slug !== "404"/u);
   assert.match(source, /slug\.endsWith\("\/index"\)/u);
@@ -18,7 +18,7 @@ test('WheelMaker home lists only real knowledge pages and uses a full-width card
 });
 
 test('WheelMaker home uses the validated site settings for the shared title and description', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'home.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'pages.mjs'), 'utf8');
 
   assert.match(source, /WHEELMAKER_WIKI_SITE_TITLE/u);
   assert.match(source, /WHEELMAKER_WIKI_SITE_DESCRIPTION/u);
@@ -30,7 +30,7 @@ test('WheelMaker home uses the validated site settings for the shared title and 
 });
 
 test('WheelMaker home plugin renders generated folders as directory article pages', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'home.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'pages.mjs'), 'utf8');
 
   assert.match(source, /function isFolderPage/u);
   assert.match(source, /function pagesForFolder/u);
@@ -55,7 +55,7 @@ test('WheelMaker home layout removes Quartz folder metadata chrome', async () =>
 });
 
 test('WheelMaker sidebar rewrites Quartz root content-index requests to the Wiki mount', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'layout.mjs'), 'utf8');
 
   assert.match(source, /Component\.beforeDOMLoaded/u);
   assert.match(source, /const marker = "\/wiki\/"/u);
@@ -78,7 +78,7 @@ test('WheelMaker owns the search component and loads the full-text index lazily'
 });
 
 test('WheelMaker sidebar includes its search component without the Quartz search plugin', async () => {
-  const components = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+  const components = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'layout.mjs'), 'utf8');
   const config = await readFile(path.join(assetRoot, 'quartz.config.yaml'), 'utf8');
 
   assert.match(components, /import \{ WheelMakerSearch \} from "\.\/search\.mjs"/u);
@@ -88,7 +88,7 @@ test('WheelMaker sidebar includes its search component without the Quartz search
 });
 
 test('WheelMaker sidebar keeps Quartz root-relative navigation inside the Wiki mount', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'layout.mjs'), 'utf8');
 
   assert.match(source, /rewriteNavigation/u);
   assert.match(source, /MutationObserver/u);
@@ -96,7 +96,7 @@ test('WheelMaker sidebar keeps Quartz root-relative navigation inside the Wiki m
 });
 
 test('WheelMaker Wiki accepts host themes only when embedded and keeps standalone theme ownership', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'layout.mjs'), 'utf8');
 
   assert.match(source, /window\.parent !== window/u);
   assert.match(source, /event\.source !== window\.parent/u);
@@ -108,7 +108,7 @@ test('WheelMaker Wiki accepts host themes only when embedded and keeps standalon
 });
 
 test('WheelMaker Wiki theme bridge validates embedded messages and ignores standalone pages', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'layout.mjs'), 'utf8');
   const startMarker = '  Component.beforeDOMLoaded = `';
   const endMarker = '`\n\n  Component.afterDOMLoaded = `';
   const start = source.indexOf(startMarker);
@@ -159,8 +159,8 @@ test('WheelMaker Wiki theme bridge validates embedded messages and ignores stand
 });
 
 test('WheelMaker bundle composes the sidebar switch and hierarchical tag sidebar', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
-  const tags = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'tags.mjs'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'layout.mjs'), 'utf8');
+  const tags = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'navigation.mjs'), 'utf8');
 
   assert.match(source, /KnowledgeTagSidebar/u);
   assert.match(source, /export const WheelMakerSidebar/u);

@@ -213,9 +213,16 @@ try {
       await page.waitForURL(url);
       await page.locator('.knowledge-page-card-link').first().click();
       await page.locator('.article-title').waitFor();
-      assert.equal(await page.locator('.center article > h1:first-child').isVisible(), false);
+      const repeatedTitle = await page.locator('.center article > h1:first-child').getAttribute('data-knowledge-repeated-title');
+      assert.equal(
+        await page.locator('.center article > h1:first-child').isVisible(),
+        repeatedTitle !== 'true',
+        'only repeated article titles are hidden',
+      );
       assert.equal(await page.locator('.page-header .tags').count(), 0, 'article tags move out of the reading header');
-      assert.ok((await page.locator('.center article').boundingBox()).y < 180, 'article body starts near the toolbar');
+      if (repeatedTitle === 'true') {
+        assert.ok((await page.locator('.center article').boundingBox()).y < 180, 'article body starts near the toolbar');
+      }
       if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-article.png') });
       await page.evaluate(() => window.scrollTo(0, 600));
       assert.equal((await bar.boundingBox()).y, 0, 'toolbar stays available while reading');
@@ -236,7 +243,7 @@ try {
       if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-dark.png') });
       await search.click();
       assert.equal(await searchDialog.evaluate(dialog => dialog.matches(':modal')), true);
-      const input = page.locator('.search-space input');
+      const input = page.locator('.search-bar');
       assert.equal(await input.evaluate(element => element === document.activeElement), true, 'search is ready to type');
       await input.fill(allFiles.find(file => !file.slug.endsWith('/index'))?.frontmatter.title || 'ACP');
       await page.locator('.result-card:not(.no-match)').first().waitFor();

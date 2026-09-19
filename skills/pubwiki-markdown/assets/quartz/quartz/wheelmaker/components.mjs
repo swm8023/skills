@@ -1,6 +1,7 @@
 import { Fragment, h } from "preact"
 import { resolveRelative } from "@quartz-community/utils"
 import { KnowledgeTagSidebar, directoryCounts } from "./tags.mjs"
+import { WheelMakerSearch } from "./search.mjs"
 
 export { KnowledgeTagSidebar } from "./tags.mjs"
 
@@ -541,11 +542,15 @@ export const KnowledgeSidebarSwitch = () => {
   const markerIndex = pathname.lastIndexOf(marker)
   const wikiRoot = markerIndex >= 0 ? pathname.slice(0, markerIndex + marker.length) : "/"
   const contentIndexURL = new URL("static/contentIndex.json", window.location.origin + wikiRoot).href
+  const searchIndexURL = new URL("static/searchIndex.json", window.location.origin + wikiRoot).href
   const nativeFetch = window.fetch.bind(window)
+  const sharedResponses = new Map()
+  window.__wheelmakerWikiRoot = wikiRoot
 
   const rewriteWikiURL = (url) => {
     if (url.origin !== window.location.origin || url.pathname.startsWith(wikiRoot)) return url
     if (url.pathname === "/static/contentIndex.json") return new URL(contentIndexURL)
+    if (url.pathname === "/static/searchIndex.json") return new URL(searchIndexURL)
     const path = url.pathname.slice(1)
     const lastSegment = path.split("/").pop() || ""
     if (!url.pathname.startsWith("/static/") && lastSegment.includes(".")) return url
@@ -576,7 +581,24 @@ export const KnowledgeSidebarSwitch = () => {
     root.querySelectorAll?.("a[href]").forEach((anchor) => rewriteNavigation(anchor))
   }
 
-  window.fetch = (input, init) => nativeFetch(rewriteRequest(input), init)
+  window.fetch = (input, init) => {
+    const rewritten = rewriteRequest(input)
+    const method = typeof input === "string" ? (init?.method || "GET") : input?.method || "GET"
+    const requestedURL = new URL(typeof rewritten === "string" ? rewritten : rewritten.url, window.location.href)
+    const shared = method.toUpperCase() === "GET"
+      && !init?.signal
+      && (requestedURL.pathname.endsWith("/static/contentIndex.json")
+        || requestedURL.pathname.endsWith("/static/searchIndex.json"))
+    if (!shared) return nativeFetch(rewritten, init)
+    const key = requestedURL.href
+    let responsePromise = sharedResponses.get(key)
+    if (!responsePromise) {
+      responsePromise = nativeFetch(rewritten, init)
+      sharedResponses.set(key, responsePromise)
+      responsePromise.catch(() => sharedResponses.delete(key))
+    }
+    return responsePromise.then((response) => response.clone())
+  }
   rewriteNavigation(document)
   new MutationObserver((records) => {
     records.forEach(({ addedNodes }) => {
@@ -999,13 +1021,14 @@ export const WheelMakerSidebar = () => {
   const TagSidebar = KnowledgeTagSidebar()
   const Component = (props) =>
     h(Fragment, null, [
+      h("div", { class: "flex-component", style: "flex-direction: row; gap: 0.5rem;" }, h(WheelMakerSearch, props)),
       h(SidebarSwitch, props),
       h(TagSidebar, props),
     ])
 
-  Component.css = [SidebarSwitch.css, TagSidebar.css].filter(Boolean).join("\n")
-  Component.beforeDOMLoaded = SidebarSwitch.beforeDOMLoaded
-  Component.afterDOMLoaded = SidebarSwitch.afterDOMLoaded
+  Component.css = [WheelMakerSearch.css, SidebarSwitch.css, TagSidebar.css].filter(Boolean).join("\n")
+  Component.beforeDOMLoaded = [SidebarSwitch.beforeDOMLoaded].filter(Boolean).join("\n")
+  Component.afterDOMLoaded = [WheelMakerSearch.afterDOMLoaded, SidebarSwitch.afterDOMLoaded].filter(Boolean).join(";\n")
 
   return Component
 }

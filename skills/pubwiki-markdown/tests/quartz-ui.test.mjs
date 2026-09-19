@@ -61,7 +61,30 @@ test('WheelMaker sidebar rewrites Quartz root content-index requests to the Wiki
   assert.match(source, /const marker = "\/wiki\/"/u);
   assert.match(source, /lastIndexOf\(marker\)/u);
   assert.match(source, /contentIndex\.json/u);
+  assert.match(source, /searchIndex\.json/u);
   assert.match(source, /window\.fetch/u);
+  assert.match(source, /sharedResponses/u);
+});
+
+test('WheelMaker owns the search component and loads the full-text index lazily', async () => {
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'search.mjs'), 'utf8');
+
+  assert.match(source, /WheelMakerSearch/u);
+  assert.match(source, /searchIndexPromise/u);
+  assert.match(source, /loadSearchIndex/u);
+  assert.match(source, /fetch\("\/static\/searchIndex\.json"\)/u);
+  assert.match(source, /void loadSearchIndex\(\)\.catch/u);
+  assert.doesNotMatch(source, /fetch\("\/static\/contentIndex\.json"\)/u);
+});
+
+test('WheelMaker sidebar includes its search component without the Quartz search plugin', async () => {
+  const components = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'components.mjs'), 'utf8');
+  const config = await readFile(path.join(assetRoot, 'quartz.config.yaml'), 'utf8');
+
+  assert.match(components, /import \{ WheelMakerSearch \} from "\.\/search\.mjs"/u);
+  assert.match(components, /h\(WheelMakerSearch, props\)/u);
+  assert.match(components, /WheelMakerSearch\.afterDOMLoaded/u);
+  assert.doesNotMatch(config, /github:quartz-community\/search/u);
 });
 
 test('WheelMaker sidebar keeps Quartz root-relative navigation inside the Wiki mount', async () => {

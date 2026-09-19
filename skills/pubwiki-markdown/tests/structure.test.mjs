@@ -33,8 +33,10 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
     'assets/quartz/quartz.lock.json',
     'assets/quartz/quartz/wheelmaker/package.json',
     'assets/quartz/quartz/wheelmaker/index.mjs',
+    'assets/quartz/quartz/wheelmaker/content-index.mjs',
     'assets/quartz/quartz/wheelmaker/home.mjs',
     'assets/quartz/quartz/wheelmaker/components.mjs',
+    'assets/quartz/quartz/wheelmaker/search.mjs',
     'assets/quartz/quartz/wheelmaker/tags.mjs',
   ];
   await Promise.all(required.map(mustExist));

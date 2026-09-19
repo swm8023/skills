@@ -110,15 +110,9 @@ plugins:
   # Public-site emitters. Assets, Static, and ComponentResources are built into Quartz.
   - source: github:quartz-community/alias-redirects
     enabled: true
-  - source: github:quartz-community/content-index
-    enabled: true
-    options:
-      # Search, graph, backlinks, and the WheelMaker sidebar consume this index.
-      enableSiteMap: false
-      enableRSS: false
   - source: github:quartz-community/content-page
     enabled: true
-  # WheelMaker owns home, directory and tag result pages, plus shared navigation.
+  # WheelMaker owns pages, the metadata/content indexes, search, and shared navigation.
   - source: ./quartz/wheelmaker
     enabled: true
     order: 1000
@@ -148,14 +142,6 @@ plugins:
     layout:
       position: left
       priority: 50
-  - source: github:quartz-community/search
-    enabled: true
-    layout:
-      position: left
-      priority: 20
-      group: toolbar
-      groupOptions:
-        grow: true
   - source: github:quartz-community/backlinks
     enabled: true
     layout:

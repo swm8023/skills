@@ -56,11 +56,6 @@
       "resolved": "https://github.com/quartz-community/alias-redirects.git",
       "commit": "2913031a4989824754c0e550682a8d9c117ad569"
     },
-    "content-index": {
-      "source": "github:quartz-community/content-index",
-      "resolved": "https://github.com/quartz-community/content-index.git",
-      "commit": "2a207bb2db52c57a89b673182e9f74280dd81ee3"
-    },
     "content-page": {
       "source": "github:quartz-community/content-page",
       "resolved": "https://github.com/quartz-community/content-page.git",
@@ -70,11 +65,6 @@
       "source": "github:quartz-community/explorer",
       "resolved": "https://github.com/quartz-community/explorer.git",
       "commit": "def459f31b02fdebdc22579cbeec2907829ff20f"
-    },
-    "search": {
-      "source": "github:quartz-community/search",
-      "resolved": "https://github.com/quartz-community/search.git",
-      "commit": "e9c10e521b95a14a512739b62a4159ab5afd5edf"
     },
     "backlinks": {
       "source": "github:quartz-community/backlinks",

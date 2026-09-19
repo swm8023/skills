@@ -18,10 +18,8 @@ const REQUIRED_EXTERNAL_PLUGINS = [
   'note-properties',
   'remove-draft',
   'alias-redirects',
-  'content-index',
   'content-page',
   'explorer',
-  'search',
   'backlinks',
   'graph',
   'article-title',
@@ -61,8 +59,11 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
   assert.match(config, /pageTitle:\s*WheelMaker Knowledge/u);
   assert.match(config, /source:\s*\.\/quartz\/wheelmaker\s*$/mu);
   assert.doesNotMatch(config, /source:\s*\.\/quartz\/wheelmaker-(?:home|sidebar|tags)/u);
-  assert.deepEqual(wheelmaker.quartz.category, ['pageType', 'component']);
+  assert.deepEqual(wheelmaker.quartz.category, ['emitter', 'pageType', 'component']);
   assert.ok(wheelmaker.quartz.components.WheelMakerSidebar);
+  assert.match(config, /source:\s+\.\/quartz\/wheelmaker[\s\S]*?priority:\s*40/u);
+  assert.doesNotMatch(config, /source:\s+github:quartz-community\/(?:content-index|search)(?:\s|$)/u);
+  assert.match(config, /source:\s+\.\/quartz\/wheelmaker[\s\S]*?metadata\/content indexes|WheelMaker owns pages, the metadata\/content indexes/u);
   assert.doesNotMatch(config, /source:\s*.*content\/index\.md/u);
   const configuredNames = [...config.matchAll(/^\s+- source:\s+github:quartz-community\/([^\s#]+)/gmu)]
     .map(([, name]) => name)
@@ -74,7 +75,4 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
     assert.doesNotMatch(config, new RegExp(`source:\\s+github:quartz-community/${name}(?:\\s|$)`, 'u'));
     assert.equal(lock.plugins[name], undefined, `removed plugin remains locked: ${name}`);
   }
-  assert.match(config, /enableSiteMap:\s*false/u);
-  assert.match(config, /enableRSS:\s*false/u);
-  assert.doesNotMatch(config, /enableSiteMap:\s*true|enableRSS:\s*true/u);
 });

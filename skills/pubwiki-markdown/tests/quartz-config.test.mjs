@@ -11,26 +11,26 @@ const REQUIRED_EXTERNAL_PLUGINS = [
   'syntax-highlighting',
   'obsidian-flavored-markdown',
   'github-flavored-markdown',
-  'table-of-contents',
   'crawl-links',
-  'description',
   'latex',
   'note-properties',
-  'remove-draft',
-  'alias-redirects',
   'content-page',
-  'explorer',
   'backlinks',
-  'graph',
   'article-title',
   'content-meta',
   'tag-list',
   'page-title',
   'darkmode',
-  'footer',
 ];
 
 const REMOVED_EXTERNAL_PLUGINS = [
+  'table-of-contents',
+  'explorer',
+  'footer',
+  'remove-draft',
+  'description',
+  'graph',
+  'alias-redirects',
   'tag-page',
   'favicon',
   'og-image',
@@ -59,11 +59,11 @@ test('Quartz 5 assets use YAML configuration and local plugins without a source 
   assert.match(config, /pageTitle:\s*WheelMaker Knowledge/u);
   assert.match(config, /source:\s*\.\/quartz\/wheelmaker\s*$/mu);
   assert.doesNotMatch(config, /source:\s*\.\/quartz\/wheelmaker-(?:home|sidebar|tags)/u);
-  assert.deepEqual(wheelmaker.quartz.category, ['emitter', 'pageType', 'component']);
+  assert.deepEqual(wheelmaker.quartz.category, ['transformer', 'filter', 'emitter', 'pageType', 'component']);
   assert.ok(wheelmaker.quartz.components.WheelMakerSidebar);
   assert.match(config, /source:\s+\.\/quartz\/wheelmaker[\s\S]*?priority:\s*40/u);
   assert.doesNotMatch(config, /source:\s+github:quartz-community\/(?:content-index|search)(?:\s|$)/u);
-  assert.match(config, /source:\s+\.\/quartz\/wheelmaker[\s\S]*?metadata\/content indexes|WheelMaker owns pages, the metadata\/content indexes/u);
+  assert.match(config, /WheelMaker owns TOC, descriptions, draft filtering/u);
   assert.doesNotMatch(config, /source:\s*.*content\/index\.md/u);
   const configuredNames = [...config.matchAll(/^\s+- source:\s+github:quartz-community\/([^\s#]+)/gmu)]
     .map(([, name]) => name)

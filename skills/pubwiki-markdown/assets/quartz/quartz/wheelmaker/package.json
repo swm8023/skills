@@ -1,6 +1,6 @@
 {
   "name": "wheelmaker",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,10 +10,12 @@
   "quartz": {
     "name": "wheelmaker",
     "displayName": "WheelMaker Wiki",
-    "description": "Provides WheelMaker pages, metadata/search indexes, lazy search, and Wiki navigation.",
-    "version": "1.1.0",
+    "description": "Provides WheelMaker content processing, draft filtering, pages, indexes, search and reader navigation.",
+    "version": "1.2.0",
     "quartzVersion": "5.0.0",
     "category": [
+      "transformer",
+      "filter",
       "emitter",
       "pageType",
       "component"

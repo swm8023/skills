@@ -2,6 +2,7 @@ import { Fragment, h } from "preact"
 import { resolveRelative } from "@quartz-community/utils"
 import { KnowledgeTagSidebar, directoryCounts } from "./navigation.mjs"
 import { WheelMakerSearch } from "./search.mjs"
+import { WheelMakerExplorer } from "./explorer.mjs"
 
 export { KnowledgeTagSidebar } from "./navigation.mjs"
 
@@ -510,8 +511,7 @@ export const KnowledgeSidebarSwitch = () => {
   .center article pre { max-width: 100%; overscroll-behavior-x: contain; }
   .center article img { max-width: 100%; height: auto; }
   .page > #quartz-body > footer,
-  .page > #quartz-body .center:has(> .knowledge-home) > hr,
-  .page > #quartz-body .sidebar.right .graph { display: none; }
+  .page > #quartz-body .center:has(> .knowledge-home) > hr { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -726,6 +726,11 @@ export const KnowledgeSidebarSwitch = () => {
     const current = canonicalPath(location.href)
     let counts = {}
     try { counts = JSON.parse(document.querySelector(".knowledge-sidebar-switch")?.dataset.knowledgeDirectoryCounts || "{}") } catch {}
+    let savedFolders = []
+    try {
+      const stored = JSON.parse(localStorage.getItem("fileTree") || "[]")
+      if (Array.isArray(stored)) savedFolders = stored
+    } catch {}
     const rows = [...explorer.querySelectorAll(".folder-container")]
     explorer.tabIndex = rows.length ? -1 : 0
     const candidates = rows.filter(row => {
@@ -742,7 +747,12 @@ export const KnowledgeSidebarSwitch = () => {
       if (selected) link.setAttribute("aria-current", current === target ? "page" : "location")
       else link.removeAttribute("aria-current")
       link.classList.toggle("active", selected)
-      if (row.dataset.knowledgeEnhanced) return
+      const activeAncestor = current === target || current.startsWith(target + "/")
+      if (row.dataset.knowledgeEnhanced) {
+        const button = row.querySelector(".knowledge-tree-toggle")
+        if (button && activeAncestor) updateExpanded(button, true)
+        return
+      }
       row.dataset.knowledgeEnhanced = "true"
       row.classList.add("knowledge-nav-row")
       const name = link.textContent.trim()
@@ -775,8 +785,8 @@ export const KnowledgeSidebarSwitch = () => {
       icon.before(button)
       button.append(icon)
       outlineIcon(icon, ["m9 18 6-6-6-6"])
-      const activeAncestor = current === target || current.startsWith(target + "/")
-      updateExpanded(button, panel.classList.contains("open") || activeAncestor)
+      const savedOpen = savedFolders.some(item => item?.path === row.dataset.folderpath && item.collapsed === false)
+      updateExpanded(button, panel.classList.contains("open") || activeAncestor || savedOpen)
     })
   }
 
@@ -1023,14 +1033,16 @@ export const KnowledgeSidebarSwitch = () => {
 export const WheelMakerSidebar = ({ enablePreview = true } = {}) => {
   const SidebarSwitch = KnowledgeSidebarSwitch()
   const TagSidebar = KnowledgeTagSidebar()
+  const Explorer = WheelMakerExplorer()
   const Component = (props) =>
     h(Fragment, null, [
       h("div", { class: "flex-component", style: "flex-direction: row; gap: 0.5rem;" }, h(WheelMakerSearch, { ...props, enablePreview })),
       h(SidebarSwitch, props),
       h(TagSidebar, props),
+      h(Explorer, props),
     ])
 
-  Component.css = [WheelMakerSearch.css, SidebarSwitch.css, TagSidebar.css].filter(Boolean).join("\n")
+  Component.css = [WheelMakerSearch.css, Explorer.css, SidebarSwitch.css, TagSidebar.css].filter(Boolean).join("\n")
   Component.beforeDOMLoaded = [SidebarSwitch.beforeDOMLoaded].filter(Boolean).join("\n")
   Component.afterDOMLoaded = [WheelMakerSearch.afterDOMLoaded, SidebarSwitch.afterDOMLoaded].filter(Boolean).join(";\n")
 

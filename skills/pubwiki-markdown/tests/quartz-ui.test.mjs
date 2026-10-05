@@ -41,10 +41,10 @@ test('WheelMaker home plugin renders generated folders as directory article page
 });
 
 test('WheelMaker explorer keeps directory navigation focused on folders', async () => {
-  const source = await readFile(path.join(assetRoot, 'quartz.config.yaml'), 'utf8');
+  const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'explorer.mjs'), 'utf8');
 
-  assert.match(source, /filterFn:\s*\|[\s\S]*?node\.isFolder/u);
-  assert.match(source, /mapFn:\s*\|[\s\S]*?node\.slug\.replace/u);
+  assert.match(source, /buildDirectoryTree/u);
+  assert.match(source, /segments\[0\] === "tags"/u);
   assert.match(source, /split\("\/"\)/u);
 });
 

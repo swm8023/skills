@@ -84,75 +84,33 @@ plugins:
   - source: github:quartz-community/github-flavored-markdown
     enabled: true
     order: 40
-  - source: github:quartz-community/table-of-contents
-    enabled: true
-    order: 50
-    layout:
-      position: right
-      priority: 30
   - source: github:quartz-community/crawl-links
     enabled: true
     options:
       markdownLinkResolution: shortest
     order: 60
-  - source: github:quartz-community/description
-    enabled: true
-    order: 70
   - source: github:quartz-community/latex
     enabled: true
     options:
       renderEngine: katex
     order: 80
 
-  - source: github:quartz-community/remove-draft
-    enabled: true
-
   # Public-site emitters. Assets, Static, and ComponentResources are built into Quartz.
-  - source: github:quartz-community/alias-redirects
-    enabled: true
   - source: github:quartz-community/content-page
     enabled: true
-  # WheelMaker owns pages, the metadata/content indexes, search, and shared navigation.
+  # WheelMaker owns TOC, descriptions, draft filtering, pages, indexes and navigation.
   - source: ./quartz/wheelmaker
     enabled: true
-    order: 1000
+    order: 70
     layout:
       position: left
       priority: 40
 
-  # Directory navigation is supplied by Quartz Explorer and composed by WheelMaker.
-  - source: github:quartz-community/explorer
-    enabled: true
-    options:
-      title: 目录
-      # The Wiki tree is a directory navigator; article cards live on the right.
-      filterFn: |
-        (node) => node.slugSegment !== "tags" && node.isFolder
-      mapFn: |
-        (node) => {
-          if (node.isFolder && node.slug) {
-            const folderPath = node.slug.replace(/\/index$/, "")
-            const folderName = folderPath.split("/").pop() || folderPath
-            Object.defineProperty(node, "displayName", {
-              configurable: true,
-              value: folderName,
-            })
-          }
-        }
-    layout:
-      position: left
-      priority: 50
   - source: github:quartz-community/backlinks
     enabled: true
     layout:
       position: right
       priority: 50
-  - source: github:quartz-community/graph
-    enabled: true
-    layout:
-      position: right
-      priority: 10
-
   - source: github:quartz-community/article-title
     enabled: true
     layout:
@@ -179,10 +137,6 @@ plugins:
       position: left
       priority: 30
       group: toolbar
-  - source: github:quartz-community/footer
-    enabled: true
-    options:
-      links: {}
 
 layout:
   groups:
@@ -198,7 +152,6 @@ layout:
         right: []
     home:
       exclude:
-        - graph
         - backlinks
       positions:
         beforeBody: []

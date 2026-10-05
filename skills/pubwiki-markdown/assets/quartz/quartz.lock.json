@@ -21,20 +21,10 @@
       "resolved": "https://github.com/quartz-community/github-flavored-markdown.git",
       "commit": "628366ec62c1122da1eaef7c988d53bdaae3d19a"
     },
-    "table-of-contents": {
-      "source": "github:quartz-community/table-of-contents",
-      "resolved": "https://github.com/quartz-community/table-of-contents.git",
-      "commit": "70b12d85cb873ce42d95111ffb4d8092644c1763"
-    },
     "crawl-links": {
       "source": "github:quartz-community/crawl-links",
       "resolved": "https://github.com/quartz-community/crawl-links.git",
       "commit": "5ccbcb5f3ac7b1c24fbcb34aa2454df06fe7031c"
-    },
-    "description": {
-      "source": "github:quartz-community/description",
-      "resolved": "https://github.com/quartz-community/description.git",
-      "commit": "76f05fb1ddcc412660ff247bb7ed532e2730c641"
     },
     "latex": {
       "source": "github:quartz-community/latex",
@@ -46,35 +36,15 @@
       "resolved": "https://github.com/quartz-community/note-properties.git",
       "commit": "e68145b9f11b31d3168ed2755bd74f36a67dbed7"
     },
-    "remove-draft": {
-      "source": "github:quartz-community/remove-draft",
-      "resolved": "https://github.com/quartz-community/remove-draft.git",
-      "commit": "c44b2a1314cfe8ac4d4450a566ec9a122daba5f2"
-    },
-    "alias-redirects": {
-      "source": "github:quartz-community/alias-redirects",
-      "resolved": "https://github.com/quartz-community/alias-redirects.git",
-      "commit": "2913031a4989824754c0e550682a8d9c117ad569"
-    },
     "content-page": {
       "source": "github:quartz-community/content-page",
       "resolved": "https://github.com/quartz-community/content-page.git",
       "commit": "b8a3f3bb6a126256b12f55879d144ba2ac104b73"
     },
-    "explorer": {
-      "source": "github:quartz-community/explorer",
-      "resolved": "https://github.com/quartz-community/explorer.git",
-      "commit": "def459f31b02fdebdc22579cbeec2907829ff20f"
-    },
     "backlinks": {
       "source": "github:quartz-community/backlinks",
       "resolved": "https://github.com/quartz-community/backlinks.git",
       "commit": "c5f07804c9a050c4bf1d996454b1770a211d992b"
-    },
-    "graph": {
-      "source": "github:quartz-community/graph",
-      "resolved": "https://github.com/quartz-community/graph.git",
-      "commit": "701bda442cf08f521e88ec326b12a7559320eef4"
     },
     "article-title": {
       "source": "github:quartz-community/article-title",
@@ -100,11 +70,6 @@
       "source": "github:quartz-community/darkmode",
       "resolved": "https://github.com/quartz-community/darkmode.git",
       "commit": "672ad8da9899dadb5ec0e237864279541cde9d58"
-    },
-    "footer": {
-      "source": "github:quartz-community/footer",
-      "resolved": "https://github.com/quartz-community/footer.git",
-      "commit": "f0fe3d6ca24624d955a4f4e62e5aafabe053f29e"
     }
   }
 }

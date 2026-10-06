@@ -96,7 +96,7 @@ const server = createServer(async (request, response) => {
         const classes = node.attrs?.find(attr => attr.name === 'class')?.value.split(' ') || [];
         const tagPage = slug === 'tags' || slug.startsWith('tags/');
         if (tagPage && classes.includes('page-header')) node.childNodes = [];
-        if (classes.includes('knowledge-mobile-bar') || classes.includes('knowledge-mobile-dialog')) {
+        if (classes.includes('knowledge-mobile-bar') || classes.includes('knowledge-mobile-capsule') || classes.includes('knowledge-mobile-dialog')) {
           node.parentNode.childNodes.splice(node.parentNode.childNodes.indexOf(node), 1);
           return;
         }
@@ -152,162 +152,39 @@ try {
     await page.locator('.explorer-ul .folder-container').first().waitFor({ state: 'attached' });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}: page overflow`);
     if (width <= 800) {
-      const bar = page.locator('.knowledge-mobile-bar');
-      const menu = page.locator('[data-knowledge-open="navigation"]');
-      const search = page.locator('[data-knowledge-open="search"]');
-      const navigation = page.locator('#knowledge-mobile-navigation');
-      const searchDialog = page.locator('#knowledge-mobile-search');
-      const directoryButton = page.locator('[data-knowledge-view="directory"]');
-      const tagsButton = page.locator('[data-knowledge-view="tags"]');
-      const chrome = await page.locator('.sidebar.left').boundingBox();
-      assert.ok(chrome.height <= 64, width + ': mobile chrome must be one toolbar, got ' + chrome.height + 'px');
-      assert.equal(await directoryButton.isVisible(), false, 'navigation is not in the reading flow');
-      const firstCard = await page.locator('.knowledge-page-card').first().boundingBox();
-      assert.ok(firstCard.y <= 128, width + ': articles must start directly below the toolbar');
-      console.log(width + 'px toolbar: ' + chrome.height + 'px; first article: ' + Math.round(firstCard.y) + 'px');
-      for (const button of [menu, search]) assert.ok((await button.boundingBox()).height >= 44);
+      // Detailed mobile behavior is covered by quartz-reader.browser.mjs without an export.
+      const menu = page.locator('.knowledge-mobile-capsule');
+      const panel = page.locator('#knowledge-mobile-panel');
+      assert.equal((await page.locator('.sidebar.left').boundingBox()).height, 0, 'capsule reserves no header row');
+      assert.ok((await menu.boundingBox()).height >= 44);
       if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-home.png') });
       await menu.click();
-      assert.equal(await navigation.evaluate(dialog => dialog.matches(':modal')), true);
-      assert.equal(await menu.getAttribute('aria-expanded'), 'true');
-      assert.equal((await page.locator('.knowledge-page-card').first().boundingBox()).y, firstCard.y, 'drawer never pushes content');
-      await directoryButton.click();
-      assert.equal(await page.locator('.mobile-explorer').isVisible(), false, 'the drawer has no redundant menu button');
-      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-navigation').getAnimations().length === 0);
-      const arrow = page.locator('.explorer .knowledge-tree-toggle svg').first();
-      assert.equal(await arrow.getAttribute('viewBox'), '0 0 24 24', 'directory arrows use the same uncropped outline geometry as tags');
-      assert.deepEqual(await arrow.evaluate(el => {
-        const style = getComputedStyle(el);
-        return [style.width, style.height, style.padding];
-      }), ['16px', '16px', '0px'], 'small visible arrows keep their separate 44px touch targets');
-      assert.ok((await page.locator('.explorer .knowledge-tree-toggle').first().boundingBox()).height >= 44);
-      assert.equal(await page.locator('.knowledge-mobile-home').evaluate(el => getComputedStyle(el).fontWeight), '500');
-      assert.equal(await page.locator('.darkmode svg:visible').count(), 1, 'only the current appearance icon is visible');
-      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-directory.png') });
-      await page.mouse.click(width - 4, 100);
-      await navigation.waitFor({ state: 'hidden' });
-      assert.equal(await navigation.isVisible(), false, 'backdrop dismisses the drawer');
-      await menu.click();
-      await tagsButton.click();
-      assert.equal(await page.locator('.explorer').isVisible(), false);
-      assert.equal(await page.locator('.knowledge-tags-sidebar').isVisible(), true);
-      for (let i = 0; i < 20; i++) {
-        await page.keyboard.press('Tab');
-        assert.equal(await page.evaluate(() => document.activeElement === document.body || !!document.activeElement?.closest('dialog[open]')), true, 'background controls cannot receive focus while modal');
-      }
+      assert.equal(await panel.evaluate(dialog => dialog.matches(':modal')), true);
+      assert.equal(await panel.locator('[data-knowledge-pane="directory"]').getAttribute('aria-selected'), 'true');
+      assert.ok((await panel.boundingBox()).height < 844 - 40, 'floating panel leaves the page visible');
+      await panel.locator('[data-knowledge-view="tags"]').click();
+      assert.equal(await panel.locator('.knowledge-tags-sidebar').isVisible(), true);
       await page.keyboard.press('Escape');
-      await page.waitForFunction(() => !document.querySelector('#knowledge-mobile-navigation').open);
-      assert.equal(await menu.evaluate(button => button === document.activeElement), true, 'close returns focus to its trigger');
-      await menu.click();
-      await directoryButton.click();
-      await page.locator('.explorer .folder-container a').first().click();
-      await page.waitForURL(current => current.pathname !== '/wiki/');
-      assert.equal(await navigation.isVisible(), false, 'folder navigation closes the drawer');
-      assert.ok((await page.locator('.sidebar.left').boundingBox()).height <= 64);
-      await menu.click();
-      await tagsButton.click();
-      await page.locator('.knowledge-tag-row:has(.knowledge-tree-toggle) .knowledge-tag-link').first().click();
-      await page.waitForURL(current => current.pathname.includes('/tags/'));
-      assert.equal(await navigation.isVisible(), false, 'tag navigation closes the drawer');
-      await bar.locator('a').click();
-      await page.waitForURL(url);
+      assert.equal(await menu.evaluate(button => button === document.activeElement), true);
       await page.locator('.knowledge-page-card-link').first().click();
       await page.locator('.article-title').waitFor();
-      const repeatedTitle = await page.locator('.center article > h1:first-child').getAttribute('data-knowledge-repeated-title');
-      assert.equal(
-        await page.locator('.center article > h1:first-child').isVisible(),
-        repeatedTitle !== 'true',
-        'only repeated article titles are hidden',
-      );
-      assert.equal(await page.locator('.page-header .tags').count(), 0, 'article tags move out of the reading header');
-      if (repeatedTitle === 'true') {
-        assert.ok((await page.locator('.center article').boundingBox()).y < 180, 'article body starts near the toolbar');
-      }
-      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-article.png') });
+      assert.equal(await page.locator('.page-header .tags').count(), 0);
       await page.evaluate(() => window.scrollTo(0, 600));
-      assert.equal((await bar.boundingBox()).y, 0, 'toolbar stays available while reading');
       const readingScroll = await page.evaluate(() => window.scrollY);
       await menu.click();
-      assert.equal(await page.locator('.knowledge-mobile-article-tags').isVisible(), true);
-      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-tags.png') });
-      await navigation.locator('[data-knowledge-close]').click();
-      await navigation.waitFor({ state: 'hidden' });
-      assert.equal(await page.evaluate(() => window.scrollY), readingScroll, 'dismissal preserves the reading position');
+      await panel.locator('[data-knowledge-close]').click();
+      assert.equal(await page.evaluate(() => window.scrollY), readingScroll);
       await menu.click();
-      await page.locator('.darkmode').click();
-      assert.equal(await page.locator('html').getAttribute('saved-theme'), 'dark');
-      await navigation.locator('[data-knowledge-close]').click();
-      await navigation.waitFor({ state: 'hidden' });
-      await page.evaluate(() => window.scrollTo(0, 0));
-      await page.waitForFunction(() => getComputedStyle(document.querySelector('.knowledge-mobile-title')).color === 'rgb(238, 238, 239)');
-      if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-dark.png') });
-      await search.click();
-      assert.equal(await searchDialog.evaluate(dialog => dialog.matches(':modal')), true);
-      const input = page.locator('.search-bar');
-      assert.equal(await input.evaluate(element => element === document.activeElement), true, 'search is ready to type');
-      await input.fill(allFiles.find(file => !file.slug.endsWith('/index'))?.frontmatter.title || 'ACP');
-      await page.locator('.result-card:not(.no-match)').first().waitFor();
-      assert.ok((await page.locator('.result-card > p').first().boundingBox()).height <= 73, 'results show a short excerpt, not a full article');
+      await panel.locator('[data-knowledge-pane="search"]').click();
+      await panel.locator('input').fill(allFiles.find(file => !file.slug.endsWith('/index'))?.frontmatter.title || 'ACP');
+      await panel.locator('.result-card:not(.no-match)').first().waitFor();
       if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-search.png') });
-      assert.ok((await input.boundingBox()).y >= 56);
       await page.keyboard.press('Escape');
-      await page.waitForFunction(() => !document.querySelector('#knowledge-mobile-search').open);
-      assert.equal(await search.evaluate(button => button === document.activeElement), true);
-      await search.click();
-      assert.equal(await input.inputValue(), '', 'closing clears the old query');
-      await input.fill('Codex');
-      await page.locator('.result-card:not(.no-match)').first().click();
-      await page.waitForURL(current => current.pathname.includes('codex'));
-      assert.equal(await searchDialog.isVisible(), false, 'search result navigation closes the search');
-      await page.keyboard.press('Control+k');
-      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-search').open);
-      await searchDialog.locator('[data-knowledge-close]').click();
-      await page.evaluate(sidebar.afterDOMLoaded);
-      await menu.click();
-      await navigation.locator('[data-knowledge-close]').click();
-      await menu.click();
-      assert.equal(await navigation.evaluate(dialog => dialog.open), true);
-      if (width === 390) {
-        await page.waitForFunction(() => document.querySelector('#knowledge-mobile-navigation').getAnimations().length === 0);
-        await page.evaluate(() => document.querySelector('#knowledge-mobile-navigation [data-knowledge-close]').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })));
-        assert.equal(await navigation.evaluate(dialog => dialog.matches(':modal')), true, 'exit keeps the modal and focus boundary until motion finishes');
-        await page.evaluate(() => document.querySelector('[data-knowledge-open="navigation"]').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })));
-        await page.waitForFunction(() => document.querySelector('#knowledge-mobile-navigation').getAnimations().length === 0);
-        assert.equal(await navigation.evaluate(dialog => dialog.open), true, 'reopening cancels a pending exit instead of closing later');
-        await page.keyboard.press('Escape');
-        await navigation.waitFor({ state: 'hidden' });
-        await menu.focus();
-        await page.keyboard.press('Enter');
-        assert.equal(await navigation.evaluate(dialog => dialog.getAnimations().length), 0, 'keyboard opening is immediate');
-        await page.keyboard.press('Escape');
-        await navigation.waitFor({ state: 'hidden' });
-        await page.emulateMedia({ reducedMotion: 'reduce' });
-        await menu.click();
-        assert.equal(await navigation.evaluate(dialog => dialog.getAnimations().length), 0, 'reduced motion removes drawer movement');
-        const themeIcon = page.locator('.knowledge-mobile-settings .darkmode .nightIcon');
-        assert.equal(await themeIcon.evaluate(el => getComputedStyle(el).fill), 'none', 'theme icon is an outline, not a filled silhouette');
-        assert.equal((await themeIcon.boundingBox()).width, 20);
-        assert.equal(await page.locator('[data-knowledge-theme-label]').textContent(), '深色');
-        assert.equal(await page.locator('.darkmode svg:visible').count(), 1);
-        await directoryButton.click();
-        const folderToggle = page.locator('.explorer .knowledge-tree-toggle').first();
-        if (await folderToggle.getAttribute('aria-expanded') !== 'true') await folderToggle.click();
-        if (artifacts) await page.screenshot({ path: path.join(artifacts, 'after-navigation-dark.png') });
-        await navigation.locator('[data-knowledge-close]').click();
-        await navigation.waitFor({ state: 'hidden' });
-        await page.emulateMedia({ reducedMotion: 'no-preference' });
-        await menu.click();
-      }
       await page.setViewportSize({ width: 1200, height: 844 });
-      await page.waitForFunction(() => !document.querySelector('#knowledge-mobile-navigation').open);
-      assert.equal(await page.locator('.sidebar.left > .knowledge-sidebar-switch').isVisible(), true);
-      assert.equal(await page.locator('.sidebar.left > .flex-component .search').count(), 1);
-      assert.equal(await page.locator('.page-header .tags').count(), 1, 'desktop metadata is restored');
-      assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY), 'hidden');
+      await page.waitForFunction(() => !!document.querySelector('.sidebar.left > .flex-component .search'));
+      assert.equal(await page.locator('.page-header .tags').count(), 1);
       await page.setViewportSize({ width, height: 844 });
-      await page.waitForFunction(() => !!document.querySelector('#knowledge-mobile-search .search'));
-      assert.equal(await page.locator('.knowledge-mobile-bar').count(), 1);
-      assert.equal(await directoryButton.isVisible(), false);
+      await page.waitForFunction(() => !!document.querySelector('#knowledge-mobile-panel .search'));
       await page.evaluate(() => {
         const article = document.querySelector('.center article');
         const heading = document.createElement('h2');

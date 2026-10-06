@@ -36,6 +36,7 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
     'assets/quartz/quartz/wheelmaker/content-index.mjs',
     'assets/quartz/quartz/wheelmaker/pages.mjs',
     'assets/quartz/quartz/wheelmaker/layout.mjs',
+    'assets/quartz/quartz/wheelmaker/mobile.mjs',
     'assets/quartz/quartz/wheelmaker/search.mjs',
     'assets/quartz/quartz/wheelmaker/navigation.mjs',
     'assets/quartz/quartz/wheelmaker/explorer.mjs',

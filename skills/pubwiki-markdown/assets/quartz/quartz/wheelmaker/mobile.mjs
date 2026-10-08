@@ -47,15 +47,14 @@ export const mobileCSS = `
   --motion-emphasized: 280ms;
   --motion-standard: 200ms;
   --motion-exit: 180ms;
-  --knowledge-sidebar-surface: color-mix(in srgb, var(--light) 96%, var(--darkgray));
   position: fixed; inset: auto; top: var(--knowledge-viewport-top, 0px); left: 0;
   box-sizing: border-box;
   width: min(440px, calc(100vw - 3.5rem - env(safe-area-inset-right)));
   height: min(var(--knowledge-viewport-height, 100dvh), 100dvh);
   max-width: none; max-height: none; margin: 0;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
-  border: 0; border-right: 1px solid var(--lightgray); border-radius: 0;
-  background: var(--knowledge-sidebar-surface); color: var(--darkgray);
+  border: 0; border-right: 1px solid var(--knowledge-sidebar-divider, var(--lightgray)); border-radius: 0;
+  background: var(--knowledge-sidebar-surface, var(--light)); color: var(--darkgray);
   box-shadow: 8px 0 28px rgb(0 0 0 / 24%); overflow: hidden;
   font-family: var(--knowledge-ui-font); transform: translateX(0);
 }
@@ -96,7 +95,7 @@ export const mobileCSS = `
   gap: 0.5rem;
   min-height: 3.75rem;
   padding: 0.5rem;
-  border-bottom: 1px solid var(--lightgray);
+  border-bottom: 1px solid var(--knowledge-sidebar-divider, var(--lightgray));
   flex-shrink: 0;
 }
 .knowledge-mobile-home.internal {
@@ -149,7 +148,7 @@ export const mobileCSS = `
   min-width: 0;
   margin: 0;
   padding: 0.5rem 1rem;
-  border-top: 1px solid var(--lightgray);
+  border-top: 1px solid var(--knowledge-sidebar-divider, var(--lightgray));
   opacity: 1;
   flex-shrink: 0;
   font-size: 0.875rem;

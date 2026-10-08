@@ -16,6 +16,8 @@ export const KnowledgeSidebarSwitch = () => {
 .page:has(.knowledge-sidebar-switch) {
   --knowledge-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   --knowledge-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --knowledge-sidebar-surface: var(--light);
+  --knowledge-sidebar-divider: color-mix(in srgb, var(--lightgray) 55%, var(--light));
 }
 .sidebar.left :is(.page-title, .knowledge-mobile-dialog-header, .knowledge-mobile-home, .knowledge-mobile-settings) {
   font-family: var(--knowledge-ui-font);
@@ -98,7 +100,8 @@ export const KnowledgeSidebarSwitch = () => {
     padding: var(--knowledge-desktop-top-inset) 1rem 1.25rem 0;
     gap: 0.875rem;
     height: 100dvh;
-    border-right: 1px solid var(--lightgray);
+    background: var(--knowledge-sidebar-surface);
+    border-right: 1px solid var(--knowledge-sidebar-divider);
   }
   .page:has(.knowledge-sidebar-switch) > #quartz-body .page-header { margin-top: var(--knowledge-desktop-top-inset); }
   .page > #quartz-body .center { min-width: 0; width: 100%; }

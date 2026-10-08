@@ -25,7 +25,8 @@ function renderFolders(nodes, slug) {
   return nodes.map(node => h("li", { key: node.path }, [
     h("div", { class: "folder-container", "data-folderpath": node.path }, [
       h("svg", { class: "folder-icon", width: 16, height: 16, "aria-hidden": "true" }),
-      h("a", { class: "folder-title internal", href: resolveRelative(slug, `${node.path}/index`) }, node.name),
+      h("a", { class: "folder-title internal", href: resolveRelative(slug, `${node.path}/index`) },
+        h("span", { class: "knowledge-nav-label" }, node.name)),
     ]),
     node.children.length ? h("div", { class: "folder-outer" }, h("ul", null, renderFolders(node.children, slug))) : null,
   ]))

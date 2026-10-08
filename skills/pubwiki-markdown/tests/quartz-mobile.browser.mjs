@@ -175,7 +175,7 @@ try {
       await page.evaluate(() => window.scrollTo(0, 600));
       const readingScroll = await page.evaluate(() => window.scrollY);
       await menu.click();
-      await panel.locator('[data-knowledge-close]').click();
+      await page.mouse.click(width - 2, 842);
       await panel.waitFor({ state: 'hidden' });
       assert.equal(await page.evaluate(() => window.scrollY), readingScroll);
       await menu.click();

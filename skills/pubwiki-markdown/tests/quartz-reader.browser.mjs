@@ -45,6 +45,9 @@ const server = createServer((request, response) => {
   response.end(`<!doctype html><html saved-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>
     :root { --light: #fff; --dark: #222; --darkgray: #444; --gray: #888; --lightgray: #ddd; --secondary: #405a72; --highlight: #eef; --bodyFont: sans-serif; --headerFont: sans-serif; }
     :root[saved-theme="dark"] { --light: #171719; --dark: #eee; --darkgray: #ccc; --gray: #999; --lightgray: #38383a; --highlight: #30303b; --secondary: #b4c9df; }
+    /* Quartz base link styles must not leak into sidebar navigation. */
+    a { font-weight: 600; text-decoration: none; color: var(--secondary); }
+    a.internal { background-color: var(--highlight); padding: 0 0.1rem; border-radius: 5px; line-height: 1.4rem; }
     * { box-sizing: border-box; } body { margin: 0; font-family: sans-serif; color: var(--dark); background: var(--light); } #quartz-body { display: grid; grid-template-columns: 260px 1fr 220px; gap: 5px; } .sidebar.left { grid-area: grid-sidebar-left; } .sidebar.right { grid-area: grid-sidebar-right; } .center article { grid-area: grid-center; } .page-header { grid-area: grid-header; } footer { grid-area: grid-footer; }
     ${sidebar.css}\n${toc.css}\n${footer.css}\n${content.css}
     </style><script>${sidebar.beforeDOMLoaded}</script></head><body><div class="page"><div id="quartz-body">
@@ -71,6 +74,39 @@ async function check(name, viewport, run) {
   finally { await page.close(); }
 }
 try {
+  for (const width of [390, 1440]) for (const theme of ['light', 'dark']) {
+    await check(`directory layout at ${width}px in ${theme} theme`, { width, height: 844 }, async page => {
+      await page.goto(base + 'guide/part2/note');
+      await page.evaluate(theme => document.documentElement.setAttribute('saved-theme', theme), theme);
+      if (width <= 800) {
+        await page.locator('.knowledge-mobile-capsule').click();
+        await page.locator('[data-knowledge-pane="directory"]').click();
+        await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
+      }
+      const row = page.locator('[data-folderpath="guide/part2"]');
+      const link = row.locator('a');
+      const count = row.locator('.knowledge-tag-count');
+      if (values.artifacts) await page.screenshot({ path: path.join(values.artifacts, `directory-${width}-${theme}.png`) });
+      assert.equal(await link.evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)', 'directory names have no article-link chip');
+      const rowBounds = await row.boundingBox();
+      const linkBounds = await link.boundingBox();
+      const countBounds = await count.boundingBox();
+      assert.ok(Math.abs(linkBounds.x + linkBounds.width - rowBounds.x - rowBounds.width) < 1, 'link fills the row');
+      assert.ok(Math.abs(rowBounds.x + rowBounds.width - countBounds.x - countBounds.width - 8) < 1, 'count aligns to the right inset');
+      assert.ok(linkBounds.height >= (width <= 800 ? 44 : 36), 'whole row remains a usable navigation target');
+      assert.equal(await link.getAttribute('aria-current'), 'location');
+      assert.notEqual(await row.evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)', 'active directory highlights the row');
+      const label = link.locator('.knowledge-nav-label');
+      await label.evaluate(el => { el.textContent = 'kuaishou-ue5-engine-tools-with-a-very-long-directory-name'; });
+      assert.equal(await label.evaluate(el => getComputedStyle(el).textOverflow), 'ellipsis');
+      assert.ok(await label.evaluate(el => el.scrollWidth > el.clientWidth), 'long names truncate inside the label');
+      const longCountBounds = await count.boundingBox();
+      const labelBounds = await label.boundingBox();
+      assert.ok(labelBounds.x + labelBounds.width + 7 <= longCountBounds.x, 'long name never overlaps the count');
+      assert.ok(Math.abs(longCountBounds.x - countBounds.x) < 1, 'count stays aligned when the name grows');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    });
+  }
   await check('desktop directory expansion, persistence, mounted links and active ancestors', { width: 1440, height: 900 }, async page => {
     const guide = page.locator('[data-folderpath="guide"]');
     const toggle = guide.locator('button');
@@ -115,6 +151,7 @@ try {
     assert.equal(await page.locator('.knowledge-mobile-capsule').count(), 1, 'mobile uses a single capsule');
     assert.equal((await page.locator('.knowledge-mobile-capsule').textContent()).trim(), '', 'entry is icon-only');
     assert.equal(await page.locator('.knowledge-mobile-bar').count(), 0, 'no persistent title bar');
+    assert.equal(await page.locator('[data-knowledge-close]').count(), 0, 'header contains only the four navigation tabs');
     await page.locator('.knowledge-mobile-capsule').click();
     const dialog = page.locator('#knowledge-mobile-panel');
     assert.equal(await dialog.evaluate(el => el.open), true);
@@ -161,7 +198,7 @@ try {
       await page.evaluate(() => window.scrollTo(0, 400));
       const readingPosition = await page.evaluate(() => window.scrollY);
       assert.ok((await capsule.boundingBox()).y < 20, 'capsule stays fixed when reading');
-      for (const dismiss of ['Escape', 'button', 'backdrop']) {
+      for (const dismiss of ['Escape', 'backdrop']) {
         await capsule.click();
         assert.equal(await panel.locator('[data-knowledge-pane="toc"]').getAttribute('aria-selected'), 'true');
         assert.equal(await page.evaluate(() => getComputedStyle(document.body).position), 'fixed');
@@ -170,7 +207,6 @@ try {
           assert.equal(await page.evaluate(() => document.activeElement === document.body || !!document.activeElement.closest('dialog[open]')), true);
         }
         if (dismiss === 'Escape') await page.keyboard.press('Escape');
-        else if (dismiss === 'button') await panel.locator('[data-knowledge-close]').click();
         else await page.mouse.click(width - 2, height - 2);
         await panel.waitFor({ state: 'hidden' });
         assert.equal(await page.evaluate(() => window.scrollY), readingPosition, `${dismiss} preserves scroll`);
@@ -201,7 +237,7 @@ try {
     // Pause native animations to exercise interruption at a deterministic visible position.
     const state = await page.evaluate(() => {
       const panel = document.querySelector('#knowledge-mobile-panel');
-      const click = selector => document.querySelector(selector).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      const click = selector => document.querySelector(selector).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1, clientX: innerWidth - 1, clientY: innerHeight - 1 }));
       const pause = progress => {
         const animation = panel.getAnimations().find(item => item.effect.getKeyframes().some(frame => frame.transform));
         animation.pause();
@@ -212,7 +248,7 @@ try {
       const entering = pause(0.2);
       const entryX = panel.getBoundingClientRect().x;
       const visible = getComputedStyle(panel).transform;
-      click('[data-knowledge-close]');
+      click('#knowledge-mobile-panel');
       const exiting = pause(0.25);
       const exitStart = exiting.effect.getKeyframes()[0].transform;
       const exitVisible = getComputedStyle(panel).transform;
@@ -239,7 +275,7 @@ try {
     for (const action of ['escape', 'breakpoint', 'prenav']) {
       const readingPosition = await page.evaluate(() => -parseFloat(document.body.style.top));
       await page.evaluate(() => {
-        document.querySelector('[data-knowledge-close]').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+        document.querySelector('#knowledge-mobile-panel').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1, clientX: innerWidth - 1, clientY: innerHeight - 1 }));
         document.querySelector('#knowledge-mobile-panel').getAnimations().forEach(animation => animation.pause());
       });
       if (action === 'escape') await page.keyboard.press('Escape');
@@ -261,7 +297,7 @@ try {
         const panel = document.querySelector('#knowledge-mobile-panel');
         panel.style.setProperty('--motion-emphasized', enter);
         panel.style.setProperty('--motion-exit', exit);
-        const click = selector => document.querySelector(selector).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+        const click = selector => document.querySelector(selector).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1, clientX: innerWidth - 1, clientY: innerHeight - 1 }));
         const duration = () => {
           const animation = panel.getAnimations().find(item => item.effect.getKeyframes().some(frame => frame.transform));
           animation.pause();
@@ -269,7 +305,7 @@ try {
         };
         click('.knowledge-mobile-capsule');
         const opening = duration();
-        click('[data-knowledge-close]');
+        click('#knowledge-mobile-panel');
         return { opening, closing: duration() };
       }, { enter, exit });
       assert.equal(timings.opening, 280, `${enter} retains the intended entry duration`);
@@ -294,8 +330,8 @@ try {
     for (const phase of ['entry', 'exit']) {
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       await page.evaluate(phase => {
-        document.querySelector('.knowledge-mobile-capsule').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
-        if (phase === 'exit') document.querySelector('[data-knowledge-close]').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+        document.querySelector('.knowledge-mobile-capsule').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1, clientX: innerWidth - 1, clientY: innerHeight - 1 }));
+        if (phase === 'exit') document.querySelector('#knowledge-mobile-panel').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1, clientX: innerWidth - 1, clientY: innerHeight - 1 }));
         document.querySelector('#knowledge-mobile-panel').getAnimations().forEach(animation => animation.pause());
       }, phase);
       await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -305,7 +341,7 @@ try {
     }
     await capsule.click();
     assert.equal(await panel.evaluate(el => el.getAnimations().length), 0, 'reduced-motion pointer opening is immediate');
-    await panel.locator('[data-knowledge-close]').click();
+    await page.mouse.click(389, 843);
     assert.equal(await panel.isVisible(), false);
   });
   await check('mobile search feedback, viewport contraction, theme and responsive restoration', { width: 390, height: 844 }, async page => {

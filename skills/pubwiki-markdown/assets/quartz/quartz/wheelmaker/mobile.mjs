@@ -10,7 +10,6 @@ function ChromeIcon({ name }) {
     toc: h("path", { d: "M8 5h13m-8 7h8m-8 7h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3" }),
     search: [h("path", { d: "m21 21-4.34-4.34" }), h("circle", { cx: 11, cy: 11, r: 8 })],
     home: h("path", { d: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }),
-    close: h("path", { d: "M18 6 6 18M6 6l12 12" }),
   }
   return h("svg", {
     viewBox: "0 0 24 24", width: 20, height: 20, fill: "none",
@@ -28,7 +27,6 @@ export function MobileChrome({ fileData = {} }) {
         h("div", { class: "knowledge-mobile-tabs", role: "tablist", "aria-label": "导航功能" },
           [["directory", "目录"], ["tags", "标签"], ["toc", "大纲"], ["search", "搜索"]].map(([name, label]) =>
             h("button", { type: "button", role: "tab", id: `knowledge-pane-${name}`, "data-knowledge-pane": name, "aria-label": label, title: label, "aria-controls": `knowledge-panel-${name}`, "aria-selected": "false", tabindex: -1 }, h(ChromeIcon, { name })))),
-        h("button", { type: "button", class: "knowledge-icon-button", "data-knowledge-close": "", "aria-label": "关闭导航" }, h(ChromeIcon, { name: "close" })),
       ]),
       ...["directory", "tags", "toc", "search"].map(name => h("section", { id: `knowledge-panel-${name}`, role: "tabpanel", "aria-labelledby": `knowledge-pane-${name}`, "data-knowledge-panel": name, hidden: true, tabindex: 0 }, name === "tags" ? [
         h("div", { "data-knowledge-slot": "tags" }),
@@ -65,28 +63,7 @@ export const mobileCSS = `
     box-shadow: 0 2px 8px rgb(0 0 0 / 8%); cursor: pointer; touch-action: manipulation;
   }
   .knowledge-mobile-capsule:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
-  .knowledge-icon-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0;
-    border: 0;
-    border-radius: 0.5rem;
-    background: transparent;
-    color: var(--dark);
-    cursor: pointer;
-    touch-action: manipulation;
-    flex-shrink: 0;
-  }
-  .knowledge-icon-button:active,
   .knowledge-mobile-settings .darkmode:active { background: var(--highlight); }
-  .knowledge-icon-button svg { width: 20px; height: 20px; flex-shrink: 0; }
-  .knowledge-icon-button:focus-visible {
-    outline: 2px solid var(--secondary);
-    outline-offset: 2px;
-  }
   .knowledge-mobile-dialog {
     --motion-emphasized: 280ms;
     --motion-standard: 200ms;
@@ -123,7 +100,7 @@ export const mobileCSS = `
   .knowledge-mobile-tabs button:not(:disabled):active { background: var(--highlight); }
   @media (hover: hover) and (pointer: fine) {
     .knowledge-mobile-tabs button:not(:disabled):hover,
-    .knowledge-mobile-dialog :is(.knowledge-icon-button, .knowledge-mobile-home, .toc-content a):hover { background: var(--highlight); }
+    .knowledge-mobile-dialog :is(.knowledge-mobile-home, .toc-content a):hover { background: var(--highlight); }
   }
   [data-knowledge-panel] { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.5rem; scrollbar-width: thin; }
   [data-knowledge-panel][hidden] { display: none; }
@@ -175,8 +152,7 @@ export const mobileCSS = `
     transition: none;
   }
   .knowledge-mobile-dialog .explorer-ul { overflow: visible; max-height: none; }
-  .knowledge-mobile-dialog .folder-container > div { min-width: 0; flex: 1; }
-  .knowledge-mobile-dialog .folder-container div > a {
+  .knowledge-mobile-dialog .folder-container > a {
     display: flex;
     align-items: center;
     min-height: 2.75rem;
@@ -447,7 +423,6 @@ function installMobile() {
     if (!dialog.open) return
     const tab = target.closest?.("[data-knowledge-pane]")
     if (tab && !tab.disabled) { open(tab.dataset.knowledgePane, event.detail > 0); return }
-    if (target.closest?.("[data-knowledge-close]")) { close(true, true, event.detail > 0); return }
     if (target === dialog) {
       const rect = dialog.getBoundingClientRect()
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close(true, true, event.detail > 0)

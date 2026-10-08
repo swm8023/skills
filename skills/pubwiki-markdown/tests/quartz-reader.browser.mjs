@@ -9,7 +9,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
 const { values } = parseArgs({ options: Object.fromEntries(
-  ['runtime', 'playwright', 'browser', 'artifacts', 'base-css'].map(name => [name, { type: 'string' }]),
+  ['runtime', 'playwright', 'browser', 'artifacts', 'base-css', 'check'].map(name => [name, { type: 'string' }]),
 ) });
 for (const name of ['runtime', 'playwright']) assert.ok(values[name], `--${name} is required`);
 const runtimeURL = pathToFileURL(path.join(path.resolve(values.runtime), 'package.json')).href;
@@ -40,7 +40,13 @@ const server = createServer((request, response) => {
   }
   const slug = url.pathname.replace(/^\/mount\/wiki\//, '').replace(/\/$/, '/index') || 'index';
   const isList = slug === 'index' || slug.endsWith('/index') || slug.startsWith('tags/');
-  const fileData = { slug, toc: !isList && slug !== 'reference/one' ? [{ depth: 0, text: '第一节', slug: '第一节' }, { depth: 1, text: '第二节', slug: '第二节' }] : [] };
+  const progress = slug === 'guide/progress/note';
+  const fileData = { slug, toc: progress
+    ? Array.from({ length: 5 }, (_, i) => ({ depth: i % 2, text: `第 ${i + 1} 节`, slug: `progress-${i}` }))
+    : !isList && slug !== 'reference/one' ? [{ depth: 0, text: '第一节', slug: '第一节' }, { depth: 1, text: '第二节', slug: '第二节' }] : [] };
+  const article = progress
+    ? '<article>' + fileData.toc.map(entry => `<h2 id="${entry.slug}">${entry.text}</h2><p class="progress-gap" style="height: 1200px">正文</p>`).join('') + '</article>'
+    : '<article><h1 id="第一节">第一节</h1><p style="height: 100vh">正文</p><h2 id="第二节">第二节</h2><p style="height: 100vh">后续正文</p></article>';
   const props = { cfg, fileData, allFiles };
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
   response.end(`<!doctype html><html saved-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>
@@ -54,7 +60,7 @@ const server = createServer((request, response) => {
     ${sidebar.css}\n${toc.css}\n${footer.css}\n${content.css}
     </style><script>${sidebar.beforeDOMLoaded}</script></head><body><div class="page"><div id="quartz-body">
     <aside class="sidebar left">${render(h(sidebar, props))}<button class="darkmode" aria-label="切换主题"><svg class="dayIcon"></svg><svg class="nightIcon"></svg></button></aside>
-    <main class="center"><div class="page-header"><div class="popover-hint">${isList ? '' : '<h1 class="article-title">阅读示例</h1><ul class="tags"><li><a href="./tags/topic">topic</a></li></ul>'}</div></div>${isList ? render(h(content, props)) : '<article><h1 id="第一节">第一节</h1><p style="height: 100vh">正文</p><h2 id="第二节">第二节</h2><p style="height: 100vh">后续正文</p></article>'}</main>
+    <main class="center"><div class="page-header"><div class="popover-hint">${isList ? '' : '<h1 class="article-title">阅读示例</h1><ul class="tags"><li><a href="./tags/topic">topic</a></li></ul>'}</div></div>${isList ? render(h(content, props)) : article}</main>
     <aside class="sidebar right">${render(h(toc, props))}</aside>${render(h(footer, props))}
     </div></div><script>document.querySelector('.darkmode').onclick = () => document.documentElement.setAttribute('saved-theme', document.documentElement.getAttribute('saved-theme') === 'dark' ? 'light' : 'dark');\n${sidebar.afterDOMLoaded};\n${toc.afterDOMLoaded}</script></body></html>`);
 });
@@ -63,6 +69,7 @@ const base = `http://127.0.0.1:${server.address().port}/mount/wiki/`;
 const browser = await chromium.launch({ headless: true, ...(values.browser ? { executablePath: values.browser } : {}) });
 const failures = [];
 async function check(name, viewport, run) {
+  if (values.check && !name.includes(values.check)) return;
   const page = await browser.newPage({ viewport });
   page.setDefaultTimeout(5000);
   const errors = [];
@@ -76,6 +83,86 @@ async function check(name, viewport, run) {
   finally { await page.close(); }
 }
 try {
+  for (const width of [390, 1440]) await check(`TOC progress at ${width}px stays contiguous across jumps and layout changes`, { width, height: 844 }, async page => {
+    await page.goto(base + 'guide/progress/note');
+    // Disable browser anchoring so content growth really changes the reading
+    // position instead of being compensated by an automatic scroll adjustment.
+    await page.evaluate(() => { document.documentElement.style.overflowAnchor = 'none'; });
+    const highlighted = () => page.locator('.toc a').evaluateAll(links => links.map(link => link.classList.contains('in-view')));
+    const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const jump = index => page.evaluate(index => window.scrollTo({ top: document.getElementById(`progress-${index}`).getBoundingClientRect().top + scrollY - 79, behavior: 'instant' }), index);
+    await settle();
+    await jump(2);
+    await settle();
+    assert.deepEqual(await highlighted(), [true, true, true, false, false], 'skipped headings are included, later headings are excluded');
+    assert.equal(await page.locator('.toc a[aria-current="location"]').getAttribute('data-for'), 'progress-2');
+    await jump(4);
+    await settle();
+    assert.deepEqual(await highlighted(), [true, true, true, true, true]);
+    await jump(1);
+    await settle();
+    assert.deepEqual(await highlighted(), [true, true, false, false, false], 'jumping upward clears future progress');
+    await page.evaluate(() => window.scrollBy({ top: 400, behavior: 'instant' }));
+    await settle();
+    assert.deepEqual(await highlighted(), [true, true, false, false, false], 'a long section stays current after its title leaves view');
+    if (width <= 800) {
+      await page.locator('.knowledge-mobile-capsule').click();
+      await settle();
+      assert.deepEqual(await highlighted(), [true, true, false, false, false], 'locking the article for the drawer preserves progress');
+      await page.setViewportSize({ width, height: 700 });
+      await settle();
+      assert.deepEqual(await highlighted(), [true, true, false, false, false]);
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({ width, height: 844 });
+    } else await page.locator('[data-knowledge-pane="toc"]').click();
+    if (width <= 800) await page.locator('.knowledge-mobile-capsule').click();
+    await page.locator('.toc a').nth(3).click();
+    await page.waitForFunction(() => document.querySelector('.toc a[aria-current="location"]')?.dataset.for === 'progress-3');
+    assert.deepEqual(await highlighted(), [true, true, true, true, false], 'fragment navigation updates the complete prefix');
+    await jump(2);
+    await settle();
+    assert.deepEqual(await highlighted(), [true, true, true, false, false]);
+    await page.locator('.progress-gap').first().evaluate(el => { el.style.height = '2000px'; });
+    await page.waitForFunction(() => document.querySelector('.toc a[aria-current="location"]')?.dataset.for === 'progress-1');
+    assert.deepEqual(await highlighted(), [true, true, false, false, false], 'content growth updates progress without another scroll');
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await settle();
+    assert.deepEqual(await highlighted(), [true, false, false, false, false]);
+    await page.locator('.progress-gap').last().evaluate(el => { el.style.height = '0px'; });
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+    await settle();
+    assert.deepEqual(await highlighted(), [true, true, true, true, true], 'the final section is current at the end of the page');
+    await page.evaluate(async target => {
+      const html = new DOMParser().parseFromString(await (await fetch(target)).text(), 'text/html');
+      document.dispatchEvent(new Event('prenav'));
+      document.body.replaceWith(html.body);
+      history.pushState({}, '', target);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      document.dispatchEvent(new Event('nav'));
+      document.dispatchEvent(new Event('render'));
+    }, base + 'guide/part2/note');
+    await settle();
+    assert.deepEqual(await highlighted(), [true, false], 'SPA navigation rebuilds heading references');
+  });
+  for (const width of [320, 390, 800]) await check(`mobile article rows at ${width}px fill the page with inset text`, { width, height: 844 }, async page => {
+    for (const slug of ['', 'guide/index', 'tags/topic']) {
+      await page.goto(base + slug);
+      await page.locator('.knowledge-page-card').first().evaluate(el => {
+        for (let i = 0; i < 20; i++) el.parentElement.append(el.cloneNode(true));
+      });
+      const row = page.locator('.knowledge-page-card-link').first();
+      const bounds = await row.boundingBox();
+      const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
+      assert.ok(Math.abs(bounds.x) < 1, 'highlight and divider start at the page edge');
+      assert.ok(Math.abs(bounds.x + bounds.width - pageWidth) < 1, 'highlight and divider reach the opposite edge');
+      assert.ok((await row.locator('h2').boundingBox()).x >= 16, 'text retains its reading inset');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'full-width rows do not overflow');
+      await row.focus();
+      assert.notEqual(await row.evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)', 'focus highlights the entire row');
+      assert.ok(await row.evaluate(el => parseFloat(getComputedStyle(el).outlineOffset) <= 0), 'focus outline stays inside the page edges');
+      if (values.artifacts && !slug) await page.screenshot({ path: path.join(values.artifacts, `full-width-row-${width}.png`) });
+    }
+  });
   await check('shared wide sidebar keeps navigation and search state across viewport changes', { width: 1440, height: 900 }, async page => {
     await page.goto(base + 'guide/part2/note');
     const panel = page.locator('#knowledge-mobile-panel');

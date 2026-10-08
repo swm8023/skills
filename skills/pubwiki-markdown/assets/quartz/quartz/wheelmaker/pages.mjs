@@ -457,16 +457,22 @@ PageContent.css = `
   .knowledge-directory-grid {
     grid-template-columns: 1fr;
     gap: 0;
+    width: auto;
+    margin-inline: calc(-1 * var(--knowledge-page-inset-start, 1rem)) calc(-1 * var(--knowledge-page-inset-end, 1rem));
   }
 
   .knowledge-page-card-link.internal {
     min-height: 0;
     position: relative;
-    padding: 1rem 0;
+    padding: 1rem var(--knowledge-page-inset-end, 1rem) 1rem var(--knowledge-page-inset-start, 1rem);
     border: 0;
     border-bottom: 1px solid var(--lightgray);
     border-radius: 0;
     background: transparent;
+  }
+
+  .knowledge-page-card-link.internal:focus-visible {
+    outline-offset: -2px;
   }
 
   .knowledge-page-card-section {
@@ -496,7 +502,7 @@ PageContent.css = `
   .knowledge-page-card-arrow {
     position: absolute;
     top: 1rem;
-    right: 0;
+    right: var(--knowledge-page-inset-end, 1rem);
     padding: 0;
     font-size: 1rem;
   }

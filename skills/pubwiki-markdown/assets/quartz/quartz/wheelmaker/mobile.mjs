@@ -262,7 +262,12 @@ export const mobileCSS = `
   }
   html:has(.knowledge-mobile-dialog[open]) { overflow: hidden; }
   body { font-family: var(--bodyFont), system-ui, sans-serif; }
-  .page:has(.knowledge-mobile-capsule) > #quartz-body { display: block; padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right)); }
+  .page:has(.knowledge-mobile-capsule) > #quartz-body {
+    --knowledge-page-inset-start: max(1rem, env(safe-area-inset-left));
+    --knowledge-page-inset-end: max(1rem, env(safe-area-inset-right));
+    display: block;
+    padding-inline: var(--knowledge-page-inset-start) var(--knowledge-page-inset-end);
+  }
   .page > #quartz-body .sidebar.left:has(.knowledge-mobile-capsule) {
     display: block; position: static; height: 0; min-height: 0; padding: 0; margin: 0; z-index: auto;
   }

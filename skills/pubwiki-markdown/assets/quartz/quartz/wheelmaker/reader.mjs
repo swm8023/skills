@@ -30,7 +30,7 @@ export const WheelMakerTableOfContents = () => {
 (() => {
   if (window.__wheelmakerTocBound) return
   window.__wheelmakerTocBound = true
-  let observer
+  let entries = [], frame = 0, resizeObserver, bodyObserver
   document.addEventListener("click", event => {
     const button = event.target.closest?.(".toc-header")
     if (!button) return
@@ -40,23 +40,53 @@ export const WheelMakerTableOfContents = () => {
     button.classList.toggle("collapsed", list.hidden)
     button.setAttribute("aria-expanded", String(!list.hidden))
   })
-  const setup = () => {
-    observer?.disconnect()
-    if (!("IntersectionObserver" in window)) return
-    const links = [...document.querySelectorAll(".toc a[data-for]")]
-    observer = new IntersectionObserver(entries => {
-      for (const entry of entries) {
-        const visible = entry.boundingClientRect.y < (entry.rootBounds?.height || window.innerHeight)
-        links.filter(link => link.dataset.for === entry.target.id).forEach(link => link.classList.toggle("in-view", visible))
-      }
-    })
-    for (const link of links) {
-      const heading = document.getElementById(link.dataset.for)
-      if (heading) observer.observe(heading)
+  const update = () => {
+    frame = 0
+    // The mobile drawer fixes the body at its saved reading position.
+    if (!entries.length || document.body.style.position === "fixed") return
+    const atBottom = window.scrollY > 0
+      && window.scrollY + window.innerHeight >= document.scrollingElement.scrollHeight - 1
+    // Find the last heading above the reading line, including long sections
+    // whose titles have left the viewport and headings skipped by a scroll jump.
+    let low = 0, high = entries.length
+    while (low < high) {
+      const middle = (low + high) >>> 1
+      if (entries[middle].heading.getBoundingClientRect().top <= 80) low = middle + 1
+      else high = middle
     }
+    const current = atBottom ? entries.length - 1 : Math.max(0, low - 1)
+    entries.forEach(({ link }, index) => {
+      link.classList.toggle("in-view", index <= current)
+      if (index === current) link.setAttribute("aria-current", "location")
+      else link.removeAttribute("aria-current")
+    })
   }
+  const schedule = () => {
+    if (!frame) frame = requestAnimationFrame(update)
+  }
+  const setup = () => {
+    resizeObserver?.disconnect()
+    bodyObserver?.disconnect()
+    entries = [...document.querySelectorAll(".toc a[data-for]")]
+      .map(link => ({ link, heading: document.getElementById(link.dataset.for) }))
+      .filter(entry => entry.heading)
+    if ("ResizeObserver" in window) {
+      resizeObserver = new ResizeObserver(schedule)
+      resizeObserver.observe(document.querySelector(".center article") || document.body)
+    }
+    if ("MutationObserver" in window) {
+      bodyObserver = new MutationObserver(schedule)
+      bodyObserver.observe(document.body, { attributes: true, attributeFilter: ["style"] })
+    }
+    schedule()
+  }
+  window.addEventListener("scroll", schedule, { passive: true })
+  window.addEventListener("resize", schedule)
+  window.addEventListener("hashchange", schedule)
+  document.addEventListener("load", schedule, true)
   document.addEventListener("nav", setup)
   document.addEventListener("render", setup)
+  document.fonts?.ready.then(schedule)
   setup()
 })()
 `

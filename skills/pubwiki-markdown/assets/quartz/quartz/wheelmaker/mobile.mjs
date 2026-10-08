@@ -175,8 +175,7 @@ export const mobileCSS = `
     transition: none;
   }
   .knowledge-mobile-dialog .explorer-ul { overflow: visible; max-height: none; }
-  .knowledge-mobile-dialog .folder-container > div { min-width: 0; flex: 1; }
-  .knowledge-mobile-dialog .folder-container div > a {
+  .knowledge-mobile-dialog .folder-container > a {
     display: flex;
     align-items: center;
     min-height: 2.75rem;

@@ -124,7 +124,7 @@ export const KnowledgeTagSidebar = () => {
   min-width: 0;
 }
 .knowledge-tag-link.internal,
-.explorer .folder-container div > a {
+.explorer .folder-container > a {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -142,12 +142,7 @@ export const KnowledgeTagSidebar = () => {
   text-decoration: none;
   flex: 1;
 }
-.explorer .folder-container > div {
-  flex: 1;
-  min-width: 0;
-}
-.knowledge-nav-label,
-.explorer .folder-title {
+.knowledge-nav-label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -158,7 +153,7 @@ export const KnowledgeTagSidebar = () => {
   background: var(--highlight);
 }
 .knowledge-tag-link.internal[aria-current],
-.explorer .folder-container div > a[aria-current] {
+.explorer .folder-container > a[aria-current] {
   color: var(--dark);
   font-weight: 600;
 }
@@ -216,7 +211,7 @@ export const KnowledgeTagSidebar = () => {
 
 @media (max-width: 800px) {
   .knowledge-tag-link.internal,
-  .explorer .folder-container div > a,
+  .explorer .folder-container > a,
   .knowledge-nav-row,
   .explorer .folder-container {
     min-height: 2.75rem;

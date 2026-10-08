@@ -18,6 +18,7 @@ export const KnowledgeSidebarSwitch = () => {
   --knowledge-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --knowledge-sidebar-surface: var(--light);
   --knowledge-sidebar-divider: color-mix(in srgb, var(--lightgray) 55%, var(--light));
+  --knowledge-desktop-page-gutter: 1.5rem;
 }
 .sidebar.left :is(.page-title, .knowledge-mobile-dialog-header, .knowledge-mobile-home, .knowledge-mobile-settings) {
   font-family: var(--knowledge-ui-font);
@@ -87,7 +88,7 @@ export const KnowledgeSidebarSwitch = () => {
   .page:has(.knowledge-sidebar-switch) {
     --knowledge-desktop-top-inset: 1rem;
     max-width: 100rem;
-    padding-inline: 1.5rem;
+    padding-inline: var(--knowledge-desktop-page-gutter);
     box-sizing: border-box;
   }
   .page:has(.knowledge-sidebar-switch) > #quartz-body {

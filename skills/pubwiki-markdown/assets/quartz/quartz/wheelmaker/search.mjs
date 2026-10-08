@@ -1,4 +1,5 @@
 import { h } from "preact"
+import { searchCandidates } from "./search-index.mjs"
 
 const searchIcon = h("svg", {
   role: "img",
@@ -153,7 +154,7 @@ WheelMakerSearch.css = `
 `
 
 // Serialized for Quartz's script resource API; keep browser dependencies local.
-function installSearch() {
+function installSearch(searchCandidates) {
   if (window.__wheelmakerSearchLoaded) return
   window.__wheelmakerSearchLoaded = true
 
@@ -161,6 +162,7 @@ function installSearch() {
   const contextCharacters = 220
   const parser = new DOMParser()
   let searchIndexPromise = null
+  const textCache = new Map()
   const previewCache = new Map()
   const mobile = window.matchMedia("(max-width: 800px)")
   const cleanupFns = []
@@ -262,16 +264,58 @@ function installSearch() {
     }
     return score
   }
-  const findResults = async (term) => {
+  const rank = (records, terms, tagOnly) => Object.entries(records || {})
+    .map(([slug, value]) => ({ slug, data: value, score: scoreDocument(value, terms, tagOnly) }))
+    .filter(item => item.score >= 0)
+    .sort((left, right) => right.score - left.score || left.slug.localeCompare(right.slug))
+  const findResults = async (term, current = () => true) => {
     const data = await loadSearchIndex()
     const tagOnly = term.trim().startsWith("#")
     const query = tagOnly ? term.trim().slice(1) : term.trim()
     const terms = tokenize(query)
     if (!terms.length) return []
-    return Object.entries(data || {})
-      .map(([slug, value]) => ({ slug, data: value, score: scoreDocument(value, terms, tagOnly) }))
-      .filter((item) => item.score >= 0)
-      .sort((left, right) => right.score - left.score || left.slug.localeCompare(right.slug))
+    let records = data
+    if (data?.version === 2) {
+      // An upper bound lets us stop once no remaining document can outrank the
+      // last visible result. Exact text verification and ranking stay unchanged.
+      const candidates = searchCandidates(data, terms, tagOnly).map(record => {
+        const title = String(record.title || "").toLocaleLowerCase()
+        const tags = (record.tags || []).join(" ").toLocaleLowerCase()
+        const upper = terms.reduce((score, term) => score + (title.includes(term) ? 30 : 0)
+          + (tags.includes(term) ? 12 : 0) + (record.text && !tagOnly ? 1 : 0), 0)
+        return { ...record, upper }
+      }).sort((left, right) => right.upper - left.upper || left.slug.localeCompare(right.slug))
+      records = Object.create(null)
+      let next = 0
+      while (next < candidates.length && current()) {
+        const last = rank(records, terms, tagOnly)[resultLimit - 1]
+        const candidate = candidates[next]
+        if (last && (candidate.upper < last.score
+          || (candidate.upper === last.score && candidate.slug.localeCompare(last.slug) >= 0))) break
+        const batch = candidates.slice(next, next + 4)
+        next += batch.length
+        await Promise.all(batch.map(async record => {
+          let content = ""
+          if (record.text) {
+            const url = new URL(record.text, location.origin + (window.__wheelmakerWikiRoot || "/")).href
+            if (!textCache.has(url)) {
+              const pending = fetch(url).then(async response => {
+                if (!response.ok) {
+                  if (response.status === 404) searchIndexPromise = null
+                  throw new Error("Search text request failed: " + response.status)
+                }
+                return response.json()
+              }).catch(error => { textCache.delete(url); throw error })
+              textCache.set(url, pending)
+              while (textCache.size > 8) textCache.delete(textCache.keys().next().value)
+            }
+            content = String((await textCache.get(url))?.content || "")
+          }
+          records[record.slug] = { ...record, content }
+        }))
+      }
+    }
+    return rank(records, terms, tagOnly)
       .slice(0, resultLimit)
       .map((item) => ({ ...item, terms, tagOnly }))
   }
@@ -340,6 +384,7 @@ function installSearch() {
       let items = []
       let returnFocus = button
       let disposed = false
+      let queryTimer
       const invalidatePreview = () => { previewGeneration++; preview?.replaceChildren() }
       const clear = () => {
         invalidatePreview()
@@ -350,6 +395,7 @@ function installSearch() {
         input.removeAttribute("aria-activedescendant")
       }
       const hide = (restoreFocus = true) => {
+        clearTimeout(queryTimer)
         generation++
         container.classList.remove("active")
         input.value = ""
@@ -459,15 +505,11 @@ function installSearch() {
         const term = input.value
         clear()
         const current = () => !disposed && token === generation && input.value === term
+        if (!term.trim() || term.trim() === "#") return
         status("search-loading", messages.loading)
         try {
-          if (!term.trim()) {
-            await loadSearchIndex()
-            if (current()) clear()
-          } else {
-            const matches = await findResults(term)
-            if (current()) renderResults(matches)
-          }
+          const matches = await findResults(term, current)
+          if (current()) renderResults(matches)
         } catch {
           if (current()) status("search-error", messages.error)
         }
@@ -485,8 +527,9 @@ function installSearch() {
       const onButton = (event) => { event.preventDefault(); show() }
       const onFocus = () => { if (!items.length) void updateResults() }
       const onInput = () => {
-        if (input.value.trim()) void updateResults()
-        else { generation++; clear() }
+        clearTimeout(queryTimer)
+        generation++; clear()
+        if (input.value.trim()) queryTimer = setTimeout(() => { if (!disposed) void updateResults() }, 150)
       }
       const onKeydown = (event) => {
         if (event.isComposing) return
@@ -517,6 +560,7 @@ function installSearch() {
       document.addEventListener("keydown", onShortcut)
       mobile.addEventListener("change", onViewport)
       addCleanup(() => {
+        clearTimeout(queryTimer)
         disposed = true
         hide(false)
         button.removeEventListener("click", onButton)
@@ -537,4 +581,4 @@ function installSearch() {
   setupSearch()
 }
 
-WheelMakerSearch.afterDOMLoaded = `(${installSearch.toString()})()`
+WheelMakerSearch.afterDOMLoaded = `(${installSearch.toString()})(${searchCandidates.toString()})`

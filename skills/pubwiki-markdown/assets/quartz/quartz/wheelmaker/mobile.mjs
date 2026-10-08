@@ -374,6 +374,7 @@ function installMobile() {
     }
   }
   const select = (name, focus = true) => {
+    if (name === "tags") window.__wheelmakerEnsureTags?.()
     activePane = name
     dialog.querySelectorAll("[data-knowledge-panel]").forEach(panel => { panel.hidden = panel.dataset.knowledgePanel !== name })
     dialog.querySelectorAll("[data-knowledge-pane]").forEach(tab => {

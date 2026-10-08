@@ -43,12 +43,11 @@ if (values['desktop-only']) {
     { slug: 'tags/topic', frontmatter: { title: 'Generated tag page', tags: ['topic'] } },
   ];
   const tagDocument = parseFragment(render(h(tags, { allFiles: sampleFiles, fileData: { slug: 'index' } })));
-  const counts = {};
+  let records;
   walk(tagDocument, node => {
-    const href = node.attrs?.find(attr => attr.name === 'href')?.value;
-    if (href) counts[href] = textContent(node).trim();
+    if (node.attrs?.some(attr => attr.name === 'data-knowledge-tags')) records = JSON.parse(textContent(node));
   });
-  assert.equal(counts['./tags/topic'], 'topic2', 'parent tags count distinct articles, not tag assignments');
+  assert.equal(new Map(records).get('topic'), 2, 'parent tags count distinct articles, not tag assignments');
   const pageType = WheelMakerHomePage();
   assert.equal(pageType.match({ slug: 'tags/topic', fileData: {} }), true, 'tag results share the owned page renderer');
   const generated = pageType.generate({ cfg: {}, content: sampleFiles.slice(0, 2).map(data => [null, { data }]) });

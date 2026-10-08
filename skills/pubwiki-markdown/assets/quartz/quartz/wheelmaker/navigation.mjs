@@ -1,5 +1,4 @@
 import { h } from "preact"
-import { resolveRelative } from "@quartz-community/utils"
 
 export function isNote(page) {
   const slug = page?.slug || ""
@@ -64,39 +63,17 @@ export function pagesForTag(allFiles, tag) {
   return allFiles.filter(file => isNote(file) && normalizedTags(file).some(value => value === tag || value.startsWith(`${tag}/`)))
 }
 
-function renderNodes(nodes, slug) {
-  return h(
-    "ul",
-    { class: "knowledge-tag-tree" },
-    sortedNodes(nodes).map((node) =>
-      h("li", { class: "knowledge-tag-item", key: node.path }, [
-        h("div", { class: "knowledge-nav-row knowledge-tag-row", "data-knowledge-tag": node.path }, [
-          node.children.size ? h("button", {
-            type: "button", class: "knowledge-tree-toggle", "data-knowledge-expand": "tag",
-            "aria-expanded": "false", "aria-controls": `knowledge-tag-${encodeURIComponent(node.path)}`,
-            "aria-label": `展开 ${node.name}`,
-          }, h("svg", { viewBox: "0 0 24 24", width: 16, height: 16, fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", focusable: "false" },
-            h("path", { d: "m9 18 6-6-6-6" }))) : h("span", { class: "knowledge-tree-spacer", "aria-hidden": "true" }),
-          h("a", {
-            class: "knowledge-tag-link internal", title: node.path,
-            href: resolveRelative(slug, `tags/${node.path}`),
-          }, [
-            h("span", { class: "knowledge-nav-label" }, node.name),
-            h("span", { class: "knowledge-tag-count", "aria-label": `${node.pages.size} 篇文章` }, String(node.pages.size)),
-          ]),
-        ]),
-        node.children.size ? h("div", { class: "knowledge-tag-children", id: `knowledge-tag-${encodeURIComponent(node.path)}`, hidden: true }, renderNodes(node.children, slug)) : null,
-      ]),
-    ),
-  )
-}
-
 export const KnowledgeTagSidebar = () => {
   const Component = ({ allFiles = [], fileData = {} } = {}) => {
     const tags = buildTagTree(allFiles)
-    const slug = fileData.slug || "index"
+    const records = []
+    const collect = nodes => { for (const node of sortedNodes(nodes)) { records.push([node.path, node.pages.size]); collect(node.children) } }
+    collect(tags)
     return h("div", { class: "knowledge-tags-sidebar", "aria-label": "标签" }, [
-      h("nav", { "aria-label": "标签导航" }, tags.size > 0 ? renderNodes(tags, slug) : h("p", { class: "knowledge-nav-empty" }, "暂无标签")),
+      h("nav", { "aria-label": "标签导航" }),
+      h("script", { type: "application/json", "data-knowledge-tags": "true", dangerouslySetInnerHTML: {
+        __html: JSON.stringify(records).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029"),
+      } }),
     ])
   }
 
@@ -106,6 +83,7 @@ export const KnowledgeTagSidebar = () => {
   margin: 0;
   padding: 0;
 }
+
 
 .knowledge-tag-children {
   margin-left: 0.875rem;
@@ -228,3 +206,67 @@ export const KnowledgeTagSidebar = () => {
 
   return Component
 }
+
+function installLazyTags() {
+  window.__wheelmakerEnsureTags = () => {
+    const panel = document.querySelector(".knowledge-tags-sidebar")
+    if (!panel || panel.dataset.knowledgeMaterialized) return
+    const source = panel.querySelector("[data-knowledge-tags]")
+    if (!source) return // Older emitted pages still contain their complete tree.
+    const records = JSON.parse(source.textContent)
+    const entries = new Map(records.map(([path, count]) => [path, { path, count, children: [] }]))
+    const roots = []
+    for (const node of entries.values()) {
+      const parent = entries.get(node.path.slice(0, node.path.lastIndexOf("/")))
+      ;(node.path.includes("/") && parent ? parent.children : roots).push(node)
+    }
+    const create = (tag, className, text) => {
+      const element = document.createElement(tag)
+      if (className) element.className = className
+      if (text !== undefined) element.textContent = text
+      return element
+    }
+    const render = nodes => {
+      const list = create("ul", "knowledge-tag-tree")
+      for (const node of nodes) {
+        const name = node.path.split("/").at(-1)
+        const item = create("li", "knowledge-tag-item")
+        const row = create("div", "knowledge-nav-row knowledge-tag-row")
+        row.dataset.knowledgeTag = node.path
+        const toggle = create(node.children.length ? "button" : "span", node.children.length ? "knowledge-tree-toggle" : "knowledge-tree-spacer")
+        if (node.children.length) {
+          toggle.type = "button"
+          toggle.dataset.knowledgeExpand = "tag"
+          toggle.setAttribute("aria-expanded", "false")
+          toggle.setAttribute("aria-controls", "knowledge-tag-" + encodeURIComponent(node.path))
+          toggle.setAttribute("aria-label", "展开 " + name)
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+          for (const [key, value] of Object.entries({ viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" })) svg.setAttribute(key, value)
+          const path = document.createElementNS(svg.namespaceURI, "path")
+          path.setAttribute("d", "m9 18 6-6-6-6")
+          svg.append(path); toggle.append(svg)
+        } else toggle.setAttribute("aria-hidden", "true")
+        const link = create("a", "knowledge-tag-link internal")
+        link.title = node.path
+        link.href = (window.__wheelmakerWikiRoot || "/") + "tags/" + node.path.split("/").map(encodeURIComponent).join("/")
+        link.dataset.noPopover = "true"
+        const count = create("span", "knowledge-tag-count", String(node.count))
+        count.setAttribute("aria-label", node.count + " 篇文章")
+        link.append(create("span", "knowledge-nav-label", name), count)
+        row.append(toggle, link); item.append(row)
+        if (node.children.length) {
+          const children = create("div", "knowledge-tag-children")
+          children.id = "knowledge-tag-" + encodeURIComponent(node.path)
+          children.hidden = true
+          children.append(render(node.children)); item.append(children)
+        }
+        list.append(item)
+      }
+      return list
+    }
+    panel.querySelector("nav").append(roots.length ? render(roots) : create("p", "knowledge-nav-empty", "暂无标签"))
+    panel.dataset.knowledgeMaterialized = "true"
+    document.dispatchEvent(new Event("knowledge-tags-ready"))
+  }
+}
+export const lazyTagsScript = `(${installLazyTags.toString()})()`

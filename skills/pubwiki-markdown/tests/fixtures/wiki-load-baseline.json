@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-10-08",
+  "case": "Lesson A published article",
+  "source": "Authenticated Chromium CDP capture; response bodies only exclude host app and transport headers",
+  "cold": { "requests": 8, "encodedBodyBytes": 104223, "transferredBytes": 105920, "htmlBytes": 341673, "htmlEncodedBytes": 44232, "elements": 5000 },
+  "embeddedCold": { "requests": 7, "encodedBodyBytes": 86855 },
+  "warm": { "conditionalRequests": 6, "downloadedBodyBytes": 0 },
+  "searchOpened": { "requests": 1, "encodedBodyBytes": 493475, "decodedBytes": 1384917 },
+  "hoverThenClick": { "articleRequests": 2, "articleBodyDownloads": 1 },
+  "html": { "articleBytes": 256308, "tagPanelBytes": 39625, "tagElements": 595, "headingAnchorCount": 134, "headingSvgBytes": 41138, "tokenSpans": 1310, "tokenStyleBytes": 56330, "distinctTokenStyles": 6 },
+  "timingNote": "Single remote captures are diagnostic only; compare local repeated runs separately."
+}

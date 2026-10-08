@@ -6,6 +6,7 @@ import { registerHooks } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { buildSearchIndex } from '../assets/quartz/quartz/wheelmaker/search-index.mjs';
 
 const { values } = parseArgs({ options: Object.fromEntries(
   ['runtime', 'playwright', 'browser'].map(name => [name, { type: 'string' }]),
@@ -25,6 +26,8 @@ const documents = {
   'search-fixture/a': { title: 'ACP alpha <b>', tags: ['protocol/acp'], content: 'ACP 正文 中文测试 <img onerror=alert(1)>' },
   'search-fixture/b': { title: 'ACP beta', tags: ['protocol/other'], content: 'ACP beta 正文 中文测试' },
 };
+const rankedDocuments = Object.fromEntries(Array.from({ length: 20 }, (_, i) =>
+  ['search-fixture/r' + String(i).padStart(2, '0'), { title: 'Cargo guide', tags: [], content: 'cargo 正文 ' + i }]));
 const article = slug => `<article class="popover-hint" data-fixture="${slug}">
   <h1>ACP ${slug}</h1><p>ACP 正文</p><a class="relative" href="./related">ACP related</a>
   <a class="fragment" href="#section">section</a><img src="../assets/image.png" alt="fixture">
@@ -33,9 +36,14 @@ const article = slug => `<article class="popover-hint" data-fixture="${slug}">
 </article>`;
 const server = createServer((request, response) => {
   const url = new URL(request.url, 'http://localhost');
+  const records = url.pathname.startsWith('/rank/') ? rankedDocuments : documents;
   if (url.pathname.endsWith('/static/searchIndex.json')) {
     response.setHeader('Content-Type', 'application/json');
-    response.end(JSON.stringify(documents));
+    response.end(JSON.stringify(url.pathname.startsWith('/compact/') || url.pathname.startsWith('/rank/') ? buildSearchIndex(records).index : records));
+  } else if (url.pathname.includes('/static/search-text/')) {
+    const data = buildSearchIndex(records).texts[url.pathname.slice(url.pathname.indexOf('static/'))];
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify(data));
   } else if (url.pathname.includes('/search-fixture/')) {
     response.setHeader('Content-Type', 'text/html');
     response.end(article(url.pathname.endsWith('/a') ? 'a' : 'b'));
@@ -65,13 +73,57 @@ async function check(name, run, options = {}) {
     await page.locator('.result-card').first().waitFor();
   };
   try {
-    await page.goto(base + (options.preview === false ? '?preview=false' : ''));
+    await page.goto((options.rank ? base.replace('/mount/', '/rank/') : options.compact ? base.replace('/mount/', '/compact/') : base) + (options.preview === false ? '?preview=false' : ''));
     await run(page, query, requests);
     console.log(`PASS ${name}`);
   } catch (error) { failures.push(name); console.error(`FAIL ${name}: ${error.message}`); }
   finally { await page.close(); }
 }
 try {
+  await check('broad query stops downloading when remaining candidates cannot enter the top eight', async (page, query, requests) => {
+    await page.locator('.search-button').click();
+    await query('cargo');
+    assert.deepEqual(await page.locator('.result-card').evaluateAll(cards => cards.map(card => card.dataset.slug)),
+      Object.keys(rankedDocuments).slice(0, 8));
+    assert.equal(requests.filter(url => url.includes('/search-text/')).length, 8);
+  }, { rank: true, preview: false });
+  await check('typing a query does not fetch text for intermediate prefixes', async (page, query, requests) => {
+    await page.locator('.search-button').click();
+    await page.locator('.search-bar').pressSequentially('acp', { delay: 20 });
+    await page.locator('.result-card').first().waitFor();
+    assert.equal(requests.filter(url => url.endsWith('searchIndex.json')).length, 1);
+    assert.equal(requests.filter(url => url.includes('/search-text/')).length, 2);
+  }, { compact: true, preview: false });
+  await check('preview and navigation HTML share a short lived bounded response cache', async (page, query, requests) => {
+    const data = await page.evaluate(async () => {
+      const results = await Promise.all([fetch('/search-fixture/a'), fetch(new URL('/search-fixture/a', location.origin))]);
+      const text = await Promise.all(results.map(result => result.text()));
+      await fetch('/search-fixture/a', { signal: new AbortController().signal });
+      return text;
+    });
+    assert.equal(data[0], data[1]);
+    assert.equal(requests.filter(url => url.includes('/search-fixture/a')).length, 2);
+  });
+  await check('compact index verifies text, retains CJK/tag matches and caches article text', async (page, query, requests) => {
+    await page.locator('.search-button').click();
+    assert.equal(requests.filter(url => url.endsWith('searchIndex.json')).length, 0);
+    await query('acp');
+    assert.equal(await page.locator('.result-card').count(), 2);
+    const textRequests = requests.filter(url => url.includes('/search-text/')).length;
+    assert.equal(textRequests, 2);
+    await query('中文');
+    assert.equal(await page.locator('.result-card').count(), 2);
+    await query('#protocol/acp');
+    assert.equal(await page.locator('.result-card').count(), 1);
+    assert.equal(requests.filter(url => url.includes('/search-text/')).length, textRequests);
+  }, { compact: true, preview: false });
+  await check('opening an empty search does not download the full-text index', async (page, query, requests) => {
+    await page.locator('.search-button').click();
+    await page.waitForTimeout(100);
+    assert.equal(requests.filter(url => url.endsWith('searchIndex.json')).length, 0);
+    await query('acp');
+    assert.equal(requests.filter(url => url.endsWith('searchIndex.json')).length, 1);
+  });
   await check('lazy loading, safe highlighting, cached reopen and CJK/tag queries', async (page, query, requests) => {
     assert.equal(requests.filter(url => url.endsWith('searchIndex.json')).length, 0);
     await page.locator('.search-button').click();
@@ -186,6 +238,7 @@ try {
         : { contentType: 'application/json', body: JSON.stringify(documents) });
     });
     await page.locator('.search-button').click();
+    await page.locator('.search-bar').fill('acp');
     await page.locator('.search-error').waitFor();
     assert.equal(await page.locator('.no-match').count(), 0);
     if (malformed) await page.locator('.search-error button').click();
@@ -193,7 +246,7 @@ try {
     assert.equal(await page.locator('.result-card:not(.search-error)').count(), 2);
     assert.equal(attempts, 2);
   });
-  await check('shared metadata accepts URL inputs and evicts failed HTTP responses', async page => {
+  await check('mount bridge accepts URL inputs and leaves metadata uncached', async page => {
     let attempts = 0;
     await page.route('**/static/contentIndex.json', route => {
       attempts++;
@@ -209,7 +262,7 @@ try {
       return { status: first.status, retry: await Promise.all(retry.map(response => response.json())) };
     });
     assert.deepEqual(data, { status: 503, retry: [{ ready: true }, { ready: true }] });
-    assert.equal(attempts, 2);
+    assert.equal(attempts, 3);
   });
   for (const options of [{ mobile: true }, { preview: false }]) await check(`no preview download: ${JSON.stringify(options)}`, async (page, query, requests) => {
     await page.locator('.search-button').click(); await query('acp');

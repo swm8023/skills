@@ -1,0 +1,295 @@
+{
+  "version": 1,
+  "recordedAt": "2026-10-08T10:28:50.261Z",
+  "case": "Lesson A published article",
+  "local": {
+    "rustup": {
+      "version": 1,
+      "recordedAt": "2026-10-08T10:28:50.261Z",
+      "query": "rustup",
+      "environment": {
+        "browser": "154.0.4258.62",
+        "runs": 3,
+        "query": "rustup",
+        "compression": "local gzip; external resources retain origin encoding",
+        "viewport": "1440x900",
+        "scope": "exported Wiki only, no host application",
+        "cache": "fingerprinted presentation assets emulate Registry cache policy",
+        "timing": "local medians; do not compare to single remote captures"
+      },
+      "metrics": {
+        "htmlBytes": {
+          "before": 341673,
+          "after": 244342,
+          "changePercent": -28.5
+        },
+        "htmlGzipBytes": {
+          "before": 43575,
+          "after": 40160,
+          "changePercent": -7.8
+        },
+        "coldBodyBytes": {
+          "before": 100985,
+          "after": 75018,
+          "changePercent": -25.7
+        },
+        "coldRequests": {
+          "before": 8,
+          "after": 5,
+          "changePercent": -37.5
+        },
+        "initialElements": {
+          "before": 5000,
+          "after": 4275,
+          "changePercent": -14.5
+        },
+        "initialTagElements": {
+          "before": 594,
+          "after": 2,
+          "changePercent": -99.7
+        },
+        "emptySearchBodyBytes": {
+          "before": 488964,
+          "after": 0,
+          "changePercent": -100
+        },
+        "searchThroughFirstResultBodyBytes": {
+          "before": 488964,
+          "after": 340225,
+          "changePercent": -30.4
+        },
+        "searchThroughFirstResultRequests": {
+          "before": 1,
+          "after": 10,
+          "changePercent": 900
+        },
+        "firstQueryLatencyMs": {
+          "before": 59,
+          "after": 247,
+          "changePercent": 318.6
+        },
+        "warmRequests": {
+          "before": 6,
+          "after": 1,
+          "changePercent": -83.3
+        },
+        "warmBodyBytes": {
+          "before": 4421,
+          "after": 0,
+          "changePercent": -100
+        },
+        "hoverThenClickRequests": {
+          "before": 3,
+          "after": 1,
+          "changePercent": -66.7
+        },
+        "coldDOMContentLoadedMs": {
+          "before": 1729.699999988079,
+          "after": 655.8000000119209,
+          "changePercent": -62.1
+        },
+        "warmDOMContentLoadedMs": {
+          "before": 485.0999999642372,
+          "after": 487.5999999642372,
+          "changePercent": 0.5
+        }
+      },
+      "gates": [
+        {
+          "criterion": "HTML at least 20% smaller",
+          "passed": true
+        },
+        {
+          "criterion": "Cold body at least 15% smaller",
+          "passed": true
+        },
+        {
+          "criterion": "At most 5 cold requests",
+          "passed": true
+        },
+        {
+          "criterion": "Initial DOM at least 10% smaller",
+          "passed": true
+        },
+        {
+          "criterion": "No empty search requests",
+          "passed": true
+        },
+        {
+          "criterion": "No requests to open tags",
+          "passed": true
+        },
+        {
+          "criterion": "One warm validation with no body download",
+          "passed": true
+        },
+        {
+          "criterion": "One request for navigation card hover and click",
+          "passed": true
+        }
+      ],
+      "notes": [
+        "Network bytes exclude transport headers and the host application.",
+        "Warm cache results require the Registry cache change to be deployed.",
+        "Search compares opening plus the first query; candidate text increases request count.",
+        "Timing is diagnostic, has no pass/fail threshold and includes the search debounce."
+      ]
+    },
+    "cargo": {
+      "version": 1,
+      "recordedAt": "2026-10-08T10:28:50.310Z",
+      "query": "cargo",
+      "environment": {
+        "browser": "154.0.4258.62",
+        "runs": 3,
+        "query": "cargo",
+        "compression": "local gzip; external resources retain origin encoding",
+        "viewport": "1440x900",
+        "scope": "exported Wiki only, no host application",
+        "cache": "fingerprinted presentation assets emulate Registry cache policy",
+        "timing": "local medians; do not compare to single remote captures"
+      },
+      "metrics": {
+        "htmlBytes": {
+          "before": 341673,
+          "after": 244342,
+          "changePercent": -28.5
+        },
+        "htmlGzipBytes": {
+          "before": 43575,
+          "after": 40160,
+          "changePercent": -7.8
+        },
+        "coldBodyBytes": {
+          "before": 100985,
+          "after": 75018,
+          "changePercent": -25.7
+        },
+        "coldRequests": {
+          "before": 8,
+          "after": 5,
+          "changePercent": -37.5
+        },
+        "initialElements": {
+          "before": 5000,
+          "after": 4275,
+          "changePercent": -14.5
+        },
+        "initialTagElements": {
+          "before": 594,
+          "after": 2,
+          "changePercent": -99.7
+        },
+        "emptySearchBodyBytes": {
+          "before": 488964,
+          "after": 0,
+          "changePercent": -100
+        },
+        "searchThroughFirstResultBodyBytes": {
+          "before": 488964,
+          "after": 293468,
+          "changePercent": -40
+        },
+        "searchThroughFirstResultRequests": {
+          "before": 1,
+          "after": 8,
+          "changePercent": 700
+        },
+        "firstQueryLatencyMs": {
+          "before": 51,
+          "after": 241,
+          "changePercent": 372.5
+        },
+        "warmRequests": {
+          "before": 6,
+          "after": 1,
+          "changePercent": -83.3
+        },
+        "warmBodyBytes": {
+          "before": 4421,
+          "after": 0,
+          "changePercent": -100
+        },
+        "hoverThenClickRequests": {
+          "before": 3,
+          "after": 1,
+          "changePercent": -66.7
+        },
+        "coldDOMContentLoadedMs": {
+          "before": 1682.5,
+          "after": 635.6999999880791,
+          "changePercent": -62.2
+        },
+        "warmDOMContentLoadedMs": {
+          "before": 485.7000000476837,
+          "after": 485.0999999642372,
+          "changePercent": -0.1
+        }
+      },
+      "gates": [
+        {
+          "criterion": "HTML at least 20% smaller",
+          "passed": true
+        },
+        {
+          "criterion": "Cold body at least 15% smaller",
+          "passed": true
+        },
+        {
+          "criterion": "At most 5 cold requests",
+          "passed": true
+        },
+        {
+          "criterion": "Initial DOM at least 10% smaller",
+          "passed": true
+        },
+        {
+          "criterion": "No empty search requests",
+          "passed": true
+        },
+        {
+          "criterion": "No requests to open tags",
+          "passed": true
+        },
+        {
+          "criterion": "One warm validation with no body download",
+          "passed": true
+        },
+        {
+          "criterion": "One request for navigation card hover and click",
+          "passed": true
+        }
+      ],
+      "notes": [
+        "Network bytes exclude transport headers and the host application.",
+        "Warm cache results require the Registry cache change to be deployed.",
+        "Search compares opening plus the first query; candidate text increases request count.",
+        "Timing is diagnostic, has no pass/fail threshold and includes the search debounce."
+      ]
+    }
+  },
+  "online": {
+    "compression": "zstd; authenticated Chromium CDP capture",
+    "before": {
+      "requests": 8,
+      "bodyBytes": 104223,
+      "htmlBytes": 341673,
+      "elements": 5000,
+      "emptySearchBodyBytes": 493475
+    },
+    "after": {
+      "requests": 5,
+      "bodyBytes": 79088,
+      "htmlBytes": 244342,
+      "elements": 4275,
+      "emptySearchBodyBytes": 0,
+      "firstRustupSearchBodyBytes": 366405,
+      "warmValidations": 5
+    },
+    "registryCacheDeployed": false,
+    "searchResultOrderVerified": [
+      "rustup",
+      "cargo"
+    ]
+  }
+}

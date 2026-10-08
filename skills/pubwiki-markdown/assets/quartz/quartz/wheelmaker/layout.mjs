@@ -1,6 +1,6 @@
 import { Fragment, h } from "preact"
 import { MobileChrome, mobileCSS, mobileScript } from "./mobile.mjs"
-import { KnowledgeTagSidebar, directoryCounts } from "./navigation.mjs"
+import { KnowledgeTagSidebar, directoryCounts, lazyTagsScript } from "./navigation.mjs"
 import { WheelMakerSearch } from "./search.mjs"
 import { WheelMakerExplorer } from "./explorer.mjs"
 
@@ -148,7 +148,6 @@ export const KnowledgeSidebarSwitch = () => {
   const pathname = window.location.pathname
   const markerIndex = pathname.lastIndexOf(marker)
   const wikiRoot = markerIndex >= 0 ? pathname.slice(0, markerIndex + marker.length) : "/"
-  const contentIndexURL = new URL("static/contentIndex.json", window.location.origin + wikiRoot).href
   const searchIndexURL = new URL("static/searchIndex.json", window.location.origin + wikiRoot).href
   const nativeFetch = window.fetch.bind(window)
   const sharedResponses = new Map()
@@ -156,7 +155,6 @@ export const KnowledgeSidebarSwitch = () => {
 
   const rewriteWikiURL = (url) => {
     if (url.origin !== window.location.origin || url.pathname.startsWith(wikiRoot)) return url
-    if (url.pathname === "/static/contentIndex.json") return new URL(contentIndexURL)
     if (url.pathname === "/static/searchIndex.json") return new URL(searchIndexURL)
     const path = url.pathname.slice(1)
     const lastSegment = path.split("/").pop() || ""
@@ -176,6 +174,10 @@ export const KnowledgeSidebarSwitch = () => {
   }
 
   const rewriteNavigation = (root) => {
+    root.querySelectorAll?.(".wm-heading-icon use").forEach(use => {
+      const id = use.getAttribute("href")?.match(/#(wm-icon-[a-f0-9]+)$/)?.[1]
+      if (id) use.setAttribute("href", "#" + id)
+    })
     if (root.matches?.("a[href]")) {
       const rawHref = root.getAttribute("href")
       if (rawHref?.startsWith("/")) {
@@ -193,23 +195,68 @@ export const KnowledgeSidebarSwitch = () => {
     const method = init?.method || input?.method || "GET"
     const requestedURL = new URL(rewritten instanceof Request ? rewritten.url : rewritten, window.location.href)
     const shared = method.toUpperCase() === "GET"
+      && !(input instanceof Request)
       && !init?.signal
-      && !(input instanceof Request && input.signal)
+      && !init?.headers && !init?.credentials
       && init?.cache !== "no-store"
-      && requestedURL.pathname.endsWith("/static/contentIndex.json")
+      && init?.cache !== "reload"
+      && requestedURL.origin === location.origin
+      && requestedURL.pathname.startsWith(wikiRoot)
+      && !requestedURL.pathname.includes("/static/")
+      && !/\\.[a-z0-9]+$/i.test(requestedURL.pathname.replace(/\\.html$/, ""))
     if (!shared) return nativeFetch(rewritten, init)
+    requestedURL.hash = ""
     const key = requestedURL.href
-    let responsePromise = sharedResponses.get(key)
-    if (!responsePromise) {
-      responsePromise = nativeFetch(rewritten, init).then(response => {
-        if (!response.ok) sharedResponses.delete(key)
-        return response
+    let entry = sharedResponses.get(key)
+    if (!entry || entry.expires < Date.now()) {
+      const promise = nativeFetch(rewritten, init).then(async response => {
+        if (!response.ok || !response.headers.get("content-type")?.startsWith("text/html")) {
+          sharedResponses.delete(key)
+          return { response }
+        }
+        const bytes = await response.arrayBuffer()
+        if (bytes.byteLength > 1024 * 1024) sharedResponses.delete(key)
+        return { bytes, status: response.status, statusText: response.statusText, headers: response.headers, url: response.url }
       })
-      sharedResponses.set(key, responsePromise)
-      responsePromise.catch(() => sharedResponses.delete(key))
+      entry = { promise, expires: Date.now() + 5000 }
+      sharedResponses.set(key, entry)
+      while (sharedResponses.size > 3) sharedResponses.delete(sharedResponses.keys().next().value)
+      setTimeout(() => { if (sharedResponses.get(key) === entry) sharedResponses.delete(key) }, 5000)
+      promise.catch(() => sharedResponses.delete(key))
     }
-    return responsePromise.then((response) => response.clone())
+    return entry.promise.then(data => {
+      if (data.response) return data.response.clone()
+      const response = new Response(data.bytes, data)
+      Object.defineProperty(response, "url", { value: data.url })
+      return response
+    })
   }
+  let hoverTimer, hoverLink
+  const clearHover = () => { clearTimeout(hoverTimer); hoverLink = null }
+  document.addEventListener("mouseenter", event => {
+    const link = event.target.closest?.(".center article a.internal")
+    if (!event.isTrusted || !link || link.dataset.noPopover === "true") return
+    event.stopImmediatePropagation()
+    clearHover(); hoverLink = link
+    hoverTimer = setTimeout(() => {
+      if (hoverLink === link && link.isConnected && link.matches(":hover")) link.dispatchEvent(new MouseEvent("mouseenter", { clientX: event.clientX, clientY: event.clientY }))
+    }, 250)
+  }, true)
+  document.addEventListener("mouseleave", event => { if (event.target === hoverLink) clearHover() }, true)
+  document.addEventListener("prenav", clearHover)
+  let buildRevision = null
+  document.addEventListener("nav", () => {
+    const revision = document.querySelector('meta[name="wheelmaker-build"]')?.content
+    if (buildRevision && revision && revision !== buildRevision) { location.reload(); return }
+    buildRevision = revision || buildRevision
+    if (document.querySelector(".katex") && !window.__wheelmakerCopyTexLoaded) {
+      const source = document.querySelector('script[src*="copy-tex.min."]')?.src
+      if (source && !document.querySelector('script[data-wm-copy-tex]')) {
+        const script = document.createElement("script")
+        script.src = source; script.dataset.wmCopyTex = "true"; document.head.append(script)
+      }
+    }
+  })
   rewriteNavigation(document)
   new MutationObserver((records) => {
     records.forEach(({ addedNodes }) => {
@@ -454,13 +501,14 @@ export const KnowledgeSidebarSwitch = () => {
   }
   document.addEventListener("prenav", restore)
   document.addEventListener("nav", reset)
+  document.addEventListener("knowledge-tags-ready", enhanceTags)
   new MutationObserver(updateTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["saved-theme"] })
   reset()
 })()
 `
 
   Component.css += mobileCSS
-  Component.afterDOMLoaded = [mobileScript, Component.afterDOMLoaded].join(";\n")
+  Component.afterDOMLoaded = [lazyTagsScript, mobileScript, Component.afterDOMLoaded].join(";\n")
   return Component
 }
 

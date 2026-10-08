@@ -1,5 +1,6 @@
 import path from "node:path"
 import { mkdir, writeFile } from "node:fs/promises"
+import { buildSearchIndex } from "./search-index.mjs"
 
 function asString(value) {
   return typeof value === "string" ? value : ""
@@ -65,9 +66,11 @@ async function writeJson(ctx, relativePath, value) {
 export function WheelMakerContentIndex() {
   const emitIndexes = async (ctx, content) => {
     const { metadata, search } = buildIndexes(content)
+    const { index, texts } = buildSearchIndex(search)
     return Promise.all([
       writeJson(ctx, "static/contentIndex.json", metadata),
-      writeJson(ctx, "static/searchIndex.json", search),
+      writeJson(ctx, "static/searchIndex.json", index),
+      ...Object.entries(texts).map(([file, data]) => writeJson(ctx, file, data)),
     ])
   }
 

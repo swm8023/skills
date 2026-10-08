@@ -60,7 +60,6 @@ test('WheelMaker sidebar rewrites Quartz root content-index requests to the Wiki
   assert.match(source, /Component\.beforeDOMLoaded/u);
   assert.match(source, /const marker = "\/wiki\/"/u);
   assert.match(source, /lastIndexOf\(marker\)/u);
-  assert.match(source, /contentIndex\.json/u);
   assert.match(source, /searchIndex\.json/u);
   assert.match(source, /window\.fetch/u);
   assert.match(source, /sharedResponses/u);
@@ -125,7 +124,7 @@ test('WheelMaker Wiki theme bridge validates embedded messages and ignores stand
       setAttribute(name, value) { attributes.set(name, value); },
       getAttribute(name) { return attributes.get(name) ?? null; },
     };
-    const document = { documentElement: html };
+    const document = { documentElement: html, addEventListener() {} };
     const window = {
       parent: embedded ? parent : null,
       location: { origin, pathname: '/wiki/' },
@@ -167,5 +166,5 @@ test('WheelMaker bundle composes the sidebar switch and hierarchical tag sidebar
   assert.match(source, /h\(SidebarSwitch, props\)/u);
   assert.match(source, /h\(TagSidebar, props\)/u);
   assert.match(tags, /export const KnowledgeTagSidebar/u);
-  assert.match(tags, /tags\/\$\{node\.path\}/u);
+  assert.match(tags, /data-knowledge-tags/u);
 });

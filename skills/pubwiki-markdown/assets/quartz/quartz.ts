@@ -1,6 +1,7 @@
 import { loadQuartzConfig, loadQuartzLayout } from "./quartz/plugins/loader/config-loader"
 import { PageTypeDispatcher } from "./quartz/plugins/pageTypes/dispatcher"
 import { withWheelMakerReader } from "./quartz/wheelmaker/reader.mjs"
+import { withWheelMakerResources } from "./quartz/wheelmaker/resources.mjs"
 
 const config = await loadQuartzConfig()
 export const layout = withWheelMakerReader(await loadQuartzLayout())
@@ -10,4 +11,4 @@ export const layout = withWheelMakerReader(await loadQuartzLayout())
 config.plugins.emitters = config.plugins.emitters.map((emitter) =>
   emitter.name === "PageTypeDispatcher" ? PageTypeDispatcher(layout) : emitter,
 )
-export default config
+export default withWheelMakerResources(config)

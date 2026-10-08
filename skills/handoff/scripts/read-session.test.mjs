@@ -6,13 +6,13 @@ import { spawnSync } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { gzipSync } from "node:zlib";
 
 const scriptPath = fileURLToPath(new URL("./read-session.mjs", import.meta.url));
 const chunkScriptPath = fileURLToPath(new URL("./read-text-chunk.mjs", import.meta.url));
-const turnsPerFile = 256;
-const headerSize = 8 + turnsPerFile * 8;
+const headerSize = 16;
 
-test("extracts every stored turn across WMT2 files", async (t) => {
+test("extracts every stored turn across gzip and raw WMT3 frames", async (t) => {
   const wheelmakerHome = await makeWheelmakerHome(t);
   const sessionId = "session-257";
   const projectName = "Project/One";
@@ -20,7 +20,7 @@ test("extracts every stored turn across WMT2 files", async (t) => {
     method: index === 0 ? "prompt_request" : "agent_message_chunk",
     param: index === 0
       ? { contentBlocks: [{ type: "text", text: "build the feature" }] }
-      : { text: `message ${index + 1}`, messageComplete: true },
+      : { text: `message ${index + 1} 世界`, messageComplete: true },
   }));
 
   createSessionDatabase(wheelmakerHome, {
@@ -28,7 +28,7 @@ test("extracts every stored turn across WMT2 files", async (t) => {
     projectName,
     latestPersistedTurnIndex: turns.length,
   });
-  await writeTurnFiles(wheelmakerHome, projectName, sessionId, turns);
+  await writeSessionFile(wheelmakerHome, projectName, sessionId, turns);
 
   const outputPath = join(wheelmakerHome, "transcript.md");
   const result = runExtractor([
@@ -49,7 +49,8 @@ test("extracts every stored turn across WMT2 files", async (t) => {
   assert.match(transcript, /### Turn 1 — `prompt_request`/);
   assert.match(transcript, /"text": "build the feature"/);
   assert.match(transcript, /### Turn 257 — `agent_message_chunk`/);
-  assert.match(transcript, /"text": "message 257"/);
+  assert.match(transcript, /"text": "message 257 世界"/);
+  assert.equal((transcript.match(/^### Turn /gm) ?? []).length, 257);
 });
 
 test("writes the transcript to stdout when output is omitted", async (t) => {
@@ -59,7 +60,7 @@ test("writes the transcript to stdout when output is omitted", async (t) => {
     projectName: "Demo",
     latestPersistedTurnIndex: 1,
   });
-  await writeTurnFiles(wheelmakerHome, "Demo", "stdout-session", [
+  await writeSessionFile(wheelmakerHome, "Demo", "stdout-session", [
     { method: "system", param: { text: "context" } },
   ]);
 
@@ -112,14 +113,14 @@ test("reports an unknown session without scanning unrelated project code", async
   assert.match(result.stderr, /Session not found: missing-session/);
 });
 
-test("rejects a corrupt WMT2 header", async (t) => {
+test("rejects a corrupt WMT3 header", async (t) => {
   const wheelmakerHome = await makeWheelmakerHome(t);
   createSessionDatabase(wheelmakerHome, {
     id: "corrupt-session",
     projectName: "Demo",
     latestPersistedTurnIndex: 1,
   });
-  const turnPath = turnFilePath(wheelmakerHome, "Demo", "corrupt-session", 0);
+  const turnPath = sessionFilePath(wheelmakerHome, "Demo", "corrupt-session");
   await mkdir(dirname(turnPath), { recursive: true });
   await writeFile(turnPath, Buffer.alloc(headerSize));
 
@@ -130,8 +131,86 @@ test("rejects a corrupt WMT2 header", async (t) => {
   ]);
 
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /invalid WMT2 magic/);
+  assert.match(result.stderr, /invalid WMT3 magic/);
 });
+
+test("reads only the SQLite persisted prefix even inside a frame", async (t) => {
+  const root = await makeWheelmakerHome(t);
+  createSessionDatabase(root, { id: "prefix", projectName: "Demo", latestPersistedTurnIndex: 1 });
+  await writeSessionFile(root, "Demo", "prefix", [
+    { method: "prompt_done", param: { stopReason: "end_turn" } },
+    { method: "prompt_request", param: { text: "not committed to SQLite" } },
+  ]);
+  const result = runExtractor(["prefix", "--wheelmaker-home", root]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Stored turns: 1/);
+  assert.doesNotMatch(result.stdout, /not committed to SQLite|### Turn 2/);
+});
+
+test("rejects a SQLite cursor beyond the WMT3 turn count", async (t) => {
+  const root = await makeWheelmakerHome(t);
+  createSessionDatabase(root, { id: "ahead", projectName: "Demo", latestPersistedTurnIndex: 2 });
+  await writeSessionFile(root, "Demo", "ahead", [{ method: "prompt_done" }]);
+  const result = runExtractor(["ahead", "--wheelmaker-home", root]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /persisted turn index 2 exceeds WMT3 turn count 1/);
+  assert.equal(result.stdout, "");
+});
+
+test("does not fall back to legacy WMT2 files", async (t) => {
+  const root = await makeWheelmakerHome(t);
+  createSessionDatabase(root, { id: "legacy", projectName: "Demo", latestPersistedTurnIndex: 1 });
+  const path = join(dirname(sessionFilePath(root, "Demo", "legacy")), "turns", "t000000.bin");
+  const body = Buffer.from(JSON.stringify({ method: "prompt_done" }));
+  const legacyHeader = Buffer.alloc(8 + 256 * 8);
+  legacyHeader.write("WMT2");
+  legacyHeader.writeUInt16LE(2, 4);
+  legacyHeader.writeUInt32LE(legacyHeader.length, 8);
+  legacyHeader.writeUInt32LE(body.length, 12);
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, Buffer.concat([legacyHeader, body]));
+  const result = runExtractor(["legacy", "--wheelmaker-home", root]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /missing WMT3 session file/);
+  assert.match(result.stderr, /WMT2 is not supported/);
+  assert.equal(result.stdout, "");
+});
+
+const invalidFiles = [
+  ["short file header", (raw) => raw.subarray(0, 12), /WMT3 header too short/],
+  ["legacy magic", (raw) => { raw.write("WMT2"); return raw; }, /invalid WMT3 magic/],
+  ["unknown version", (raw) => { raw[4] = 4; return raw; }, /unsupported WMT3 version/],
+  ["reserved bytes", (raw) => { raw[5] = 1; return raw; }, /reserved bytes/],
+  ["unknown file codec", (raw) => { raw.writeUInt32LE(2, 12); return raw; }, /file codec/],
+  ["short frame header", (raw) => raw.subarray(0, 20), /frame header too short/],
+  ["truncated payload", (raw) => raw.subarray(0, raw.length - 1), /frame.*exceeds file/],
+  ["zero frame turns", (raw) => { raw.writeUInt32LE(0, 24); return raw; }, /invalid WMT3 frame header/],
+  ["unknown frame codec", (raw) => { raw.writeUInt32LE(5, 28); return raw; }, /frame codec/],
+  ["gzip corruption", (raw) => { raw[32] = 0; return raw; }, /cannot decompress WMT3 frame/],
+  ["uncompressed length mismatch", (raw) => { raw.writeUInt32LE(999, 20); return raw; }, /uncompressed length/],
+  ["frame turn count mismatch", (raw) => { raw.writeUInt32LE(2, 24); return raw; }, /payload turn count/],
+  ["file turn count mismatch", (raw) => { raw.writeUInt32LE(2, 8); return raw; }, /header turn count/],
+  ["invalid JSON", () => makeWMT3([makeFrame(Buffer.from("[invalid"), 1, 0)], 1), /invalid JSON in WMT3/],
+  ["non-array JSON", () => makeWMT3([makeFrame(Buffer.from("{}"), 1, 0)], 1), /payload must be an array/],
+  ["invalid turn", () => makeWMT3([makeFrame(Buffer.from("[null]"), 1, 0)], 1), /invalid WMT3 turn 1/],
+];
+
+for (const [name, mutate, expectedError] of invalidFiles) {
+  test(`rejects ${name} without writing a partial transcript`, async (t) => {
+    const root = await makeWheelmakerHome(t);
+    createSessionDatabase(root, { id: "invalid", projectName: "Demo", latestPersistedTurnIndex: 1 });
+    const path = sessionFilePath(root, "Demo", "invalid");
+    await writeSessionFile(root, "Demo", "invalid", [{ method: "prompt_done" }]);
+    await writeFile(path, mutate(await readFile(path)));
+    const output = join(root, "transcript.md");
+    await writeFile(output, "existing transcript");
+    const result = runExtractor(["invalid", "--wheelmaker-home", root, "--output", output]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, expectedError);
+    assert.equal(await readFile(output, "utf8"), "existing transcript");
+    assert.equal(result.stdout, "");
+  });
+}
 
 test("reads transcript chunks without splitting UTF-8 characters", async (t) => {
   const root = await makeWheelmakerHome(t);
@@ -209,35 +288,44 @@ function createSessionDatabase(wheelmakerHome, session) {
   db.close();
 }
 
-async function writeTurnFiles(wheelmakerHome, projectName, sessionId, turns) {
-  for (let fileNo = 0; fileNo * turnsPerFile < turns.length; fileNo += 1) {
-    const first = fileNo * turnsPerFile;
-    const chunk = turns.slice(first, first + turnsPerFile);
-    const bodies = chunk.map((turn) => Buffer.from(JSON.stringify(turn), "utf8"));
-    const header = Buffer.alloc(headerSize);
-    header.write("WMT2", 0, "ascii");
-    header.writeUInt16LE(2, 4);
-    let offset = headerSize;
-    for (let slot = 0; slot < bodies.length; slot += 1) {
-      header.writeUInt32LE(offset, 8 + slot * 8);
-      header.writeUInt32LE(bodies[slot].length, 8 + slot * 8 + 4);
-      offset += bodies[slot].length;
-    }
-    const path = turnFilePath(wheelmakerHome, projectName, sessionId, fileNo);
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, Buffer.concat([header, ...bodies]));
+async function writeSessionFile(wheelmakerHome, projectName, sessionId, turns) {
+  const frames = [];
+  for (let first = 0; first < turns.length; first += 128) {
+    const chunk = turns.slice(first, first + 128);
+    frames.push(makeFrame(Buffer.from(JSON.stringify(chunk)), chunk.length, frames.length % 2 === 0 ? 1 : 0));
   }
+  const path = sessionFilePath(wheelmakerHome, projectName, sessionId);
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, makeWMT3(frames, turns.length));
 }
 
-function turnFilePath(wheelmakerHome, projectName, sessionId, fileNo) {
+function makeWMT3(frames, turnCount) {
+  const header = Buffer.alloc(headerSize);
+  header.write("WMT3");
+  header.writeUInt16LE(3, 4);
+  header.writeUInt32LE(turnCount, 8);
+  header.writeUInt32LE(1, 12);
+  return Buffer.concat([header, ...frames]);
+}
+
+function makeFrame(payload, turnCount, codec) {
+  const stored = codec === 1 ? gzipSync(payload) : payload;
+  const header = Buffer.alloc(headerSize);
+  header.writeUInt32LE(stored.length, 0);
+  header.writeUInt32LE(payload.length, 4);
+  header.writeUInt32LE(turnCount, 8);
+  header.writeUInt32LE(codec, 12);
+  return Buffer.concat([header, stored]);
+}
+
+function sessionFilePath(wheelmakerHome, projectName, sessionId) {
   return join(
     wheelmakerHome,
     "db",
     "session",
     safeHistoryPathPart(projectName),
     safeHistoryPathPart(sessionId),
-    "turns",
-    `t${String(fileNo).padStart(6, "0")}.bin`,
+    "session.wmt3",
   );
 }
 

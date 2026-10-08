@@ -5,11 +5,10 @@ import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
+import { gunzipSync } from "node:zlib";
 
-const turnsPerFile = 256;
-const preambleSize = 8;
-const slotSize = 8;
-const headerSize = preambleSize + turnsPerFile * slotSize;
+const headerSize = 16;
+const frameHeaderSize = 16;
 
 main();
 
@@ -53,6 +52,8 @@ function parseArgs(args) {
     } else if (arg === "--help" || arg === "-h") {
       process.stdout.write([
         "Usage: node read-session.mjs <session-id> [options]",
+        "",
+        "Reads persisted WMT3 sessions only; WMT2 and archives are not supported.",
         "",
         "Options:",
         "  --wheelmaker-home <path>  Override ~/.wheelmaker",
@@ -180,69 +181,117 @@ function latestPersistedTurnIndex(sessionSync) {
 }
 
 function readAllTurns(wheelmakerHome, projectName, sessionId, expectedTurnCount) {
-  const turnDirectory = join(
+  const path = join(
     wheelmakerHome,
     "db",
     "session",
     safeHistoryPathPart(projectName),
     safeHistoryPathPart(sessionId),
-    "turns",
+    "session.wmt3",
   );
   if (expectedTurnCount === 0) {
     return [];
   }
 
+  if (!existsSync(path)) {
+    throw new Error(`missing WMT3 session file: ${path}; WMT2 is not supported`);
+  }
+  const raw = readFileSync(path);
+  validateHeader(raw, path);
+  const totalTurnCount = raw.readUInt32LE(8);
+  if (expectedTurnCount > totalTurnCount) {
+    throw new Error(`persisted turn index ${expectedTurnCount} exceeds WMT3 turn count ${totalTurnCount}: ${path}`);
+  }
+
   const turns = [];
-  const lastFileNo = Math.floor((expectedTurnCount - 1) / turnsPerFile);
-  for (let fileNo = 0; fileNo <= lastFileNo; fileNo += 1) {
-    const path = join(turnDirectory, `t${String(fileNo).padStart(6, "0")}.bin`);
-    if (!existsSync(path)) {
-      throw new Error(`missing WMT2 turn file: ${path}`);
+  let offset = headerSize;
+  let storedTurnCount = 0;
+  while (offset < raw.length) {
+    if (raw.length - offset < frameHeaderSize) {
+      throw new Error(`WMT3 frame header too short at offset ${offset}: ${path}`);
     }
-    const raw = readFileSync(path);
-    validateHeader(raw, path);
-    const slotsInFile = Math.min(
-      turnsPerFile,
-      expectedTurnCount - fileNo * turnsPerFile,
-    );
-    for (let slot = 0; slot < slotsInFile; slot += 1) {
-      const turnIndex = fileNo * turnsPerFile + slot + 1;
-      const metadataOffset = preambleSize + slot * slotSize;
-      const bodyOffset = raw.readUInt32LE(metadataOffset);
-      const bodyLength = raw.readUInt32LE(metadataOffset + 4);
-      if (bodyOffset === 0 || bodyLength === 0) {
-        throw new Error(`missing WMT2 turn ${turnIndex} in ${path}`);
-      }
-      const bodyEnd = bodyOffset + bodyLength;
-      if (bodyOffset < headerSize || bodyEnd > raw.length) {
-        throw new Error(`WMT2 turn ${turnIndex} points outside ${path}`);
-      }
-      const contentRaw = raw.toString("utf8", bodyOffset, bodyEnd);
-      let content;
-      try {
-        content = JSON.parse(contentRaw);
-      } catch (error) {
-        throw new Error(`invalid JSON in WMT2 turn ${turnIndex}: ${error.message}`);
-      }
-      turns.push({ turnIndex, ...content });
+    const storedLength = raw.readUInt32LE(offset);
+    const uncompressedLength = raw.readUInt32LE(offset + 4);
+    const turnCount = raw.readUInt32LE(offset + 8);
+    const codec = raw.readUInt32LE(offset + 12);
+    if (storedLength === 0 || uncompressedLength === 0 || turnCount === 0) {
+      throw new Error(`invalid WMT3 frame header at offset ${offset}: ${path}`);
     }
+    if (codec !== 0 && codec !== 1) {
+      throw new Error(`unsupported WMT3 frame codec ${codec} at offset ${offset}: ${path}`);
+    }
+    const end = offset + frameHeaderSize + storedLength;
+    if (end > raw.length) {
+      throw new Error(`WMT3 frame at offset ${offset} exceeds file: ${path}`);
+    }
+
+    // Decode only frames intersecting the SQLite snapshot, like the Hub reader.
+    if (storedTurnCount < expectedTurnCount) {
+      const payload = raw.subarray(offset + frameHeaderSize, end);
+      const contents = decodeFrame(payload, codec, uncompressedLength, turnCount, offset);
+      const included = Math.min(contents.length, expectedTurnCount - storedTurnCount);
+      for (let index = 0; index < included; index += 1) {
+        const turnIndex = storedTurnCount + index + 1;
+        const content = contents[index];
+        if (!content || typeof content !== "object" || Array.isArray(content)) {
+          throw new Error(`invalid WMT3 turn ${turnIndex}: expected a SessionContent object`);
+        }
+        turns.push({ ...content, turnIndex });
+      }
+    }
+    storedTurnCount += turnCount;
+    offset = end;
+  }
+  if (storedTurnCount !== totalTurnCount) {
+    throw new Error(`WMT3 header turn count ${totalTurnCount} differs from frame count ${storedTurnCount}: ${path}`);
   }
   return turns;
 }
 
+function decodeFrame(payload, codec, uncompressedLength, turnCount, offset) {
+  let decoded = payload;
+  if (codec === 1) {
+    try {
+      decoded = gunzipSync(payload, { maxOutputLength: uncompressedLength });
+    } catch (error) {
+      throw new Error(`cannot decompress WMT3 frame at offset ${offset}: ${error.message}`);
+    }
+  }
+  if (decoded.length !== uncompressedLength) {
+    throw new Error(`WMT3 uncompressed length ${decoded.length}, expected ${uncompressedLength} at offset ${offset}`);
+  }
+  let contents;
+  try {
+    contents = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(decoded));
+  } catch (error) {
+    throw new Error(`invalid JSON in WMT3 frame at offset ${offset}: ${error.message}`);
+  }
+  if (!Array.isArray(contents)) {
+    throw new Error(`WMT3 frame payload must be an array at offset ${offset}`);
+  }
+  if (contents.length !== turnCount) {
+    throw new Error(`WMT3 payload turn count ${contents.length}, expected ${turnCount} at offset ${offset}`);
+  }
+  return contents;
+}
+
 function validateHeader(raw, path) {
   if (raw.length < headerSize) {
-    throw new Error(`WMT2 header too short: ${path}`);
+    throw new Error(`WMT3 header too short: ${path}`);
   }
-  if (raw.toString("ascii", 0, 4) !== "WMT2") {
-    throw new Error(`invalid WMT2 magic: ${path}`);
+  if (!raw.subarray(0, 4).equals(Buffer.from("WMT3"))) {
+    throw new Error(`invalid WMT3 magic: ${path}; WMT2 is not supported`);
   }
-  const version = raw.readUInt16LE(4);
-  if (version !== 2) {
-    throw new Error(`unsupported WMT2 version ${version}: ${path}`);
+  const version = raw[4];
+  if (version !== 3) {
+    throw new Error(`unsupported WMT3 version ${version}: ${path}`);
   }
-  if (raw[6] !== 0 || raw[7] !== 0) {
-    throw new Error(`unsupported WMT2 header flags: ${path}`);
+  if (raw[5] !== 0 || raw[6] !== 0 || raw[7] !== 0) {
+    throw new Error(`non-zero WMT3 header reserved bytes: ${path}`);
+  }
+  const codec = raw.readUInt32LE(12);
+  if (codec !== 0 && codec !== 1) {
+    throw new Error(`unsupported WMT3 file codec ${codec}: ${path}`);
   }
 }
 

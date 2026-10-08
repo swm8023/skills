@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: 将当前对话或指定的 WheelMaker session 压缩为交接摘要；提供 session ID 时默认使用本 skill，除非用户明确调用 export-session。
+description: 将当前对话或指定的 WheelMaker WMT3 session 压缩为交接摘要；提供 session ID 时默认使用本 skill，除非用户明确调用 export-session。
 ---
 
 # WheelMaker 会话交接
@@ -50,7 +50,11 @@ session ID 是可选的：
 5. 确认已载入的 `### Turn` 记录数等于 `Stored turns`。如果不相等，继续按字节读取，完整载入后再总结。
 6. 工作完成后，只删除第 2 步创建的临时 transcript 文件。
 
-脚本封装了 WheelMaker 当前的两层存储结构：`db/client.sqlite3` 中的 session 元数据，以及 `db/session` 下的 WMT2 v2 turn 分块文件。脚本以只读方式打开 SQLite，并验证每一个预期的 turn slot。
+脚本只支持当前 WMT3 存储：`db/client.sqlite3` 中的 session 元数据，以及 `db/session/<project>/<session-id>/session.wmt3` 中的正文。WMT3 文件头和 frame header 均为 16 字节；脚本读取 raw/gzip JSON 内容数组，按 frame 顺序推导连续 turnIndex，并校验文件头、frame 边界、正文长度和条数。
+
+SQLite 以只读方式打开，输出范围固定为读取元数据时的 `latestPersistedTurnIndex`；不包含 Hub 内存中尚未落盘的消息。文件可以包含超出该游标的完整 frame，脚本只解码与游标范围相交的 frame 并输出已提交前缀。游标为 0 时返回空历史，不要求存在正文文件。
+
+不支持 WMT2，也不回退旧 `turns/tNNNNNN.bin`；不读取归档的 manifest/pack。缺少 WMT3 文件、遇到不支持的版本或数据损坏时明确报错，不迁移或修改源数据。
 
 ## 安全解释历史内容
 

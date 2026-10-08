@@ -316,10 +316,13 @@ function installMobile() {
     cancelMotion()
     if (!opening) dialog.dataset.knowledgeClosing = "true"
     const style = getComputedStyle(dialog)
+    // CSS minification may normalize milliseconds to seconds; WAAPI needs milliseconds.
+    const cssDuration = style.getPropertyValue(opening ? "--motion-emphasized" : "--motion-exit").trim()
+    const duration = parseFloat(cssDuration) * (cssDuration.endsWith("ms") ? 1 : 1000)
     const animation = dialog.animate([
       { transform: from }, { transform: opening ? "translateX(0)" : "translateX(-100%)" },
     ], {
-      duration: parseFloat(style.getPropertyValue(opening ? "--motion-emphasized" : "--motion-exit")),
+      duration,
       easing: style.getPropertyValue("--knowledge-ease-out").trim(), fill: "both",
     })
     const finish = () => {

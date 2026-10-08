@@ -237,6 +237,7 @@ try {
     assert.equal(await panel.locator('[data-knowledge-slot="article-tags"] .tags').isVisible(), true);
     if (values.artifacts) await page.screenshot({ path: path.join(values.artifacts, 'tags.png') });
     for (const action of ['escape', 'breakpoint', 'prenav']) {
+      const readingPosition = await page.evaluate(() => -parseFloat(document.body.style.top));
       await page.evaluate(() => {
         document.querySelector('[data-knowledge-close]').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
         document.querySelector('#knowledge-mobile-panel').getAnimations().forEach(animation => animation.pause());
@@ -246,11 +247,34 @@ try {
       if (action === 'prenav') await page.evaluate(() => document.dispatchEvent(new Event('prenav')));
       await panel.waitFor({ state: 'hidden' });
       await page.waitForFunction(() => document.body.style.position !== 'fixed');
-      assert.equal(await page.evaluate(() => scrollY), 400);
+      // Resizing and prenav restore nodes and reflow the page; only dismissal preserves its layout.
+      if (action === 'escape') assert.equal(await page.evaluate(() => scrollY), readingPosition);
       assert.equal(await panel.evaluate(el => el.getAnimations().length), 0);
       if (action === 'breakpoint') await page.setViewportSize({ width: 390, height: 844 });
       await page.evaluate(() => document.dispatchEvent(new Event('nav')));
       await page.locator('.knowledge-mobile-capsule').click();
+    }
+  });
+  await check('drawer timing survives CSS time unit minification', { width: 390, height: 844 }, async page => {
+    for (const [enter, exit] of [['280ms', '180ms'], ['.28s', '.18s']]) {
+      const timings = await page.evaluate(({ enter, exit }) => {
+        const panel = document.querySelector('#knowledge-mobile-panel');
+        panel.style.setProperty('--motion-emphasized', enter);
+        panel.style.setProperty('--motion-exit', exit);
+        const click = selector => document.querySelector(selector).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+        const duration = () => {
+          const animation = panel.getAnimations().find(item => item.effect.getKeyframes().some(frame => frame.transform));
+          animation.pause();
+          return animation.effect.getTiming().duration;
+        };
+        click('.knowledge-mobile-capsule');
+        const opening = duration();
+        click('[data-knowledge-close]');
+        return { opening, closing: duration() };
+      }, { enter, exit });
+      assert.equal(timings.opening, 280, `${enter} retains the intended entry duration`);
+      assert.equal(timings.closing, 180, `${exit} retains the intended exit duration`);
+      await page.keyboard.press('Escape');
     }
   });
   await check('drawer keyboard tabs and reduced motion', { width: 390, height: 844 }, async page => {

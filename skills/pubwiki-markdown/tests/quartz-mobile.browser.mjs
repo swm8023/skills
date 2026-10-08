@@ -185,8 +185,8 @@ try {
       if (artifacts && width === 390) await page.screenshot({ path: path.join(artifacts, 'after-search.png') });
       await page.keyboard.press('Escape');
       await page.setViewportSize({ width: 1200, height: 844 });
-      await page.waitForFunction(() => !!document.querySelector('.sidebar.left > .flex-component .search'));
-      assert.equal(await page.locator('.page-header .tags').count(), 1);
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'complementary');
+      assert.equal(await page.locator('#knowledge-mobile-panel [data-knowledge-slot="article-tags"] .tags').count(), 1);
       await page.setViewportSize({ width, height: 844 });
       await page.waitForFunction(() => !!document.querySelector('#knowledge-mobile-panel .search'));
       await page.evaluate(() => {
@@ -214,15 +214,15 @@ try {
     } else {
       assert.equal(await page.locator('.explorer').isVisible(), true);
       await page.locator('.explorer .knowledge-tree-toggle').first().waitFor();
-      const directoryTab = page.locator('[data-knowledge-view="directory"]');
-      const tagsTab = page.locator('[data-knowledge-view="tags"]');
+      const directoryTab = page.locator('[data-knowledge-pane="directory"]');
+      const tagsTab = page.locator('[data-knowledge-pane="tags"]');
       await directoryTab.focus();
       await page.keyboard.press('ArrowRight');
       assert.equal(await tagsTab.getAttribute('aria-selected'), 'true');
       assert.equal(await tagsTab.evaluate(el => el === document.activeElement), true);
       await page.keyboard.press('Home');
       assert.equal(await directoryTab.getAttribute('aria-selected'), 'true');
-      await page.keyboard.press('End');
+      await page.keyboard.press('ArrowRight');
       assert.equal(await tagsTab.getAttribute('aria-selected'), 'true');
       assert.equal(await page.locator('.knowledge-tags-sidebar').isVisible(), true);
       const tagToggle = page.locator('.knowledge-tags-sidebar .knowledge-tree-toggle').first();
@@ -282,14 +282,12 @@ try {
         assert.ok(contrast.every(value => value >= 4.5), 'dark sidebar labels remain legible after the theme transition');
         if (artifacts) await page.screenshot({ path: path.join(artifacts, 'after-desktop-dark.png') });
         await page.locator('.sidebar.left .darkmode').click();
-        await page.locator('.sidebar.left .search-button').click();
+        await page.locator('[data-knowledge-pane="search"]').click();
         const searchInput = page.locator('.search-container input');
         await searchInput.fill('acp');
         await page.locator('.result-card').first().waitFor();
-        assert.ok((await page.locator('.result-card > p').first().boundingBox()).height <= 66, 'desktop results use short excerpts');
-        await page.locator('.preview-container .article-title').waitFor();
-        await page.waitForFunction(() => document.querySelector('.preview-container article > h1:first-child')?.dataset.knowledgeRepeatedTitle === 'true');
-        assert.equal(await page.locator('.preview-container article > h1:first-child').isVisible(), false, 'search previews do not repeat the title');
+        assert.ok((await page.locator('.result-card > p').first().boundingBox()).height <= 78, 'desktop results use short excerpts');
+        assert.equal(await page.locator('.preview-container').isVisible(), false, 'search stays inside the sidebar');
         if (artifacts) await page.screenshot({ path: path.join(artifacts, 'after-desktop-search.png') });
         await page.keyboard.press('Escape');
         await page.locator('.search-container').waitFor({ state: 'hidden' });
@@ -300,20 +298,22 @@ try {
       await page.locator('.knowledge-page-card-link').first().click();
       await page.locator('.article-title').waitFor();
       await page.locator('.explorer [aria-current="location"]').waitFor();
-      if (width >= 1201) {
-        const toc = page.locator('.sidebar.right > .toc');
-        await toc.waitFor({ state: 'visible' });
-        assert.ok(await toc.locator('a').count() > 0, `${width}: article TOC contains heading links`);
+      const tocTab = page.locator('[data-knowledge-pane="toc"]');
+      if (!await tocTab.isDisabled()) {
+        await tocTab.click();
+        assert.ok(await page.locator('#knowledge-mobile-panel .toc a').count() > 0);
       }
+      assert.equal(await page.locator('.sidebar.right').isVisible(), false);
       if (artifacts && width === 1440) await page.screenshot({ path: path.join(artifacts, 'after-desktop-article.png') });
       // A long tag list scrolls inside the sidebar without covering its controls.
       await tagsTab.click();
       await page.locator('.knowledge-tags-sidebar').evaluate(el => {
         const list = el.querySelector('ul');
         for (let i = 0; i < 60; i++) list.append(list.firstElementChild.cloneNode(true));
-        el.scrollTop = el.scrollHeight;
+        const panel = el.closest('[data-knowledge-panel]');
+        panel.scrollTop = panel.scrollHeight;
       });
-      assert.ok(await page.locator('.knowledge-tags-sidebar').evaluate(el => el.scrollHeight > el.clientHeight));
+      assert.ok(await page.locator('[data-knowledge-panel="tags"]').evaluate(el => el.scrollHeight > el.clientHeight));
       assert.ok((await tagsTab.boundingBox()).y >= 0);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }

@@ -8,29 +8,8 @@ export { KnowledgeTagSidebar } from "./navigation.mjs"
 
 export const KnowledgeSidebarSwitch = () => {
   const Component = (props = {}) => h(Fragment, null, [h(MobileChrome, props),
-    h("div", { class: "knowledge-sidebar-switch", role: "tablist", "aria-label": "浏览知识库",
-      "data-knowledge-directory-counts": JSON.stringify(directoryCounts(props.allFiles)) }, [
-      h(
-        "button",
-        {
-          type: "button",
-          class: "knowledge-sidebar-button active",
-          "data-knowledge-view": "directory",
-          role: "tab", id: "knowledge-directory-tab", "aria-selected": "true", tabindex: 0,
-        },
-        "目录",
-      ),
-      h(
-        "button",
-        {
-          type: "button",
-          class: "knowledge-sidebar-button",
-          "data-knowledge-view": "tags",
-          role: "tab", id: "knowledge-tags-tab", "aria-selected": "false", tabindex: -1,
-        },
-        "标签",
-      ),
-    ]),
+    h("div", { class: "knowledge-sidebar-switch", hidden: true,
+      "data-knowledge-directory-counts": JSON.stringify(directoryCounts(props.allFiles)) }),
   ])
 
   Component.css = `
@@ -38,7 +17,7 @@ export const KnowledgeSidebarSwitch = () => {
   --knowledge-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   --knowledge-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
-.sidebar.left :is(.page-title, .knowledge-sidebar-button, .knowledge-mobile-dialog-header, .knowledge-mobile-home, .knowledge-mobile-settings) {
+.sidebar.left :is(.page-title, .knowledge-mobile-dialog-header, .knowledge-mobile-home, .knowledge-mobile-settings) {
   font-family: var(--knowledge-ui-font);
 }
 .sidebar.left .darkmode {
@@ -90,48 +69,6 @@ export const KnowledgeSidebarSwitch = () => {
   display: none;
 }
 
-.knowledge-sidebar-switch {
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.25rem;
-  margin: 0.75rem 0;
-  padding: 0.2rem;
-  border: 1px solid var(--lightgray);
-  border-radius: 0.35rem;
-}
-
-.knowledge-sidebar-button {
-  min-height: 2.75rem;
-  border: 0;
-  border-radius: 0.25rem;
-  padding: 0.35rem 0.45rem;
-  background: transparent;
-  color: var(--darkgray);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-family: inherit;
-  touch-action: manipulation;
-}
-
-.knowledge-sidebar-button:focus-visible,
-.knowledge-tag-link:focus-visible {
-  outline: 2px solid var(--secondary);
-  outline-offset: 2px;
-}
-
-.knowledge-sidebar-button.active {
-  background: var(--highlight);
-  color: var(--dark);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .knowledge-sidebar-button:hover {
-    background: var(--highlight);
-    color: var(--dark);
-  }
-}
-
 .knowledge-tags-sidebar {
   display: none;
 }
@@ -152,8 +89,8 @@ export const KnowledgeSidebarSwitch = () => {
     box-sizing: border-box;
   }
   .page:has(.knowledge-sidebar-switch) > #quartz-body {
-    grid-template-columns: clamp(14.5rem, 19vw, 17rem) minmax(0, 1fr);
-    grid-template-areas: "grid-sidebar-left grid-header" "grid-sidebar-left grid-center" "grid-sidebar-left grid-sidebar-right" "grid-sidebar-left grid-footer";
+    grid-template-columns: clamp(17rem, 22vw, 20rem) minmax(0, 1fr);
+    grid-template-areas: "grid-sidebar-left grid-header" "grid-sidebar-left grid-center" "grid-sidebar-left grid-footer";
     column-gap: 2rem;
     padding: 0;
   }
@@ -163,22 +100,9 @@ export const KnowledgeSidebarSwitch = () => {
     height: 100dvh;
     border-right: 1px solid var(--lightgray);
   }
-  .sidebar.left .page-title { margin: 0; font-size: 1.375rem; line-height: 1.3; letter-spacing: -0.015em; }
-  .sidebar.left > .page-title,
-  .sidebar.left > .flex-component,
-  .sidebar.left > .knowledge-sidebar-switch { flex-shrink: 0; }
-  .knowledge-sidebar-switch { margin: 0.25rem 0 0; padding: 0.1875rem; border-radius: 0.5rem; }
-  .knowledge-sidebar-button { min-height: 2.25rem; font-size: 0.875rem; border-radius: 0.3125rem; }
-  .sidebar.left .explorer > .desktop-explorer { display: none; }
-  .sidebar.left .explorer,
-  .sidebar.left .knowledge-tags-sidebar { flex: 1 1 0; min-height: 0; }
-  .sidebar.left .knowledge-tags-sidebar { overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-  .sidebar.left .explorer-content { min-height: 0; margin: 0; scrollbar-gutter: stable; }
   .page:has(.knowledge-sidebar-switch) > #quartz-body .page-header { margin-top: var(--knowledge-desktop-top-inset); }
   .page > #quartz-body .center { min-width: 0; width: 100%; }
   .page > #quartz-body .center:not(:has(.knowledge-home, .knowledge-directory, .knowledge-tag-page)) { max-width: 52rem; margin-left: 0; }
-  .page > #quartz-body .sidebar.right { min-width: 0; padding: var(--knowledge-desktop-top-inset) 0 1rem; gap: 1.5rem; }
-  .page > #quartz-body .sidebar.right:not(:has(> *)) { display: none; }
   .center .article-title { font-size: 1.875rem; line-height: 1.25; letter-spacing: -0.02em; }
   .center article { line-height: 1.75; overflow-wrap: anywhere; }
   .center article pre { overflow-x: auto; }
@@ -197,18 +121,7 @@ export const KnowledgeSidebarSwitch = () => {
   }
 }
 
-@media (min-width: 1201px) {
-  .page:has(.knowledge-sidebar-switch) > #quartz-body:has(.sidebar.right > *) {
-    grid-template-columns: 17rem minmax(0, 1fr) 14rem;
-    grid-template-areas: "grid-sidebar-left grid-header grid-sidebar-right" "grid-sidebar-left grid-center grid-sidebar-right" "grid-sidebar-left grid-footer grid-sidebar-right";
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .knowledge-sidebar-button {
-    transition: none;
-  }
-}
 `
 
   Component.beforeDOMLoaded = `
@@ -308,8 +221,6 @@ export const KnowledgeSidebarSwitch = () => {
 (() => {
   if (window.__wheelmakerSidebarBound) return
   window.__wheelmakerSidebarBound = true
-  const mobile = window.matchMedia("(max-width: 800px)")
-  const storageKey = "wheelmaker-knowledge-sidebar-view"
   let directoryObserver = null
   let previewObserver = null
   const tagStateKey = "wheelmaker-knowledge-tag-tree"
@@ -475,49 +386,26 @@ export const KnowledgeSidebarSwitch = () => {
     })
   }
 
-  const savedView = () => {
-    try { return localStorage.getItem(storageKey) === "tags" ? "tags" : "directory" } catch { return "directory" }
-  }
   const restore = () => {
     previewObserver?.disconnect()
     previewObserver = null
     directoryObserver?.disconnect()
     directoryObserver = null
   }
-  const setView = (view) => {
-    const root = document.querySelector(".knowledge-sidebar-switch")
-    const directory = document.querySelector(".sidebar.left .explorer")
-    const tags = document.querySelector(".knowledge-tags-sidebar")
-    if (!root || !directory || !tags) return
-    document.documentElement.classList.remove("mobile-no-scroll")
-    document.querySelector("#quartz-body")?.classList.remove("lock-scroll")
-    const showDirectory = view !== "tags"
-    root.dataset.openView = showDirectory ? "directory" : "tags"
-    directory.id = "knowledge-directory-panel"
-    tags.id = "knowledge-tags-panel"
-    directory.setAttribute("role", mobile.matches ? "group" : "tabpanel")
-    directory.setAttribute("aria-labelledby", mobile.matches ? "knowledge-pane-directory" : "knowledge-directory-tab")
-    tags.setAttribute("role", mobile.matches ? "group" : "tabpanel")
-    tags.setAttribute("aria-labelledby", mobile.matches ? "knowledge-pane-tags" : "knowledge-tags-tab")
-    tags.tabIndex = tags.querySelector("a") ? -1 : 0
-    // Mobile owns separate top-level panes; the desktop switch stays in place.
-    directory.dataset.knowledgeVisible = String(mobile.matches || showDirectory)
-    tags.dataset.knowledgeVisible = String(mobile.matches || !showDirectory)
-    directory.setAttribute("aria-hidden", String(!mobile.matches && !showDirectory))
-    tags.setAttribute("aria-hidden", String(!mobile.matches && showDirectory))
-    directory.classList.toggle("collapsed", !mobile.matches && !showDirectory)
-    directory.removeAttribute("aria-expanded")
-    const directoryContent = directory.querySelector(".explorer-content")
-    directoryContent?.removeAttribute("aria-expanded")
+  const setupPanels = () => {
+    for (const [selector, pane] of [[".sidebar.left .explorer", "directory"], [".knowledge-tags-sidebar", "tags"]]) {
+      const panel = document.querySelector(selector)
+      if (!panel) continue
+      panel.setAttribute("role", "group")
+      panel.setAttribute("aria-labelledby", "knowledge-pane-" + pane)
+      panel.dataset.knowledgeVisible = "true"
+      panel.removeAttribute("aria-hidden")
+      panel.classList.remove("collapsed")
+      panel.removeAttribute("aria-expanded")
+    }
+    const directoryContent = document.querySelector(".explorer-content")
     directoryContent?.setAttribute("role", "navigation")
     directoryContent?.setAttribute("aria-label", "目录导航")
-    root.querySelectorAll("[data-knowledge-view]").forEach((button) => {
-      const active = button.dataset.knowledgeView === view
-      button.classList.toggle("active", active)
-      button.setAttribute("aria-selected", String(active))
-      button.tabIndex = active ? 0 : -1
-      button.setAttribute("aria-controls", button.dataset.knowledgeView === "tags" ? tags.id : directory.id)
-    })
   }
   document.addEventListener("click", (event) => {
     const target = event.target
@@ -529,24 +417,7 @@ export const KnowledgeSidebarSwitch = () => {
       toggleBranch(expander)
       return
     }
-    const button = target.closest?.("[data-knowledge-view]")
-    if (button) {
-      event.stopImmediatePropagation()
-      const view = button.dataset.knowledgeView
-      setView(view)
-      try { localStorage.setItem(storageKey, view) } catch {}
-      return
-    }
   }, true)
-  document.addEventListener("keydown", (event) => {
-    const tab = event.target.closest?.('[role="tab"][data-knowledge-view]')
-    if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return
-    event.preventDefault()
-    const view = event.key === "Home" ? "directory" : event.key === "End" ? "tags"
-      : tab.dataset.knowledgeView === "directory" ? "tags" : "directory"
-    document.querySelector('[data-knowledge-view="' + view + '"]')?.click()
-    document.querySelector('[data-knowledge-view="' + view + '"]')?.focus()
-  })
   const normalizeTitle = (root) => {
     const title = root?.querySelector(".article-title")
     const firstHeading = root?.querySelector("article > h1:first-child")
@@ -557,9 +428,7 @@ export const KnowledgeSidebarSwitch = () => {
   }
   const reset = () => {
     restore()
-    const view = document.querySelector(".knowledge-tag-page") ? "tags" : document.querySelector(".knowledge-directory") ? "directory" : savedView()
-    setView(view)
-    try { localStorage.setItem(storageKey, view) } catch {}
+    setupPanels()
     enhanceTags()
     enhanceDirectory()
     enhanceTheme()
@@ -581,7 +450,6 @@ export const KnowledgeSidebarSwitch = () => {
   }
   document.addEventListener("prenav", restore)
   document.addEventListener("nav", reset)
-  mobile.addEventListener("change", reset)
   new MutationObserver(updateTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["saved-theme"] })
   reset()
 })()

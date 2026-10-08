@@ -2,14 +2,14 @@
 // node tests/quartz-reader.browser.mjs --runtime <quartz> --playwright <index.mjs> --browser <executable>
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { registerHooks } from 'node:module';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
 const { values } = parseArgs({ options: Object.fromEntries(
-  ['runtime', 'playwright', 'browser', 'artifacts'].map(name => [name, { type: 'string' }]),
+  ['runtime', 'playwright', 'browser', 'artifacts', 'base-css'].map(name => [name, { type: 'string' }]),
 ) });
 for (const name of ['runtime', 'playwright']) assert.ok(values[name], `--${name} is required`);
 const runtimeURL = pathToFileURL(path.join(path.resolve(values.runtime), 'package.json')).href;
@@ -27,6 +27,7 @@ const sidebar = WheelMakerSidebar();
 const toc = WheelMakerTableOfContents();
 const footer = WheelMakerFooter();
 const content = WheelMakerHomePage().body();
+const baseCSS = values['base-css'] ? await readFile(values['base-css'], 'utf8') : '';
 if (values.artifacts) await mkdir(values.artifacts, { recursive: true });
 const cfg = { locale: 'zh-CN', pageTitle: 'Reader fixture' };
 const allFiles = ['guide/part2/note', 'guide/part10/other', 'reference/one'].map(slug => ({ slug, frontmatter: { title: slug, tags: ['topic/sub'] } }));
@@ -43,6 +44,7 @@ const server = createServer((request, response) => {
   const props = { cfg, fileData, allFiles };
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
   response.end(`<!doctype html><html saved-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+    ${baseCSS}
     :root { --light: #fff; --dark: #222; --darkgray: #444; --gray: #888; --lightgray: #ddd; --secondary: #405a72; --highlight: #eef; --bodyFont: sans-serif; --headerFont: sans-serif; }
     :root[saved-theme="dark"] { --light: #171719; --dark: #eee; --darkgray: #ccc; --gray: #999; --lightgray: #38383a; --highlight: #30303b; --secondary: #b4c9df; }
     /* Quartz base link styles must not leak into sidebar navigation. */
@@ -74,6 +76,68 @@ async function check(name, viewport, run) {
   finally { await page.close(); }
 }
 try {
+  await check('shared wide sidebar keeps navigation and search state across viewport changes', { width: 1440, height: 900 }, async page => {
+    await page.goto(base + 'guide/part2/note');
+    const panel = page.locator('#knowledge-mobile-panel');
+    assert.equal(await panel.isVisible(), true, 'wide navigation is always visible');
+    assert.equal(await panel.evaluate(el => el.matches(':modal')), false);
+    assert.equal(await panel.getAttribute('role'), 'complementary');
+    assert.equal(await page.locator('.sidebar.right').isVisible(), false);
+    assert.equal(await page.locator('[role="tablist"]:visible').count(), 1);
+    await panel.locator('[data-knowledge-pane="directory"]').click();
+    assert.equal(await panel.locator('[data-folderpath="guide"] button').getAttribute('aria-expanded'), 'true');
+    await panel.locator('[data-knowledge-pane="toc"]').click();
+    await panel.locator('.toc a').nth(1).click();
+    assert.equal(await panel.isVisible(), true, 'wide heading navigation leaves the sidebar open');
+    await panel.locator('[data-knowledge-pane="search"]').click();
+    await panel.locator('input').fill('正文搜索');
+    await panel.locator('.result-card').first().waitFor();
+    assert.equal(await panel.locator('.preview-container').isVisible(), false);
+    await page.evaluate(() => { window.sharedSearchInput = document.querySelector('#knowledge-mobile-panel input'); });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await panel.waitFor({ state: 'hidden' });
+    await page.keyboard.press('Control+k');
+    assert.equal(await panel.locator('[data-knowledge-pane="search"]').getAttribute('aria-selected'), 'true');
+    assert.equal(await panel.locator('input').inputValue(), '正文搜索');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForFunction(() => !document.querySelector('#knowledge-mobile-panel').matches(':modal') && document.body.style.position !== 'fixed');
+    assert.equal(await panel.isVisible(), true);
+    assert.equal(await panel.locator('input').inputValue(), '正文搜索');
+    assert.equal(await panel.locator('input').evaluate(el => el === window.sharedSearchInput), true, 'one set of live controls');
+    assert.equal(await panel.locator('.result-card').count(), 3);
+    await page.keyboard.press('Escape');
+    assert.equal(await panel.isVisible(), true);
+    await page.keyboard.press('Control+k');
+    assert.equal(await panel.locator('input').evaluate(el => el === document.activeElement), true);
+    await panel.locator('[data-knowledge-pane="directory"]').click();
+    assert.equal(await panel.locator('[data-folderpath="guide"] button').getAttribute('aria-expanded'), 'true');
+    if (values.artifacts) await page.screenshot({ path: path.join(values.artifacts, 'shared-wide.png') });
+  });
+  for (const width of [801, 1024, 1920]) {
+    await check(`wide ${width}px: two columns and independent sidebar scrolling`, { width, height: 800 }, async page => {
+      const panel = page.locator('#knowledge-mobile-panel');
+      assert.equal(await panel.isVisible(), true);
+      assert.equal(await panel.evaluate(el => el.matches(':modal')), false);
+      assert.equal(await page.locator('.knowledge-mobile-capsule').isVisible(), false);
+      assert.equal(await page.locator('.sidebar.right').isVisible(), false);
+      const side = await panel.boundingBox();
+      const center = await page.locator('.center').boundingBox();
+      assert.ok(center.x >= side.x + side.width, 'sidebar does not cover the page');
+      await panel.locator('[data-knowledge-pane="tags"]').click();
+      const tagsPanel = panel.locator('[data-knowledge-panel="tags"]');
+      await tagsPanel.evaluate(el => {
+        const list = el.querySelector('ul');
+        for (let i = 0; i < 60; i++) list.append(list.firstElementChild.cloneNode(true));
+        el.scrollTop = el.scrollHeight;
+      });
+      assert.ok(await tagsPanel.evaluate(el => el.scrollTop > 0 && el.scrollHeight > el.clientHeight));
+      assert.equal(await page.evaluate(() => scrollY), 0, 'scrolling tags does not scroll the article');
+      assert.ok((await panel.locator('[role="tablist"]').boundingBox()).y >= 0);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.locator('.knowledge-page-card-link').first().focus();
+      assert.equal(await page.evaluate(() => !!document.activeElement.closest('.center')), true, 'wide navigation does not trap focus');
+    });
+  }
   for (const width of [390, 1440]) for (const theme of ['light', 'dark']) {
     await check(`directory layout at ${width}px in ${theme} theme`, { width, height: 844 }, async page => {
       await page.goto(base + 'guide/part2/note');
@@ -131,17 +195,17 @@ try {
     });
     assert.equal(await toggle.getAttribute('aria-expanded'), 'true', 'SPA navigation opens ancestors even when the sidebar DOM is reused');
     assert.equal(await page.locator('[data-folderpath="guide/part10"] a').getAttribute('aria-current'), 'location');
-    await page.locator('[data-knowledge-view="tags"]').click();
-    assert.equal(await page.locator('.explorer').getAttribute('aria-hidden'), 'true');
-    await page.locator('[data-knowledge-view="directory"]').click();
-    assert.equal(await page.locator('.explorer').getAttribute('aria-hidden'), 'false');
+    await page.locator('[data-knowledge-pane="tags"]').click();
+    assert.equal(await page.locator('.explorer').isVisible(), false);
+    await page.locator('[data-knowledge-pane="directory"]').click();
+    assert.equal(await page.locator('.explorer').isVisible(), true);
   });
   await check('TOC toggle, fragment navigation, SPA rebinding and footer', { width: 1440, height: 900 }, async page => {
     await page.goto(base + 'guide/part2/note');
-    await page.locator('.toc-header').click();
-    assert.equal(await page.locator('.toc-content').isVisible(), false);
+    await page.locator('[data-knowledge-pane="toc"]').click();
+    assert.equal(await page.locator('.toc-content').isVisible(), true);
     await page.evaluate(() => { document.dispatchEvent(new Event('nav')); document.dispatchEvent(new Event('render')); });
-    await page.locator('.toc-header').click();
+    await page.locator('[data-knowledge-pane="toc"]').click();
     assert.equal(await page.locator('.toc-content').isVisible(), true);
     await page.locator('.toc a').nth(1).click();
     assert.equal(decodeURIComponent(new URL(page.url()).hash), '#第二节');
@@ -281,8 +345,9 @@ try {
       if (action === 'escape') await page.keyboard.press('Escape');
       if (action === 'breakpoint') await page.setViewportSize({ width: 1440, height: 900 });
       if (action === 'prenav') await page.evaluate(() => document.dispatchEvent(new Event('prenav')));
-      await panel.waitFor({ state: 'hidden' });
-      await page.waitForFunction(() => document.body.style.position !== 'fixed');
+      if (action !== 'breakpoint') await panel.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => document.body.style.position !== 'fixed' && !document.querySelector('#knowledge-mobile-panel').matches(':modal'));
+      if (action === 'breakpoint') assert.equal(await panel.isVisible(), true);
       // Resizing and prenav restore nodes and reflow the page; only dismissal preserves its layout.
       if (action === 'escape') assert.equal(await page.evaluate(() => scrollY), readingPosition);
       assert.equal(await panel.evaluate(el => el.getAnimations().length), 0);
@@ -379,22 +444,23 @@ try {
     await page.keyboard.press('Control+k');
     assert.equal(await panel.isVisible(), true, 'search shortcut opens shared panel');
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.waitForFunction(() => !!document.querySelector('.sidebar.left > .flex-component .search'));
+    await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'complementary');
     assert.equal(await capsule.isVisible(), false);
-    assert.equal(await page.locator('.page-header .tags').count(), 1);
+    assert.equal(await page.locator('#knowledge-mobile-panel .tags').count(), 1);
     assert.notEqual(await page.evaluate(() => getComputedStyle(document.body).position), 'fixed');
     await page.goto(base + 'guide/part2/note');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForFunction(() => !!document.querySelector('#knowledge-mobile-panel .toc'));
     await capsule.click();
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.waitForFunction(() => !!document.querySelector('.sidebar.right > .toc'));
-    assert.equal(await page.locator('.sidebar.right .toc a').count(), 2);
+    await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'complementary');
+    assert.equal(await page.locator('#knowledge-mobile-panel .toc a').count(), 2);
+    assert.equal(await page.locator('.sidebar.right').isVisible(), false);
     if (values.artifacts) await page.screenshot({ path: path.join(values.artifacts, 'desktop.png') });
   });
-  await check('mobile SPA lifecycle replaces and reuses nodes without losing controls', { width: 390, height: 844 }, async page => {
+  for (const width of [390, 1440]) await check(`SPA lifecycle at ${width}px replaces and reuses nodes without losing controls`, { width, height: 844 }, async page => {
     for (const slug of ['guide/part2/note', 'reference/one', 'index', 'guide/part2/note']) {
-      await page.locator('.knowledge-mobile-capsule').click();
+      if (width <= 800) await page.locator('.knowledge-mobile-capsule').click();
       // Exercise Quartz's prenav -> body replacement -> nav contract with real SSR components.
       await page.evaluate(async target => {
         const html = new DOMParser().parseFromString(await (await fetch(target)).text(), 'text/html');
@@ -406,7 +472,7 @@ try {
       for (let i = 0; i < 3; i++) await page.evaluate(() => document.dispatchEvent(new Event('nav')));
       assert.equal(await page.locator('.knowledge-mobile-capsule').count(), 1);
       assert.equal(await page.locator('#knowledge-mobile-panel .search').count(), 1);
-      await page.locator('.knowledge-mobile-capsule').click();
+      if (width <= 800) await page.locator('.knowledge-mobile-capsule').click();
       await page.locator('[data-knowledge-pane="search"]').click();
       await page.locator('#knowledge-mobile-panel input').fill('正文搜索');
       await page.locator('.result-card').first().waitFor();

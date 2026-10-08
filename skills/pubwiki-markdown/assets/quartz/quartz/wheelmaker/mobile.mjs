@@ -42,6 +42,194 @@ export function MobileChrome({ fileData = {} }) {
 
 export const mobileCSS = `
 .knowledge-mobile-capsule, .knowledge-mobile-dialog { display: none; }
+.knowledge-mobile-settings .darkmode:active { background: var(--highlight); }
+.knowledge-mobile-dialog {
+  --motion-emphasized: 280ms;
+  --motion-standard: 200ms;
+  --motion-exit: 180ms;
+  --knowledge-sidebar-surface: color-mix(in srgb, var(--light) 96%, var(--darkgray));
+  position: fixed; inset: auto; top: var(--knowledge-viewport-top, 0px); left: 0;
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 3.5rem - env(safe-area-inset-right)));
+  height: min(var(--knowledge-viewport-height, 100dvh), 100dvh);
+  max-width: none; max-height: none; margin: 0;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+  border: 0; border-right: 1px solid var(--lightgray); border-radius: 0;
+  background: var(--knowledge-sidebar-surface); color: var(--darkgray);
+  box-shadow: 8px 0 28px rgb(0 0 0 / 24%); overflow: hidden;
+  font-family: var(--knowledge-ui-font); transform: translateX(0);
+}
+.knowledge-mobile-dialog[open] { display: flex; flex-direction: column; }
+.knowledge-mobile-dialog::backdrop { background: rgb(4 9 16 / 40%); backdrop-filter: blur(2px); opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .knowledge-mobile-dialog[data-knowledge-motion="true"]::backdrop { transition: opacity var(--motion-standard) var(--knowledge-ease-out); }
+  .knowledge-mobile-dialog[data-knowledge-closing="true"]::backdrop { opacity: 0; transition-duration: var(--motion-exit); }
+  @starting-style { .knowledge-mobile-dialog[data-knowledge-motion="true"][open]::backdrop { opacity: 0; } }
+}
+.knowledge-mobile-tabs { display: flex; flex: 1; min-width: 0; gap: 0.125rem; }
+.knowledge-mobile-tabs button {
+  display: inline-flex; align-items: center; justify-content: center; flex: 1;
+  min-width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: 0.5rem;
+  background: transparent; color: var(--darkgray); cursor: pointer; touch-action: manipulation;
+}
+.knowledge-mobile-tabs button svg { flex-shrink: 0; width: 20px; height: 20px; }
+.knowledge-mobile-tabs button[aria-selected="true"] { background: var(--highlight); color: var(--secondary); }
+.knowledge-mobile-tabs button:disabled { opacity: 0.35; cursor: default; }
+.knowledge-mobile-tabs button:focus-visible { outline: 2px solid var(--secondary); outline-offset: -2px; }
+.knowledge-mobile-tabs button:not(:disabled):active { background: var(--highlight); }
+@media (hover: hover) and (pointer: fine) {
+  .knowledge-mobile-tabs button:not(:disabled):hover,
+  .knowledge-mobile-dialog :is(.knowledge-mobile-home, .toc-content a):hover { background: var(--highlight); }
+}
+[data-knowledge-panel] { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.5rem; scrollbar-width: thin; }
+[data-knowledge-panel][hidden] { display: none; }
+.knowledge-mobile-dialog .toc { display: block; overflow: visible; }
+.knowledge-mobile-dialog .toc-header { display: none; }
+.knowledge-mobile-dialog .toc-content { display: block; overflow: visible; }
+.knowledge-mobile-dialog .toc-content { margin: 0; }
+.knowledge-mobile-dialog .toc-content a { display: flex; align-items: center; min-height: 2.75rem; padding: 0.375rem 0.75rem; border-radius: 0.375rem; opacity: 1; text-decoration: none; font-size: 0.9375rem; line-height: 1.5; }
+.knowledge-mobile-dialog .toc-content a.in-view { color: var(--secondary); }
+.knowledge-mobile-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 3.75rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--lightgray);
+  flex-shrink: 0;
+}
+.knowledge-mobile-home.internal {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  background: none;
+  color: var(--darkgray);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 0.5rem;
+}
+.knowledge-mobile-home.internal[aria-current] { color: var(--dark); background: var(--highlight); }
+.knowledge-mobile-home svg { color: var(--secondary); flex-shrink: 0; }
+.knowledge-mobile-dialog .explorer { height: auto; width: 100%; margin: 0; }
+.knowledge-mobile-dialog .explorer[data-knowledge-visible="true"] { display: block; }
+.knowledge-mobile-dialog .explorer .explorer-toggle,
+.knowledge-mobile-dialog .knowledge-tags-sidebar > h2 { display: none; }
+.knowledge-mobile-dialog .explorer .explorer-content {
+  position: static;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  transform: none;
+  visibility: visible;
+  transition: none;
+}
+.knowledge-mobile-dialog .explorer-ul { overflow: visible; max-height: none; }
+.knowledge-mobile-dialog .folder-container > a {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  overflow-wrap: anywhere;
+}
+.knowledge-mobile-article-tags { margin-top: 1.5rem; padding: 0.75rem; border-top: 1px solid var(--lightgray); }
+.knowledge-mobile-article-tags h3 { margin: 0 0 0.5rem; font-size: 0.8125rem; font-weight: 500; color: var(--darkgray); }
+.knowledge-mobile-article-tags .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.knowledge-mobile-article-tags .tags a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.75rem; border-radius: 0.5rem; background: var(--highlight); color: var(--secondary); text-decoration: none; font-size: 0.875rem; }
+.page > #quartz-body .knowledge-mobile-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--lightgray);
+  opacity: 1;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+}
+.knowledge-mobile-settings .darkmode { width: 2.75rem; height: 2.75rem; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.knowledge-mobile-theme-control { display: flex; align-items: center; gap: 0.5rem; }
+[data-knowledge-theme-label] { font-size: 0.8125rem; color: var(--darkgray); }
+[data-knowledge-panel="search"] {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+}
+[data-knowledge-panel="search"] .search { width: 100%; max-width: none; }
+[data-knowledge-panel="search"] .search-button { display: none; }
+[data-knowledge-panel="search"] .search > .search-container {
+  position: static;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  backdrop-filter: none;
+}
+[data-knowledge-panel="search"] .search > .search-container > .search-space { width: 100%; margin: 0; }
+[data-knowledge-panel="search"] .search-space > * { box-shadow: none !important; }
+[data-knowledge-panel="search"] .search > .search-container > .search-space > input {
+  min-height: 3rem;
+  margin-bottom: 1rem;
+  border-color: var(--secondary);
+  font-size: 1rem;
+}
+[data-knowledge-panel="search"] .search .search-container .search-space .search-layout,
+[data-knowledge-panel="search"] .search .search-container .search-space .results-container {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+[data-knowledge-panel="search"] .search .search-container .search-space .search-layout {
+  border: 0;
+}
+[data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card {
+  padding: 1rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--lightgray);
+  border-radius: 0;
+  background: transparent;
+}
+[data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card.focus {
+  background: var(--highlight);
+}
+[data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card > h3 {
+  margin: 0;
+  color: var(--dark);
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+[data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card > p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  margin: 0.5rem 0 0;
+  color: var(--darkgray);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.sidebar.left:has(.knowledge-mobile-capsule) > :not(.knowledge-mobile-capsule):not(.knowledge-mobile-dialog) { display: none !important; }
+.page > #quartz-body .sidebar.right { display: none; }
+[data-knowledge-panel="search"] .search .preview-container { display: none; }
+[data-knowledge-panel="search"] .search .results-container { flex-basis: 100%; }
+@media (min-width: 801px) {
+  .page > #quartz-body .sidebar.left:has(.knowledge-mobile-capsule) {
+    display: block; position: sticky; top: 0; height: 100dvh; padding: 0; margin: 0;
+  }
+  .knowledge-mobile-dialog[open] {
+    position: static; width: 100%; height: 100dvh; padding: 0; border: 0;
+    box-shadow: none; transform: none;
+  }
+}
 @media (max-width: 800px) {
   html {
     scroll-behavior: auto;
@@ -54,7 +242,6 @@ export const mobileCSS = `
   .page > #quartz-body .sidebar.left:has(.knowledge-mobile-capsule) {
     display: block; position: static; height: 0; min-height: 0; padding: 0; margin: 0; z-index: auto;
   }
-  .sidebar.left:has(.knowledge-mobile-capsule) > :not(.knowledge-mobile-capsule):not(.knowledge-mobile-dialog) { display: none !important; }
   .knowledge-mobile-capsule {
     position: fixed; top: max(0.5rem, env(safe-area-inset-top)); left: max(0.75rem, env(safe-area-inset-left));
     z-index: 10; display: inline-flex; align-items: center; justify-content: center;
@@ -63,180 +250,6 @@ export const mobileCSS = `
     box-shadow: 0 2px 8px rgb(0 0 0 / 8%); cursor: pointer; touch-action: manipulation;
   }
   .knowledge-mobile-capsule:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
-  .knowledge-mobile-settings .darkmode:active { background: var(--highlight); }
-  .knowledge-mobile-dialog {
-    --motion-emphasized: 280ms;
-    --motion-standard: 200ms;
-    --motion-exit: 180ms;
-    --knowledge-sidebar-surface: color-mix(in srgb, var(--light) 96%, var(--darkgray));
-    position: fixed; inset: auto; top: var(--knowledge-viewport-top, 0px); left: 0;
-    box-sizing: border-box;
-    width: min(440px, calc(100vw - 3.5rem - env(safe-area-inset-right)));
-    height: min(var(--knowledge-viewport-height, 100dvh), 100dvh);
-    max-width: none; max-height: none; margin: 0;
-    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
-    border: 0; border-right: 1px solid var(--lightgray); border-radius: 0;
-    background: var(--knowledge-sidebar-surface); color: var(--darkgray);
-    box-shadow: 8px 0 28px rgb(0 0 0 / 24%); overflow: hidden;
-    font-family: var(--knowledge-ui-font); transform: translateX(0);
-  }
-  .knowledge-mobile-dialog[open] { display: flex; flex-direction: column; }
-  .knowledge-mobile-dialog::backdrop { background: rgb(4 9 16 / 40%); backdrop-filter: blur(2px); opacity: 1; }
-  @media (prefers-reduced-motion: no-preference) {
-    .knowledge-mobile-dialog[data-knowledge-motion="true"]::backdrop { transition: opacity var(--motion-standard) var(--knowledge-ease-out); }
-    .knowledge-mobile-dialog[data-knowledge-closing="true"]::backdrop { opacity: 0; transition-duration: var(--motion-exit); }
-    @starting-style { .knowledge-mobile-dialog[data-knowledge-motion="true"][open]::backdrop { opacity: 0; } }
-  }
-  .knowledge-mobile-tabs { display: flex; flex: 1; min-width: 0; gap: 0.125rem; }
-  .knowledge-mobile-tabs button {
-    display: inline-flex; align-items: center; justify-content: center; flex: 1;
-    min-width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: 0.5rem;
-    background: transparent; color: var(--darkgray); cursor: pointer; touch-action: manipulation;
-  }
-  .knowledge-mobile-tabs button svg { flex-shrink: 0; width: 20px; height: 20px; }
-  .knowledge-mobile-tabs button[aria-selected="true"] { background: var(--highlight); color: var(--secondary); }
-  .knowledge-mobile-tabs button:disabled { opacity: 0.35; cursor: default; }
-  .knowledge-mobile-tabs button:focus-visible { outline: 2px solid var(--secondary); outline-offset: -2px; }
-  .knowledge-mobile-tabs button:not(:disabled):active { background: var(--highlight); }
-  @media (hover: hover) and (pointer: fine) {
-    .knowledge-mobile-tabs button:not(:disabled):hover,
-    .knowledge-mobile-dialog :is(.knowledge-mobile-home, .toc-content a):hover { background: var(--highlight); }
-  }
-  [data-knowledge-panel] { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.5rem; scrollbar-width: thin; }
-  [data-knowledge-panel][hidden] { display: none; }
-  .knowledge-mobile-dialog .toc { display: block; overflow: visible; }
-  .knowledge-mobile-dialog .toc-header { display: none; }
-  .knowledge-mobile-dialog .toc-content { display: block; overflow: visible; }
-  .knowledge-mobile-dialog .toc-content { margin: 0; }
-  .knowledge-mobile-dialog .toc-content a { display: flex; align-items: center; min-height: 2.75rem; padding: 0.375rem 0.75rem; border-radius: 0.375rem; opacity: 1; text-decoration: none; font-size: 0.9375rem; line-height: 1.5; }
-  .knowledge-mobile-dialog .toc-content a.in-view { color: var(--secondary); }
-  .knowledge-mobile-dialog-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-height: 3.75rem;
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--lightgray);
-    flex-shrink: 0;
-  }
-  .knowledge-mobile-home.internal {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    min-height: 2.75rem;
-    padding: 0 0.75rem;
-    background: none;
-    color: var(--darkgray);
-    font-size: 0.9375rem;
-    font-weight: 500;
-    line-height: 1.4;
-    border-radius: 0.5rem;
-  }
-  .knowledge-mobile-home.internal[aria-current] { color: var(--dark); background: var(--highlight); }
-  .knowledge-mobile-home svg { color: var(--secondary); flex-shrink: 0; }
-  .knowledge-mobile-dialog .explorer { height: auto; width: 100%; margin: 0; }
-  .knowledge-mobile-dialog .explorer[data-knowledge-visible="true"] { display: block; }
-  .knowledge-mobile-dialog .explorer .explorer-toggle,
-  .knowledge-mobile-dialog .knowledge-tags-sidebar > h2 { display: none; }
-  .knowledge-mobile-dialog .explorer .explorer-content {
-    position: static;
-    width: 100%;
-    height: auto;
-    max-height: none;
-    padding: 0;
-    margin: 0;
-    overflow: visible;
-    transform: none;
-    visibility: visible;
-    transition: none;
-  }
-  .knowledge-mobile-dialog .explorer-ul { overflow: visible; max-height: none; }
-  .knowledge-mobile-dialog .folder-container > a {
-    display: flex;
-    align-items: center;
-    min-height: 2.75rem;
-    overflow-wrap: anywhere;
-  }
-  .knowledge-mobile-article-tags { margin-top: 1.5rem; padding: 0.75rem; border-top: 1px solid var(--lightgray); }
-  .knowledge-mobile-article-tags h3 { margin: 0 0 0.5rem; font-size: 0.8125rem; font-weight: 500; color: var(--darkgray); }
-  .knowledge-mobile-article-tags .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
-  .knowledge-mobile-article-tags .tags a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.75rem; border-radius: 0.5rem; background: var(--highlight); color: var(--secondary); text-decoration: none; font-size: 0.875rem; }
-  .page > #quartz-body .knowledge-mobile-settings {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: auto;
-    min-width: 0;
-    margin: 0;
-    padding: 0.5rem 1rem;
-    border-top: 1px solid var(--lightgray);
-    opacity: 1;
-    flex-shrink: 0;
-    font-size: 0.875rem;
-  }
-  .knowledge-mobile-settings .darkmode { width: 2.75rem; height: 2.75rem; padding: 0; border: 0; background: transparent; cursor: pointer; }
-  .knowledge-mobile-theme-control { display: flex; align-items: center; gap: 0.5rem; }
-  [data-knowledge-theme-label] { font-size: 0.8125rem; color: var(--darkgray); }
-  [data-knowledge-panel="search"] {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 1rem;
-  }
-  [data-knowledge-panel="search"] .search { width: 100%; max-width: none; }
-  [data-knowledge-panel="search"] .search-button { display: none; }
-  [data-knowledge-panel="search"] .search > .search-container {
-    position: static;
-    width: 100%;
-    height: auto;
-    overflow: visible;
-    backdrop-filter: none;
-  }
-  [data-knowledge-panel="search"] .search > .search-container > .search-space { width: 100%; margin: 0; }
-  [data-knowledge-panel="search"] .search-space > * { box-shadow: none !important; }
-  [data-knowledge-panel="search"] .search > .search-container > .search-space > input {
-    min-height: 3rem;
-    margin-bottom: 1rem;
-    border-color: var(--secondary);
-    font-size: 1rem;
-  }
-  [data-knowledge-panel="search"] .search .search-container .search-space .search-layout,
-  [data-knowledge-panel="search"] .search .search-container .search-space .results-container {
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-  [data-knowledge-panel="search"] .search .search-container .search-space .search-layout {
-    border: 0;
-  }
-  [data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card {
-    padding: 1rem 0;
-    border: 0;
-    border-bottom: 1px solid var(--lightgray);
-    border-radius: 0;
-    background: transparent;
-  }
-  [data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card.focus {
-    background: var(--highlight);
-  }
-  [data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card > h3 {
-    margin: 0;
-    color: var(--dark);
-    font-size: 1.125rem;
-    line-height: 1.4;
-  }
-  [data-knowledge-panel="search"] .search .search-container .search-space .search-layout .results-container .result-card > p {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
-    margin: 0.5rem 0 0;
-    color: var(--darkgray);
-    font-size: 0.9375rem;
-    line-height: 1.6;
-  }
   .page > #quartz-body .center { min-width: 0; width: 100%; }
   .page > #quartz-body .page-header { margin-top: max(0.5rem, env(safe-area-inset-top)); }
   .page > #quartz-body .page-header:has(> .popover-hint:empty) { margin-top: 0; }
@@ -246,7 +259,6 @@ export const mobileCSS = `
   }
   .center .knowledge-home .knowledge-mobile-list-title { padding-inline-start: 3.25rem; min-height: 2.75rem; display: flex; align-items: center; }
   .center :is(.knowledge-home, .knowledge-directory, .knowledge-tag-page) > .knowledge-page-heading { padding-top: max(0.5rem, env(safe-area-inset-top)); }
-  .page > #quartz-body .sidebar.right { display: none; }
   .page-header .article-title,
   .center article :is(h1, h2, h3, h4) { overflow-wrap: anywhere; text-wrap: balance; }
   .page-header .article-title { margin-top: 0; font-size: 1.75rem; line-height: 1.25; }
@@ -261,7 +273,7 @@ export const mobileCSS = `
 `
 
 
-// Move existing reader nodes so their listeners and state survive viewport changes.
+// One set of reader nodes serves a nonmodal wide sidebar and a modal narrow drawer.
 function installMobile() {
   if (window.__wheelmakerMobileBound) return
   window.__wheelmakerMobileBound = true
@@ -310,7 +322,7 @@ function installMobile() {
     animation.onfinish = finish
   }
   const close = (focus = true, clear = true, animate = false) => {
-    if (!dialog?.open) return
+    if (!dialog?.matches(":modal")) return
     const finish = () => {
       cancelMotion()
       activePane = null
@@ -346,10 +358,11 @@ function installMobile() {
     } else clearSearch()
   }
   const open = (name, animate = false) => {
-    if (!mobile.matches || !dialog) return
+    if (!dialog) return
     const hasToc = !!dialog.querySelector(".toc a") && !document.querySelector(".knowledge-home, .knowledge-directory, .knowledge-tag-page")
     dialog.querySelector('[data-knowledge-pane="toc"]').disabled = !hasToc
-    const pane = name || (hasToc ? "toc" : "directory")
+    const pane = name || activePane || (hasToc ? "toc" : "directory")
+    if (!mobile.matches) { select(pane); return }
     const opening = !dialog.open || dialog.dataset.knowledgeClosing === "true"
     const animated = animate && !reducedMotion.matches && typeof dialog.animate === "function"
     if (!dialog.open) {
@@ -377,6 +390,8 @@ function installMobile() {
     observer?.disconnect()
     observer = null
     close(false)
+    if (dialog?.open) dialog.close()
+    activePane = null
     cancelMotion()
     for (const [node, placeholder] of placements) placeholder.replaceWith(node)
     placements = []
@@ -385,7 +400,6 @@ function installMobile() {
   }
   const mount = () => {
     restore()
-    if (!mobile.matches) return
     dialog = document.getElementById("knowledge-mobile-panel")
     capsule = document.querySelector(".knowledge-mobile-capsule")
     if (!dialog || !capsule) return
@@ -406,37 +420,84 @@ function installMobile() {
     move(".page-header .tags", "article-tags")
     dialog.querySelector(".knowledge-mobile-article-tags").hidden = !dialog.querySelector('[data-knowledge-slot="article-tags"] .tags > *')
     const search = dialog.querySelector(".search-container")
+    const searchLayout = dialog.querySelector(".search-layout")
+    if (searchLayout) searchLayout.dataset.preview = "false"
     if (search) {
       observer = new MutationObserver(() => {
         if (search.classList.contains("active")) {
           if (!dialog?.open || activePane !== "search") open("search")
-        } else if (dialog?.open && activePane === "search") close()
+        } else if (dialog?.open && activePane === "search") {
+          if (mobile.matches) close()
+          else select("directory")
+        }
       })
       observer.observe(search, { attributes: true, attributeFilter: ["class"] })
     }
+    const hasToc = !!dialog.querySelector(".toc a") && !document.querySelector(".knowledge-home, .knowledge-directory, .knowledge-tag-page")
+    dialog.querySelector('[data-knowledge-pane="toc"]').disabled = !hasToc
+    applyMode()
+    viewport()
+  }
+  const applyMode = () => {
+    if (!dialog) return
+    const pane = activePane
+    const focused = dialog.contains(document.activeElement) ? document.activeElement : null
+    const panelScroll = [...dialog.querySelectorAll("[data-knowledge-panel]")].map(panel => [panel, panel.scrollTop])
+    cancelMotion()
+    dialog.dataset.knowledgeMotion = "false"
+    if (dialog.matches(":modal")) close(false, false)
+    if (dialog.open) dialog.close()
+    activePane = pane
+    dialog.setAttribute("role", mobile.matches ? "dialog" : "complementary")
+    if (!mobile.matches) {
+      // Setting open avoids the focus jump caused by show() on initial desktop load.
+      dialog.setAttribute("open", "")
+      select(pane || (document.querySelector(".knowledge-tag-page") ? "tags" : "directory"), false)
+      focused?.focus({ preventScroll: true })
+    } else if (focused) capsule.focus({ preventScroll: true })
+    for (const [panel, top] of panelScroll) panel.scrollTop = top
     viewport()
   }
   document.addEventListener("click", event => {
-    if (!mobile.matches || !dialog) return
+    if (!dialog) return
     const target = event.target
     if (target.closest?.(".knowledge-mobile-capsule")) { open(undefined, event.detail > 0); return }
     if (!dialog.open) return
     const tab = target.closest?.("[data-knowledge-pane]")
     if (tab && !tab.disabled) { open(tab.dataset.knowledgePane, event.detail > 0); return }
-    if (target === dialog) {
+    if (mobile.matches && target === dialog) {
       const rect = dialog.getBoundingClientRect()
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close(true, true, event.detail > 0)
     }
     const link = target.closest?.("a[href]")
-    if (link && dialog.contains(link) && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {
+    if (mobile.matches && link && dialog.contains(link) && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {
       // Do not detach search result anchors before Quartz's SPA click handler sees them.
       close(false, false)
       queueMicrotask(clearSearch)
     }
   }, true)
   document.addEventListener("keydown", event => {
+    // A collapsed drawer may retain an active search after leaving wide mode.
+    if (mobile.matches && dialog && !dialog.open && !event.isComposing
+      && event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)
+      && dialog.querySelector(".search-container.active")) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      open("search")
+      if (event.shiftKey) {
+        const input = dialog.querySelector("input")
+        if (input) { input.value = "#"; input.dispatchEvent(new Event("input", { bubbles: true })) }
+      }
+      return
+    }
     if (!dialog?.open) return
-    if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); return }
+    if (event.key === "Escape") {
+      if (mobile.matches) { event.preventDefault(); event.stopPropagation(); close() }
+      else if (activePane === "search" && dialog.contains(event.target)) {
+        event.preventDefault(); event.stopPropagation(); select("directory")
+      }
+      return
+    }
     const tab = event.target.closest?.("[data-knowledge-pane]")
     if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return
     event.preventDefault()
@@ -450,7 +511,7 @@ function installMobile() {
   }, true)
   document.addEventListener("prenav", restore)
   document.addEventListener("nav", mount)
-  mobile.addEventListener("change", mount)
+  mobile.addEventListener("change", applyMode)
   reducedMotion.addEventListener("change", () => {
     if (reducedMotion.matches) {
       if (dialog) dialog.dataset.knowledgeMotion = "false"

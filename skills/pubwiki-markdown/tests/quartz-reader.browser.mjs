@@ -113,6 +113,7 @@ try {
   });
   await check('mobile directory/tag navigation, saved folders and search', { width: 390, height: 844 }, async page => {
     assert.equal(await page.locator('.knowledge-mobile-capsule').count(), 1, 'mobile uses a single capsule');
+    assert.equal((await page.locator('.knowledge-mobile-capsule').textContent()).trim(), '', 'entry is icon-only');
     assert.equal(await page.locator('.knowledge-mobile-bar').count(), 0, 'no persistent title bar');
     await page.locator('.knowledge-mobile-capsule').click();
     const dialog = page.locator('#knowledge-mobile-panel');
@@ -120,7 +121,9 @@ try {
     await dialog.locator('[data-knowledge-pane="directory"]').click();
     await dialog.locator('[data-folderpath="guide"] button').click();
     assert.equal(await dialog.locator('[data-folderpath="guide/part2"] a').isVisible(), true);
-    await dialog.locator('[data-knowledge-view="tags"]').click();
+    assert.equal(await dialog.locator('[role="tablist"]').count(), 1, 'one level of navigation tabs');
+    assert.deepEqual(await dialog.locator('[data-knowledge-pane]').evaluateAll(tabs => tabs.map(tab => tab.getAttribute('aria-label'))), ['目录', '标签', '大纲', '搜索']);
+    await dialog.getByRole('tab', { name: '标签', exact: true }).click();
     assert.equal(await dialog.locator('.knowledge-tags-sidebar').isVisible(), true);
     await page.keyboard.press('Escape');
     assert.equal(await dialog.evaluate(el => el.open), false);
@@ -142,9 +145,14 @@ try {
       await capsule.click();
       assert.equal(await panel.locator('[data-knowledge-pane="directory"]').getAttribute('aria-selected'), 'true');
       assert.equal(await panel.locator('[data-knowledge-pane="toc"]').isDisabled(), true);
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
       const bounds = await panel.boundingBox();
-      assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= height - 40, 'panel leaves some page visible');
+      assert.equal(bounds.x, 0, 'drawer attaches to the left edge');
+      assert.equal(bounds.y, 0);
+      assert.ok(bounds.height >= height - 1, 'drawer uses the full available height');
+      assert.ok(bounds.width <= width - 44, 'drawer leaves a strip of the page visible');
       await page.mouse.click(width - 2, height - 2);
+      await panel.waitFor({ state: 'hidden' });
       assert.equal(await panel.isVisible(), false);
       assert.equal(await capsule.evaluate(el => el === document.activeElement), true);
       await page.goto(base + 'guide/part2/note');
@@ -164,6 +172,7 @@ try {
         if (dismiss === 'Escape') await page.keyboard.press('Escape');
         else if (dismiss === 'button') await panel.locator('[data-knowledge-close]').click();
         else await page.mouse.click(width - 2, height - 2);
+        await panel.waitFor({ state: 'hidden' });
         assert.equal(await page.evaluate(() => window.scrollY), readingPosition, `${dismiss} preserves scroll`);
         assert.equal(await capsule.evaluate(el => el === document.activeElement), true);
       }
@@ -172,6 +181,7 @@ try {
       await page.keyboard.press('Escape');
       await capsule.click();
       assert.equal(await panel.locator('[data-knowledge-pane="toc"]').getAttribute('aria-selected'), 'true', 'each opening resets context');
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
       if (values.artifacts && width === 390) await page.screenshot({ path: path.join(values.artifacts, 'toc.png') });
       await panel.locator('.toc a').nth(1).click();
       assert.equal(await panel.isVisible(), false);
@@ -185,6 +195,95 @@ try {
       assert.equal(await panel.isVisible(), false, 'directory navigation closes panel');
     });
   }
+  await check('drawer interruption, reversal and exit cleanup', { width: 390, height: 844 }, async page => {
+    await page.goto(base + 'guide/part2/note');
+    await page.evaluate(() => window.scrollTo(0, 400));
+    // Pause native animations to exercise interruption at a deterministic visible position.
+    const state = await page.evaluate(() => {
+      const panel = document.querySelector('#knowledge-mobile-panel');
+      const click = selector => document.querySelector(selector).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      const pause = progress => {
+        const animation = panel.getAnimations().find(item => item.effect.getKeyframes().some(frame => frame.transform));
+        animation.pause();
+        animation.currentTime = animation.effect.getTiming().duration * progress;
+        return animation;
+      };
+      click('.knowledge-mobile-capsule');
+      const entering = pause(0.2);
+      const entryX = panel.getBoundingClientRect().x;
+      const visible = getComputedStyle(panel).transform;
+      click('[data-knowledge-close]');
+      const exiting = pause(0.25);
+      const exitStart = exiting.effect.getKeyframes()[0].transform;
+      const exitVisible = getComputedStyle(panel).transform;
+      const locked = panel.matches(':modal') && document.body.style.position === 'fixed';
+      click('[data-knowledge-pane="tags"]');
+      const reversed = pause(0.5);
+      const reverseStart = reversed.effect.getKeyframes()[0].transform;
+      reversed.finish();
+      return { entryX, width: panel.getBoundingClientRect().width, visible, exitStart, exitVisible, reverseStart, locked,
+        enterDuration: entering.effect.getTiming().duration, exitDuration: exiting.effect.getTiming().duration };
+    });
+    assert.ok(state.entryX < 0 && state.entryX > -state.width);
+    assert.equal(state.enterDuration, 280);
+    assert.equal(state.exitDuration, 180);
+    assert.equal(state.exitStart, state.visible, 'closing starts at the visible entry position');
+    assert.equal(state.reverseStart, state.exitVisible, 'reopening starts at the visible exit position');
+    assert.equal(state.locked, true, 'focus trap and body lock survive the exit animation');
+    const panel = page.locator('#knowledge-mobile-panel');
+    await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
+    assert.equal(await panel.isVisible(), true, 'cancelled exit cannot close the reopened drawer');
+    assert.equal(await panel.locator('[data-knowledge-pane="tags"]').getAttribute('aria-selected'), 'true');
+    assert.equal(await panel.locator('[data-knowledge-slot="article-tags"] .tags').isVisible(), true);
+    if (values.artifacts) await page.screenshot({ path: path.join(values.artifacts, 'tags.png') });
+    for (const action of ['escape', 'breakpoint', 'prenav']) {
+      await page.evaluate(() => {
+        document.querySelector('[data-knowledge-close]').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+        document.querySelector('#knowledge-mobile-panel').getAnimations().forEach(animation => animation.pause());
+      });
+      if (action === 'escape') await page.keyboard.press('Escape');
+      if (action === 'breakpoint') await page.setViewportSize({ width: 1440, height: 900 });
+      if (action === 'prenav') await page.evaluate(() => document.dispatchEvent(new Event('prenav')));
+      await panel.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => document.body.style.position !== 'fixed');
+      assert.equal(await page.evaluate(() => scrollY), 400);
+      assert.equal(await panel.evaluate(el => el.getAnimations().length), 0);
+      if (action === 'breakpoint') await page.setViewportSize({ width: 390, height: 844 });
+      await page.evaluate(() => document.dispatchEvent(new Event('nav')));
+      await page.locator('.knowledge-mobile-capsule').click();
+    }
+  });
+  await check('drawer keyboard tabs and reduced motion', { width: 390, height: 844 }, async page => {
+    const capsule = page.locator('.knowledge-mobile-capsule');
+    const panel = page.locator('#knowledge-mobile-panel');
+    await capsule.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await panel.evaluate(el => el.getAnimations().length), 0, 'keyboard opening is immediate');
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await panel.locator('[data-knowledge-pane="tags"]').getAttribute('aria-selected'), 'true');
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await panel.locator('input').evaluate(el => el === document.activeElement), true, 'arrows skip unavailable outline and focus search');
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Control+k');
+    assert.equal(await panel.evaluate(el => el.getAnimations().length), 0);
+    await page.keyboard.press('Escape');
+    for (const phase of ['entry', 'exit']) {
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.evaluate(phase => {
+        document.querySelector('.knowledge-mobile-capsule').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+        if (phase === 'exit') document.querySelector('[data-knowledge-close]').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+        document.querySelector('#knowledge-mobile-panel').getAnimations().forEach(animation => animation.pause());
+      }, phase);
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
+      assert.equal(await panel.isVisible(), phase === 'entry');
+      await page.keyboard.press('Escape');
+    }
+    await capsule.click();
+    assert.equal(await panel.evaluate(el => el.getAnimations().length), 0, 'reduced-motion pointer opening is immediate');
+    await panel.locator('[data-knowledge-close]').click();
+    assert.equal(await panel.isVisible(), false);
+  });
   await check('mobile search feedback, viewport contraction, theme and responsive restoration', { width: 390, height: 844 }, async page => {
     await page.goto(base + 'guide/part2/note');
     const capsule = page.locator('.knowledge-mobile-capsule');

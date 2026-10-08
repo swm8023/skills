@@ -495,16 +495,17 @@ export const KnowledgeSidebarSwitch = () => {
     root.dataset.openView = showDirectory ? "directory" : "tags"
     directory.id = "knowledge-directory-panel"
     tags.id = "knowledge-tags-panel"
-    directory.setAttribute("role", "tabpanel")
-    directory.setAttribute("aria-labelledby", "knowledge-directory-tab")
-    tags.setAttribute("role", "tabpanel")
-    tags.setAttribute("aria-labelledby", "knowledge-tags-tab")
+    directory.setAttribute("role", mobile.matches ? "group" : "tabpanel")
+    directory.setAttribute("aria-labelledby", mobile.matches ? "knowledge-pane-directory" : "knowledge-directory-tab")
+    tags.setAttribute("role", mobile.matches ? "group" : "tabpanel")
+    tags.setAttribute("aria-labelledby", mobile.matches ? "knowledge-pane-tags" : "knowledge-tags-tab")
     tags.tabIndex = tags.querySelector("a") ? -1 : 0
-    directory.dataset.knowledgeVisible = String(showDirectory)
-    tags.dataset.knowledgeVisible = String(!showDirectory)
-    directory.setAttribute("aria-hidden", String(!showDirectory))
-    tags.setAttribute("aria-hidden", String(showDirectory))
-    directory.classList.toggle("collapsed", !showDirectory)
+    // Mobile owns separate top-level panes; the desktop switch stays in place.
+    directory.dataset.knowledgeVisible = String(mobile.matches || showDirectory)
+    tags.dataset.knowledgeVisible = String(mobile.matches || !showDirectory)
+    directory.setAttribute("aria-hidden", String(!mobile.matches && !showDirectory))
+    tags.setAttribute("aria-hidden", String(!mobile.matches && showDirectory))
+    directory.classList.toggle("collapsed", !mobile.matches && !showDirectory)
     directory.removeAttribute("aria-expanded")
     const directoryContent = directory.querySelector(".explorer-content")
     directoryContent?.removeAttribute("aria-expanded")

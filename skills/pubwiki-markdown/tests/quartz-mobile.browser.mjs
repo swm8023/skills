@@ -161,8 +161,11 @@ try {
       await menu.click();
       assert.equal(await panel.evaluate(dialog => dialog.matches(':modal')), true);
       assert.equal(await panel.locator('[data-knowledge-pane="directory"]').getAttribute('aria-selected'), 'true');
-      assert.ok((await panel.boundingBox()).height < 844 - 40, 'floating panel leaves the page visible');
-      await panel.locator('[data-knowledge-view="tags"]').click();
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
+      const bounds = await panel.boundingBox();
+      assert.equal(bounds.x, 0, 'drawer attaches to the left edge');
+      assert.ok(bounds.height >= 843 && bounds.width <= width - 44, 'drawer leaves a strip of the page visible');
+      await panel.locator('[data-knowledge-pane="tags"]').click();
       assert.equal(await panel.locator('.knowledge-tags-sidebar').isVisible(), true);
       await page.keyboard.press('Escape');
       assert.equal(await menu.evaluate(button => button === document.activeElement), true);
@@ -173,6 +176,7 @@ try {
       const readingScroll = await page.evaluate(() => window.scrollY);
       await menu.click();
       await panel.locator('[data-knowledge-close]').click();
+      await panel.waitFor({ state: 'hidden' });
       assert.equal(await page.evaluate(() => window.scrollY), readingScroll);
       await menu.click();
       await panel.locator('[data-knowledge-pane="search"]').click();

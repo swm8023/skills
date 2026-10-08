@@ -326,7 +326,11 @@ try {
     await check(`mobile ${width}×${height}: default pane, reading space, scroll, focus and heading navigation`, { width, height }, async page => {
       const capsule = page.locator('.knowledge-mobile-capsule');
       const panel = page.locator('#knowledge-mobile-panel');
+      const capsuleBounds = await capsule.boundingBox();
+      assert.ok(capsuleBounds.x > width / 2 && Math.abs(width - capsuleBounds.x - capsuleBounds.width - 12) < 1, 'capsule stays at the right inset');
       assert.equal((await page.locator('.sidebar.left').boundingBox()).height, 0);
+      const homeCount = await page.locator('.knowledge-home .knowledge-page-meta').boundingBox();
+      assert.ok(homeCount.x + homeCount.width < capsuleBounds.x, 'home article count remains visible beside the capsule');
       assert.ok((await page.locator('.knowledge-page-card').first().boundingBox()).y < 100, 'home starts without a toolbar row');
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       if (values.artifacts && width === 390) await page.screenshot({ path: path.join(values.artifacts, 'home.png') });
@@ -345,6 +349,19 @@ try {
       assert.equal(await capsule.evaluate(el => el === document.activeElement), true);
       await page.goto(base + 'guide/part2/note');
       assert.equal(await page.locator('.article-title').isVisible(), true);
+      const title = page.locator('.article-title');
+      const titleText = 'Lesson A：环境、工具链与第一次编译';
+      // Exceed balanced wrapping's short-heading limit to measure available line width.
+      await title.evaluate((el, text) => { el.textContent = text.repeat(10); }, titleText);
+      const titleLayout = await title.evaluate(el => {
+        const range = document.createRange(); range.selectNodeContents(el);
+        return { left: el.getBoundingClientRect().left, lines: [...range.getClientRects()].map(rect => ({ left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom })) };
+      });
+      assert.ok(Math.abs(titleLayout.lines[0].left - titleLayout.left) < 1, 'title starts at the article edge');
+      const buttonBounds = await capsule.boundingBox();
+      assert.ok(titleLayout.lines.every(line => line.bottom <= buttonBounds.y || line.top >= buttonBounds.y + buttonBounds.height || line.right <= buttonBounds.x - 4), 'title never overlaps the button');
+      assert.ok(titleLayout.lines.some(line => line.top >= buttonBounds.y + buttonBounds.height && line.right > buttonBounds.x), 'later title lines regain the full reading width');
+      await title.evaluate((el, text) => { el.textContent = text; }, titleText);
       if (values.artifacts && width === 390) await page.screenshot({ path: path.join(values.artifacts, 'article.png') });
       await page.evaluate(() => window.scrollTo(0, 400));
       const readingPosition = await page.evaluate(() => window.scrollY);

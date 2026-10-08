@@ -272,7 +272,7 @@ export const mobileCSS = `
     display: block; position: static; height: 0; min-height: 0; padding: 0; margin: 0; z-index: auto;
   }
   .knowledge-mobile-capsule {
-    position: fixed; top: max(0.5rem, env(safe-area-inset-top)); left: max(0.75rem, env(safe-area-inset-left));
+    position: fixed; top: max(0.5rem, env(safe-area-inset-top)); right: max(0.75rem, env(safe-area-inset-right));
     z-index: 10; display: inline-flex; align-items: center; justify-content: center;
     width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid var(--lightgray); border-radius: 0.875rem;
     background: var(--light); color: var(--dark); font: 500 0.875rem var(--knowledge-ui-font);
@@ -285,9 +285,14 @@ export const mobileCSS = `
   .page > #quartz-body .page-header:has(> .popover-hint:empty) { margin-top: 0; }
   .page-header .article-title, .center:not(:has(.article-title)) > article > h1:first-child,
   .center :is(.knowledge-home, .knowledge-directory, .knowledge-tag-page) .knowledge-page-title {
-    padding-inline-start: 3.25rem; min-height: 2.75rem;
+    padding-inline: 0; min-height: 2.75rem;
   }
-  .center .knowledge-home .knowledge-mobile-list-title { padding-inline-start: 3.25rem; min-height: 2.75rem; display: flex; align-items: center; }
+  .page-header .article-title::before, .center:not(:has(.article-title)) > article > h1:first-child::before,
+  .center :is(.knowledge-home, .knowledge-directory, .knowledge-tag-page) .knowledge-page-title::before {
+    content: ""; float: right; width: 3.25rem; height: 2.75rem;
+  }
+  .center .knowledge-home > .knowledge-page-heading { padding-inline-end: 3.25rem; }
+  .center .knowledge-home .knowledge-mobile-list-title { padding-inline: 0; min-height: 2.75rem; display: flex; align-items: center; }
   .center :is(.knowledge-home, .knowledge-directory, .knowledge-tag-page) > .knowledge-page-heading { padding-top: max(0.5rem, env(safe-area-inset-top)); }
   .page-header .article-title,
   .center article :is(h1, h2, h3, h4) { overflow-wrap: anywhere; text-wrap: balance; }

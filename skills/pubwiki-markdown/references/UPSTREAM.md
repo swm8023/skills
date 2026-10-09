@@ -35,20 +35,21 @@ local workflow extension, not upstream syntax material.
 - The Skill installs this release into the private
   `~/.wheelmaker/wiki/quartz/` directory when it is absent, then overlays the
   checked-in `assets/quartz/` YAML configuration, TypeScript entrypoint, and
-  WheelMaker local v5 plugins. With `ensure-quartz.mjs --link-skill`, the local
-  UI plugin instead links directly to this installed Skill's assets; existing
-  installations migrate without reinstalling Quartz or its dependencies.
-  This requires a Hub with linked-plugin exporter support. Quartz source is
-  unchanged, and the Hub supplies Node's `--preserve-symlinks` flag. The setup helper restores the v5 Community
-  plugins from the upstream `quartz.lock.json` before the runtime is used.
-- Quartz 5 replaces the v4 `quartz.config.ts`/`quartz.layout.ts` pair with
-  `quartz.config.yaml`, plugin manifests, and per-plugin layout declarations.
-  The local home page is a v5 virtual page type, so no `content/index.md` is
-  generated or required.
-- Home, directory, and tag result pages now use the WheelMaker page type. The
-  external `tag-page` plugin is removed from the pinned configuration and lock:
-  its virtual-page body could re-embed its populated HTML tree during final
-  rendering, duplicating results. Existing installations must explicitly refresh
-  the runtime configuration once when adopting this change.
-- The runtime is a build dependency, not Wiki content. It is never copied into
-  `data/` or public output, and Quartz receives no WheelMaker credentials.
+  WheelMaker local v5 plugins. The runtime uses the pinned upstream core;
+  `quartz.ts` applies the local reader layout and resource finalization wrappers.
+  The setup helper restores Community plugins from the checked-in
+  `assets/quartz/quartz.lock.json` and prepares the generated plugin index.
+- `ensure-quartz.mjs --link-skill` binds the local plugin to this installed
+  Skill's assets. The Hub supplies Node's `--preserve-symlinks` flag and preloads
+  the plugin before invoking Quartz. Runtime preparation and update commands
+  are documented in [the active Skill](../SKILL.md#git-和发布).
+- Quartz 5 uses `quartz.config.yaml`, plugin manifests, and per-plugin layout
+  declarations. WheelMaker provides virtual home, directory, and tag result
+  pages, the reader navigation, and the search index and interface.
+- The local resource wrapper finalizes emitted HTML, shared token styles,
+  heading SVG symbols and content-hashed assets. Search uses a candidate index
+  and separate article text files. Performance comparisons follow
+  [the metrics procedure](../scripts/wiki-metrics.md).
+- The runtime is a private build dependency. Hub's embedded fixed exporter
+  invokes it, and Hub's Publisher handles archive upload and authentication.
+  Registry serves the published static site and applies its caching policy.

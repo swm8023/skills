@@ -100,7 +100,7 @@ site:
   description: Browse the WheelMaker knowledge base.
 ```
 
-如果提供这两个值，必须都是非空字符串。标题会同时用于公开首页标题、Quartz 页面标题、虚拟首页元数据和站点元数据。不会读取或迁移旧版配置文件名。
+如果提供这两个值，必须都是非空字符串。标题会同时用于公开首页标题、Quartz 页面标题、虚拟首页元数据和站点元数据。
 
 不要为根目录、repo 或普通目录创建 `index.md`。Quartz 会在构建时创建公开的虚拟首页和目录列表。
 
@@ -171,51 +171,75 @@ draft: false
 
 ## Git 和发布
 
-保存和发布都属于本 Skill。对于已获授权的发布，只用本次操作变更的路径调用发布助手。仅本地保存时，保存并校验笔记，不调用发布助手，也不改变长期发布偏好。固定 `data/` 仓库的 Git 生命周期由专用准备/发布助手负责；不要同时用 `git-workflow` 或 `git-check` 对同一批变更执行 prepare、commit、push 或 cleanup。普通来源仓库仍使用自己的 Git 生命周期。发布助手强制执行以下边界：
+### 准备运行环境
 
-- 开始前检查 worktree 和 index；
-- 如果 `data/` 下已有预先暂存的文件或无关修改，则停止；
-- 绝不自动 stash、清理用户修改或 force-push；
-- pull --rebase，暂存精确的已批准路径，commit，然后 push；
-- rebase、commit 或 push 冲突时停止；
-- 只有 Git 阶段成功后，才调用 `wheelmaker wiki publish`。
-
-使用：
-
-```text
-node <this-skill>/scripts/publish-wiki.mjs --paths content/<实际repo>/<目录>/<文件>.md ...
-```
-
-发布助手只提交这些已批准的路径，执行配置的 rebase/push 阶段，然后调用现有的 `wheelmaker wiki publish` 命令。它不会调用单独的 Hub 上传命令。
-
-`wiki.config.yaml` 中的 `publish.mode` 控制最后阶段是否运行。默认值 `auto` 下，Skill 调用现有 WheelMaker Wiki 命令。`off`、`disabled`、`manual` 和 `false` 会在暂存、commit、pull、push 或 WheelMaker 调用之前返回 `skipped`。该命令调用内置的 `default.mjs`；MJS 使用由 Skill 准备的 Quartz runtime，以 `data/content/` 为输入、Hub 输出目录为输出。同一个 WheelMaker 命令负责校验、归档、认证，并把静态结果上传到 `/wiki/`。Quartz 从不直接上传，也不会接收 WheelMaker 凭据。
-
-发布前确保固定版本的 Quartz runtime 可用：
+发布前安装或校验固定版本的 Quartz runtime：
 
 ```text
 node <this-skill>/scripts/ensure-quartz.mjs
 ```
 
-该命令会在 `~/.wheelmaker/wiki/quartz/` 下安装或校验私有 runtime，并将其配置放在 Git 数据根目录之外。runtime 固定为 Quartz `v5.0.0`；其 YAML 配置、`quartz.ts` 入口、插件 lockfile 和生成的插件索引保持固定。默认情况下，WheelMaker UI 插件会被复制，并与安装快照比对，以兼容旧版 Hub。准备助手会根据 lockfile 恢复 Quartz Community 插件，不会把生成的插件目录留在 Wiki `data/` 中。没有文件 watcher；在 Obsidian 中编辑和保存不会隐式发布。Quartz 5 要求 Node.js 22 或更高版本。
+runtime 位于 `~/.wheelmaker/wiki/quartz/`，使用 Quartz `v5.0.0` 和 Node.js 22 或更高版本。准备助手部署 `assets/quartz/` 中的 YAML 配置、`quartz.ts` 入口和 WheelMaker 本地插件，按 `quartz.lock.json` 恢复 Quartz Community 插件，并记录安装指纹。运行环境与 Wiki 数据仓库分开存放。
 
-### 将 UI 插件连接到本 Skill
+### 绑定和更新插件
 
-将 Hub 更新到支持 Skill 插件绑定的版本后，在没有 Wiki 发布或其他 setup 运行时执行一次：
+使用支持 Skill 插件绑定的 Hub，在 Wiki 发布和其他 setup 均已结束后执行：
 
 ```text
 node <this-skill>/scripts/ensure-quartz.mjs --link-skill
 ```
 
-对于有效的现有 runtime，该命令只替换 WheelMaker 插件目录和缓存链接，保留 Quartz、配置和 `node_modules`。Windows 使用目录 junction；其他平台使用目录 symlink。来源取自当前安装的 Skill，不是硬编码的 checkout 路径。重复执行是安全的，可以修复缺失链接或重新绑定移动后的 Skill 安装。不会覆盖意外目录；激活失败时会恢复旧插件和元数据。
+该命令将 runtime 中的 WheelMaker 插件连接到当前安装 Skill 的 `assets/quartz/quartz/wheelmaker/`。Windows 使用目录 junction，其他平台使用目录 symlink。重复执行可修复链接或重新绑定移动后的 Skill 安装。
 
-连接后，绑定 Skill 的 UI MJS 文件在下一次正常的 Hub UI/CLI 发布时生效。没有 watcher 或自动发布，Hub 也不会在每次发布时运行 Skill helper。固定导出器使用 Node 的 `--preserve-symlinks`，从 Quartz 解析插件依赖；`--import` 会预加载插件，因此语法或导入失败会在 Quartz 可能静默跳过插件之前终止进程。不需要修改 Quartz 源码，也不需要在 Skill 目录安装 `node_modules`。
+启用链接模式后，按变更类型选择操作：
 
-Release 元数据会记录本地来源，并将插件 manifest 与实时 UI 文件分开固定。每次构建前后，导出器都会检查目录链接并计算插件树指纹；来源缺失、manifest 改变、嵌套链接或构建期间发生编辑都会使发布失败，而不是使用过时副本。来源路径和元数据都位于 `data/` 之外，也不会进入发布站点。
+| 变更 | 操作 |
+| --- | --- |
+| 本地插件目录中的 MJS 逻辑、样式或 SVG 资源 | 编辑完成后执行正常发布 |
+| `quartz.ts`、YAML 配置、插件 manifest 或 lockfile | 执行 `ensure-quartz.mjs --refresh --link-skill`，再发布 |
+| Skill 安装位置或插件链接 | 执行 `ensure-quartz.mjs --link-skill`，再发布 |
 
-修改插件 manifest、Quartz 配置或依赖 lockfile 时，需要显式执行 `--refresh --link-skill`；refresh 会在启用后保持链接模式。旧版 Hub 无法发布 linked runtime，因此迁移前先更新 Hub。后续只修改 UI 文件时，不需要再次更新 Hub 或重新安装 Quartz。
+未启用链接模式时，准备助手以安装快照部署本地插件；更新插件后执行 `ensure-quartz.mjs --refresh`，再发布。所有编辑和 setup 完成后再开始构建。
 
-桌面端导航使用匹配的目录/标签行、分离的展开按钮和链接、每篇文章计数、当前位置指示器以及支持键盘操作的标签页。较长的导航列表在侧栏内部滚动。WheelMaker 自己负责首页、目录结果页和标签结果页，使它们共享相同渲染方式，避免递归嵌入上游标签页的预渲染列表。仍启用外部 `tag-page` 插件的安装，需要一次 `--refresh --link-skill` 才能采用更新后的固定配置；页面插件会明确报告这一点，而不是生成互相竞争的标签页。
+固定导出器使用 Node 的 `--preserve-symlinks` 从 Quartz runtime 解析依赖，通过 `--import` 预加载本地插件。构建前后会校验运行配置、目录链接、插件 manifest 和插件树指纹。Release 元数据记录安装与来源信息，供下一次构建校验。
+
+### 保存并发布笔记
+
+仅本地保存时，写入并校验已确认的笔记。保存并发布时，用本次变更的精确路径调用发布助手：
+
+```text
+node <this-skill>/scripts/publish-wiki.mjs --paths content/<实际repo>/<目录>/<文件>.md ...
+```
+
+固定 `data/` 仓库的 Git 生命周期完整交由专用准备/发布助手管理，同一批数据变更只通过这些助手执行 Git 操作。普通来源仓库使用自己的 Git 生命周期。发布助手按以下顺序执行：
+
+1. 检查 worktree 和 index；存在预先暂存的文件或本次路径之外的修改时停止。
+2. 暂存精确的已批准路径并 commit。
+3. 执行 `pull --rebase`，然后 push。
+4. Git 阶段成功后，调用 `wheelmaker wiki publish`。
+
+助手保留用户修改，采用普通 rebase 和 push；rebase、commit 或 push 冲突时保留现场并报告。`wiki.config.yaml` 中的 `publish.mode` 控制发布助手是否执行：`auto` 使用上述流程；`off`、`disabled`、`manual` 和 `false` 返回 `skipped`。
+
+### 重新发布站点
+
+仅更新站点插件或运行配置、现有笔记内容保持原样时，先完成对应的运行环境准备和源码仓库提交。在已有重新发布授权的情况下，直接调用：
+
+```text
+wheelmaker wiki publish
+```
+
+此操作以现有 Wiki 数据作为构建输入。本地插件和配置的提交由其所属源码仓库管理。
+
+### 构建与发布验证
+
+`wheelmaker wiki publish` 由 Hub 调用内嵌的固定导出器 `exporter/engine.mjs`，使用已准备的 Quartz runtime 将 `data/content/` 构建到 Hub 输出目录。Hub 完成校验、归档、认证和静态产物上传，Registry 在 `/wiki/` 提供站点访问。
+
+WheelMaker 插件负责首页、目录和标签结果页、阅读器导航、搜索及资源优化。构建时压缩重复 HTML 表达，为静态资源生成内容哈希，并为搜索生成候选索引和正文文件。页面按需加载公式、标签树和搜索数据。
+
+发布后确认命令结果为成功，并核对页面、导航和搜索。在性能迭代时读取 [量化检查说明](scripts/wiki-metrics.md)，用已发布 HTML 快照或合成构建产物，在相同浏览器环境下比较三次测量的中位数；记录 HTML 体积、压缩下载量、请求数、DOM 数量和搜索结果一致性。
+
+涉及 Registry 缓存策略的变更时，部署对应的 WheelMaker 服务端版本，并检查已认证请求的响应头。内容哈希静态资源使用 `private, max-age=86400, immutable`；HTML、元数据和搜索正文使用 `private, no-cache`。
 
 ## 范围边界
 
-本 Skill 不提供 WheelMaker 编辑器按钮、Obsidian URI opener 或第二套上传协议。它只维护纯 Markdown 数据、本地 runtime 资源以及已确认的 WheelMaker 发布流程。
+本 Skill 维护纯 Markdown 数据、本地 runtime 资源以及已确认的 WheelMaker 发布流程。

@@ -315,6 +315,9 @@ function installMobile() {
   let dialog, capsule, observer, activePane, savedScroll, bodyStyle
   let motion = null
   let placements = []
+  // Only the current main-content wrapper defines the page type.
+  const listingPage = () => document.querySelector(".page > #quartz-body > .center > :is(.knowledge-home, .knowledge-directory, .knowledge-tag-page)")
+  const hasOutline = () => !!dialog?.querySelector(".toc a") && !listingPage()
   const viewport = () => {
     if (!dialog) return
     dialog.style.setProperty("--knowledge-viewport-height", (window.visualViewport?.height || innerHeight) + "px")
@@ -393,7 +396,7 @@ function installMobile() {
   }
   const open = (name, animate = false) => {
     if (!dialog) return
-    const hasToc = !!dialog.querySelector(".toc a") && !document.querySelector(".knowledge-home, .knowledge-directory, .knowledge-tag-page")
+    const hasToc = hasOutline()
     dialog.querySelector('[data-knowledge-pane="toc"]').disabled = !hasToc
     const pane = name || activePane || (hasToc ? "toc" : "directory")
     if (!mobile.matches) { select(pane); return }
@@ -465,7 +468,7 @@ function installMobile() {
       })
       observer.observe(search, { attributes: true, attributeFilter: ["class"] })
     }
-    const hasToc = !!dialog.querySelector(".toc a") && !document.querySelector(".knowledge-home, .knowledge-directory, .knowledge-tag-page")
+    const hasToc = hasOutline()
     dialog.querySelector('[data-knowledge-pane="toc"]').disabled = !hasToc
     applyMode()
     viewport()
@@ -484,7 +487,7 @@ function installMobile() {
     if (!mobile.matches) {
       // Setting open avoids the focus jump caused by show() on initial desktop load.
       dialog.setAttribute("open", "")
-      select(pane || (document.querySelector(".knowledge-tag-page") ? "tags" : "directory"), false)
+      select(pane || (listingPage()?.classList.contains("knowledge-tag-page") ? "tags" : "directory"), false)
       focused?.focus({ preventScroll: true })
     } else if (focused) capsule.focus({ preventScroll: true })
     for (const [panel, top] of panelScroll) panel.scrollTop = top

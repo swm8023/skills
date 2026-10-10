@@ -83,6 +83,55 @@ async function check(name, viewport, run) {
   finally { await page.close(); }
 }
 try {
+  for (const width of [390, 960, 1440]) await check(`TOC availability at ${width}px ignores retained page previews`, { width, height: 844 }, async page => {
+    await page.goto(base + 'guide/part2/note');
+    const panel = page.locator('#knowledge-mobile-panel');
+    const outline = panel.locator('[data-knowledge-pane="toc"]');
+    assert.equal(await outline.isDisabled(), false);
+    const articleURL = page.url();
+    await page.evaluate(() => {
+      // Quartz's former hover previews retained page wrappers outside the
+      // current main content after the pointer left a link.
+      const preview = document.createElement('div');
+      preview.className = 'popover';
+      preview.hidden = true;
+      preview.innerHTML = '<div class="popover-inner"><div class="knowledge-home"></div><div class="knowledge-directory"></div><div class="knowledge-tag-page"></div></div>';
+      document.body.append(preview);
+    });
+    const openPanel = async () => {
+      if (!await panel.evaluate(el => el.open)) await page.locator('.knowledge-mobile-capsule').click();
+    };
+    if (width <= 800) {
+      await page.setViewportSize({ width: 1440, height: 844 });
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'complementary');
+      assert.equal(await panel.locator('[data-knowledge-pane="directory"]').getAttribute('aria-selected'), 'true', 'a retained tag preview does not choose the default pane');
+      await page.setViewportSize({ width, height: 844 });
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'dialog');
+    }
+    await openPanel();
+    for (const pane of ['tags', 'directory', 'search', 'tags', 'toc']) {
+      await panel.locator(`[data-knowledge-pane="${pane}"]`).click();
+      assert.equal(page.url(), articleURL, 'switching panes leaves the article unchanged');
+      assert.equal(await panel.locator('.toc a').count(), 2, 'article outline nodes remain available');
+      assert.equal(await outline.isDisabled(), false, 'unrelated page wrappers must not disable the article outline');
+    }
+    await page.evaluate(() => document.dispatchEvent(new Event('nav')));
+    assert.equal(await outline.isDisabled(), false, 'remount uses the current main content as well');
+    await openPanel();
+    await panel.locator('[data-knowledge-pane="toc"]').click();
+    await panel.locator('.toc a').nth(1).click();
+    assert.equal(decodeURIComponent(new URL(page.url()).hash), '#第二节');
+    for (const slug of ['index', 'guide/index', 'tags/topic', 'reference/one', 'guide/part2/note']) {
+      await page.evaluate(async target => {
+        const html = new DOMParser().parseFromString(await (await fetch(target)).text(), 'text/html');
+        document.dispatchEvent(new Event('prenav'));
+        document.body.replaceWith(html.body);
+        history.pushState({}, '', target);
+        document.dispatchEvent(new Event('nav'));
+      }, base + slug);
+      assert.equal(await outline.isDisabled(), slug !== 'guide/part2/note', `${slug}: list pages and articles without an outline stay disabled`);
+    }
+  });
   for (const width of [390, 1440]) await check(`TOC progress at ${width}px stays contiguous across jumps and layout changes`, { width, height: 844 }, async page => {
     await page.goto(base + 'guide/progress/note');
     // Disable browser anchoring so content growth really changes the reading

@@ -25,7 +25,6 @@ test('compaction preserves code text, heading IDs and navigation, omits unused r
   assert.match(output.html, /href="#heading"/);
   assert.match(output.html, /<symbol id="wm-icon-/);
   assert.match(output.html, /class="wm-heading-icon"/);
-  assert.match(output.html, /data-no-popover="true"/);
   assert.doesNotMatch(output.html, /fetchData|cdnjs|katex.min.css|copy-tex.min.js|style="--shiki/);
   assert.equal(output.styles.size, 1);
   assert.match(output.html, /\[\["a",2\]\]/);

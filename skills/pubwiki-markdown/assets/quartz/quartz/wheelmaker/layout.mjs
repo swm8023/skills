@@ -67,8 +67,7 @@ export const KnowledgeSidebarSwitch = () => {
   min-width: 0;
 }
 
-.center article > h1[data-knowledge-repeated-title="true"],
-.search .preview-container article > h1[data-knowledge-repeated-title="true"] {
+.center article > h1[data-knowledge-repeated-title="true"] {
   display: none;
 }
 
@@ -150,7 +149,6 @@ export const KnowledgeSidebarSwitch = () => {
   const wikiRoot = markerIndex >= 0 ? pathname.slice(0, markerIndex + marker.length) : "/"
   const searchIndexURL = new URL("static/searchIndex.json", window.location.origin + wikiRoot).href
   const nativeFetch = window.fetch.bind(window)
-  const sharedResponses = new Map()
   window.__wheelmakerWikiRoot = wikiRoot
 
   const rewriteWikiURL = (url) => {
@@ -190,60 +188,7 @@ export const KnowledgeSidebarSwitch = () => {
     root.querySelectorAll?.("a[href]").forEach((anchor) => rewriteNavigation(anchor))
   }
 
-  window.fetch = (input, init) => {
-    const rewritten = rewriteRequest(input)
-    const method = init?.method || input?.method || "GET"
-    const requestedURL = new URL(rewritten instanceof Request ? rewritten.url : rewritten, window.location.href)
-    const shared = method.toUpperCase() === "GET"
-      && !(input instanceof Request)
-      && !init?.signal
-      && !init?.headers && !init?.credentials
-      && init?.cache !== "no-store"
-      && init?.cache !== "reload"
-      && requestedURL.origin === location.origin
-      && requestedURL.pathname.startsWith(wikiRoot)
-      && !requestedURL.pathname.includes("/static/")
-      && !/\\.[a-z0-9]+$/i.test(requestedURL.pathname.replace(/\\.html$/, ""))
-    if (!shared) return nativeFetch(rewritten, init)
-    requestedURL.hash = ""
-    const key = requestedURL.href
-    let entry = sharedResponses.get(key)
-    if (!entry || entry.expires < Date.now()) {
-      const promise = nativeFetch(rewritten, init).then(async response => {
-        if (!response.ok || !response.headers.get("content-type")?.startsWith("text/html")) {
-          sharedResponses.delete(key)
-          return { response }
-        }
-        const bytes = await response.arrayBuffer()
-        if (bytes.byteLength > 1024 * 1024) sharedResponses.delete(key)
-        return { bytes, status: response.status, statusText: response.statusText, headers: response.headers, url: response.url }
-      })
-      entry = { promise, expires: Date.now() + 5000 }
-      sharedResponses.set(key, entry)
-      while (sharedResponses.size > 3) sharedResponses.delete(sharedResponses.keys().next().value)
-      setTimeout(() => { if (sharedResponses.get(key) === entry) sharedResponses.delete(key) }, 5000)
-      promise.catch(() => sharedResponses.delete(key))
-    }
-    return entry.promise.then(data => {
-      if (data.response) return data.response.clone()
-      const response = new Response(data.bytes, data)
-      Object.defineProperty(response, "url", { value: data.url })
-      return response
-    })
-  }
-  let hoverTimer, hoverLink
-  const clearHover = () => { clearTimeout(hoverTimer); hoverLink = null }
-  document.addEventListener("mouseenter", event => {
-    const link = event.target.closest?.(".center article a.internal")
-    if (!event.isTrusted || !link || link.dataset.noPopover === "true") return
-    event.stopImmediatePropagation()
-    clearHover(); hoverLink = link
-    hoverTimer = setTimeout(() => {
-      if (hoverLink === link && link.isConnected && link.matches(":hover")) link.dispatchEvent(new MouseEvent("mouseenter", { clientX: event.clientX, clientY: event.clientY }))
-    }, 250)
-  }, true)
-  document.addEventListener("mouseleave", event => { if (event.target === hoverLink) clearHover() }, true)
-  document.addEventListener("prenav", clearHover)
+  window.fetch = (input, init) => nativeFetch(rewriteRequest(input), init)
   let buildRevision = null
   document.addEventListener("nav", () => {
     const revision = document.querySelector('meta[name="wheelmaker-build"]')?.content
@@ -273,7 +218,6 @@ export const KnowledgeSidebarSwitch = () => {
   if (window.__wheelmakerSidebarBound) return
   window.__wheelmakerSidebarBound = true
   let directoryObserver = null
-  let previewObserver = null
   const tagStateKey = "wheelmaker-knowledge-tag-tree"
   const canonicalPath = (value) => {
     const url = new URL(value, location.href)
@@ -438,8 +382,6 @@ export const KnowledgeSidebarSwitch = () => {
   }
 
   const restore = () => {
-    previewObserver?.disconnect()
-    previewObserver = null
     directoryObserver?.disconnect()
     directoryObserver = null
   }
@@ -493,11 +435,6 @@ export const KnowledgeSidebarSwitch = () => {
       directoryObserver.observe(explorerList, { childList: true, subtree: true })
     }
     normalizeTitle(document.querySelector(".center"))
-    const searchLayout = document.querySelector(".search .search-layout")
-    if (searchLayout) {
-      previewObserver = new MutationObserver(() => normalizeTitle(searchLayout.querySelector(".preview-container")))
-      previewObserver.observe(searchLayout, { childList: true, subtree: true })
-    }
   }
   document.addEventListener("prenav", restore)
   document.addEventListener("nav", reset)
@@ -512,13 +449,13 @@ export const KnowledgeSidebarSwitch = () => {
   return Component
 }
 
-export const WheelMakerSidebar = ({ enablePreview = true } = {}) => {
+export const WheelMakerSidebar = () => {
   const SidebarSwitch = KnowledgeSidebarSwitch()
   const TagSidebar = KnowledgeTagSidebar()
   const Explorer = WheelMakerExplorer()
   const Component = (props) =>
     h(Fragment, null, [
-      h("div", { class: "flex-component", style: "flex-direction: row; gap: 0.5rem;" }, h(WheelMakerSearch, { ...props, enablePreview })),
+      h("div", { class: "flex-component", style: "flex-direction: row; gap: 0.5rem;" }, h(WheelMakerSearch, props)),
       h(SidebarSwitch, props),
       h(TagSidebar, props),
       h(Explorer, props),

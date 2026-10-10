@@ -28,12 +28,7 @@ const documents = {
 };
 const rankedDocuments = Object.fromEntries(Array.from({ length: 20 }, (_, i) =>
   ['search-fixture/r' + String(i).padStart(2, '0'), { title: 'Cargo guide', tags: [], content: 'cargo 正文 ' + i }]));
-const article = slug => `<article class="popover-hint" data-fixture="${slug}">
-  <h1>ACP ${slug}</h1><p>ACP 正文</p><a class="relative" href="./related">ACP related</a>
-  <a class="fragment" href="#section">section</a><img src="../assets/image.png" alt="fixture">
-  <picture><source srcset="../assets/small.png 1x, ../assets/large.png 2x"></picture>
-  <code>ACP code</code><script type="text/plain">ACP literal</script>
-</article>`;
+const article = slug => `<article><h1>ACP ${slug}</h1><p>ACP 正文</p></article>`;
 const server = createServer((request, response) => {
   const url = new URL(request.url, 'http://localhost');
   const records = url.pathname.startsWith('/rank/') ? rankedDocuments : documents;
@@ -50,7 +45,7 @@ const server = createServer((request, response) => {
   } else if (url.pathname.endsWith('.png')) {
     response.writeHead(204); response.end();
   } else {
-    const props = { cfg: { locale: 'zh-CN' }, enablePreview: url.searchParams.get('preview') !== 'false' };
+    const props = { cfg: { locale: 'zh-CN' } };
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.end(`<!doctype html><html><head><style>${WheelMakerSearch.css}</style>
       <script>${KnowledgeSidebarSwitch().beforeDOMLoaded}</script></head><body>
@@ -73,7 +68,7 @@ async function check(name, run, options = {}) {
     await page.locator('.result-card').first().waitFor();
   };
   try {
-    await page.goto((options.rank ? base.replace('/mount/', '/rank/') : options.compact ? base.replace('/mount/', '/compact/') : base) + (options.preview === false ? '?preview=false' : ''));
+    await page.goto(options.rank ? base.replace('/mount/', '/rank/') : options.compact ? base.replace('/mount/', '/compact/') : base);
     await run(page, query, requests);
     console.log(`PASS ${name}`);
   } catch (error) { failures.push(name); console.error(`FAIL ${name}: ${error.message}`); }
@@ -86,24 +81,14 @@ try {
     assert.deepEqual(await page.locator('.result-card').evaluateAll(cards => cards.map(card => card.dataset.slug)),
       Object.keys(rankedDocuments).slice(0, 8));
     assert.equal(requests.filter(url => url.includes('/search-text/')).length, 8);
-  }, { rank: true, preview: false });
+  }, { rank: true });
   await check('typing a query does not fetch text for intermediate prefixes', async (page, query, requests) => {
     await page.locator('.search-button').click();
     await page.locator('.search-bar').pressSequentially('acp', { delay: 20 });
     await page.locator('.result-card').first().waitFor();
     assert.equal(requests.filter(url => url.endsWith('searchIndex.json')).length, 1);
     assert.equal(requests.filter(url => url.includes('/search-text/')).length, 2);
-  }, { compact: true, preview: false });
-  await check('preview and navigation HTML share a short lived bounded response cache', async (page, query, requests) => {
-    const data = await page.evaluate(async () => {
-      const results = await Promise.all([fetch('/search-fixture/a'), fetch(new URL('/search-fixture/a', location.origin))]);
-      const text = await Promise.all(results.map(result => result.text()));
-      await fetch('/search-fixture/a', { signal: new AbortController().signal });
-      return text;
-    });
-    assert.equal(data[0], data[1]);
-    assert.equal(requests.filter(url => url.includes('/search-fixture/a')).length, 2);
-  });
+  }, { compact: true });
   await check('compact index verifies text, retains CJK/tag matches and caches article text', async (page, query, requests) => {
     await page.locator('.search-button').click();
     assert.equal(requests.filter(url => url.endsWith('searchIndex.json')).length, 0);
@@ -116,7 +101,7 @@ try {
     await query('#protocol/acp');
     assert.equal(await page.locator('.result-card').count(), 1);
     assert.equal(requests.filter(url => url.includes('/search-text/')).length, textRequests);
-  }, { compact: true, preview: false });
+  }, { compact: true });
   await check('opening an empty search does not download the full-text index', async (page, query, requests) => {
     await page.locator('.search-button').click();
     await page.waitForTimeout(100);
@@ -132,8 +117,6 @@ try {
     assert.ok(await page.locator('.result-card h3 .highlight').count() > 0);
     assert.ok(await page.locator('.result-card > p .highlight').count() > 0);
     assert.equal(await page.locator('.result-card img, .result-card b').count(), 0);
-    await page.locator('.preview-container .highlight').first().waitFor();
-    assert.equal(await page.locator('.preview-container script .highlight').count(), 0);
     await page.keyboard.press('Escape');
     await page.locator('.search-button').click();
     await query('中文');
@@ -168,66 +151,12 @@ try {
     await page.keyboard.press('Control+k');
     assert.equal(await page.locator('.search-bar').inputValue(), '');
   });
-  await check('preview URL normalization and per-document caching', async (page, query, requests) => {
+  await check('no matches clears the previous result selection', async (page, query) => {
     await page.locator('.search-button').click(); await query('acp');
-    await page.locator('.preview-container [data-fixture="a"]').waitFor();
-    assert.equal(await page.locator('.preview-container .relative').getAttribute('href'), new URL('search-fixture/related', base).href);
-    assert.equal(await page.locator('.preview-container .fragment').getAttribute('href'), new URL('search-fixture/a#section', base).href);
-    assert.equal(await page.locator('.preview-container img').getAttribute('src'), new URL('assets/image.png', base).href);
-    assert.equal(await page.locator('.preview-container source').getAttribute('srcset'), `${new URL('assets/small.png', base).href} 1x, ${new URL('assets/large.png', base).href} 2x`);
-    await page.locator('.result-card').last().dispatchEvent('mouseenter');
-    await page.locator('.preview-container [data-fixture="b"]').waitFor();
-    await page.locator('.result-card').first().dispatchEvent('mouseenter');
-    await page.locator('.preview-container [data-fixture="a"]').waitFor();
-    assert.equal(requests.filter(url => url.endsWith('/search-fixture/a')).length, 1);
-  });
-  await check('no matches clears the previous preview', async (page, query) => {
-    await page.locator('.search-button').click(); await query('acp');
-    await page.locator('.preview-container article').waitFor();
+    assert.equal(await page.locator('.result-card.focus').count(), 1);
     await query('no-such-document'); await page.locator('.no-match').waitFor();
-    assert.equal(await page.locator('.preview-container article').count(), 0);
-  });
-  await check('late preview cannot overwrite a newer selection or a closed search', async (page, query) => {
-    let release; const hold = new Promise(resolve => { release = resolve; });
-    await page.route('**/search-fixture/a', async route => { await hold; await route.fulfill({ contentType: 'text/html', body: article('a') }); });
-    try {
-      await page.locator('.search-button').click(); await query('acp');
-      await page.locator('.result-card').last().dispatchEvent('mouseenter');
-      await page.locator('.preview-container [data-fixture="b"]').waitFor();
-      const returned = page.waitForResponse('**/search-fixture/a'); release(); await returned;
-      await page.waitForTimeout(60);
-      assert.equal(await page.locator('.preview-container article').getAttribute('data-fixture'), 'b');
-      await page.keyboard.press('Escape');
-      assert.equal(await page.locator('.preview-container article').count(), 0);
-    } finally { release(); }
-  });
-  await check('closing or navigating away discards in-flight preview work', async (page, query) => {
-    let release; const hold = new Promise(resolve => { release = resolve; });
-    await page.route('**/search-fixture/a', async route => { await hold; await route.fulfill({ contentType: 'text/html', body: article('a') }); });
-    try {
-      await page.locator('.search-button').click(); await query('acp');
-      await page.keyboard.press('Escape');
-      await page.evaluate(() => document.dispatchEvent(new Event('prenav')));
-      const returned = page.waitForResponse('**/search-fixture/a'); release(); await returned;
-      await page.waitForTimeout(60);
-      assert.equal(await page.locator('.preview-container article').count(), 0);
-      assert.equal(await page.locator('.result-card').count(), 0);
-      assert.equal(await page.locator('.search-container').isVisible(), false);
-    } finally { release(); }
-  });
-  await check('preview failures can retry without discarding search results', async (page, query) => {
-    let attempts = 0;
-    await page.route('**/search-fixture/a', route => {
-      attempts++;
-      return route.fulfill(attempts === 1 ? { status: 503, body: 'unavailable' }
-        : { contentType: 'text/html', body: article('a') });
-    });
-    await page.locator('.search-button').click(); await query('acp');
-    await page.waitForFunction(() => document.querySelector('.preview-container')?.textContent.includes('预览暂时无法加载'));
-    assert.equal(await page.locator('.result-card').count(), 2);
-    await page.locator('.result-card').first().dispatchEvent('mouseenter');
-    await page.locator('.preview-container article').waitFor();
-    assert.equal(attempts, 2);
+    assert.equal(await page.locator('.result-card.focus').count(), 0);
+    assert.equal(await page.locator('.search-bar').getAttribute('aria-activedescendant'), null);
   });
   for (const malformed of [false, true]) await check(`index ${malformed ? 'invalid JSON' : 'HTTP 503'} exposes an error and retries`, async (page, query) => {
     let attempts = 0;
@@ -264,12 +193,29 @@ try {
     assert.deepEqual(data, { status: 503, retry: [{ ready: true }, { ready: true }] });
     assert.equal(attempts, 3);
   });
-  for (const options of [{ mobile: true }, { preview: false }]) await check(`no preview download: ${JSON.stringify(options)}`, async (page, query, requests) => {
-    await page.locator('.search-button').click(); await query('acp');
-    await page.waitForTimeout(60);
-    assert.equal(requests.filter(url => url.includes('/search-fixture/')).length, 0);
-    assert.equal(await page.locator('.preview-container article').count(), 0);
-  }, options);
+  for (const options of [{}, { compact: true }, { mobile: true, compact: true }]) {
+    await check(`search selection never downloads article HTML: ${JSON.stringify(options)}`, async (page, query, requests) => {
+      await page.locator('.search-button').click(); await query('acp');
+      await page.waitForLoadState('networkidle');
+      assert.equal(requests.filter(url => url.includes('/search-fixture/')).length, 0, 'first result does not preload its article');
+      for (const index of [1, 0, 1]) {
+        await page.locator('.result-card').nth(index).hover();
+        await page.waitForTimeout(350);
+      }
+      await page.locator('.result-card').first().focus();
+      await page.locator('.search-bar').press('ArrowDown');
+      await page.setViewportSize({ width: options.mobile ? 1440 : 390, height: 844 });
+      await page.waitForLoadState('networkidle');
+      assert.equal(requests.filter(url => url.includes('/search-fixture/')).length, 0, 'hover, focus, keyboard and resize do not preload articles');
+      assert.equal(await page.locator('.preview-container').count(), 0);
+      const results = await page.locator('.results-container').boundingBox();
+      const layout = await page.locator('.search-layout').boundingBox();
+      assert.ok(results.width >= layout.width - 2, 'results use the full available width');
+      await page.locator('.result-card').last().click();
+      await page.waitForURL('**/search-fixture/b');
+      assert.equal(requests.filter(url => url.includes('/search-fixture/')).length, 1, 'click downloads only the opened article');
+    }, options);
+  }
   await check('repeated navigation events do not duplicate keyboard handlers or keep stale work', async (page, query, requests) => {
     await page.evaluate(() => {
       for (let i = 0; i < 3; i++) document.dispatchEvent(new Event('nav'));

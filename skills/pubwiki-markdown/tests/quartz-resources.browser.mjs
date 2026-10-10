@@ -35,9 +35,15 @@ try {
   await page.waitForLoadState('networkidle');
   assert.equal(requests.filter(url => /katex|copy-tex|\.woff2/.test(url)).length, 0);
   const initialDocuments = requests.filter(url => url.endsWith('/plain')).length;
+  await page.locator('article a.internal').filter({ hasText: 'Formula' }).hover();
+  await page.waitForTimeout(400);
+  await page.waitForLoadState('networkidle');
+  assert.equal(requests.filter(url => url.endsWith('/note')).length, 0, 'body link hover does not download an article');
+  assert.equal(await page.locator('.popover').count(), 0, 'body links have no preview popup');
   await page.locator('article a.internal').filter({ hasText: 'Formula' }).click();
   await page.waitForURL('**/wiki/note');
   await page.waitForLoadState('networkidle');
+  assert.equal(requests.filter(url => url.endsWith('/note')).length, 1, 'click downloads the article once');
   await page.waitForFunction(() => window.__wheelmakerCopyTexLoaded && !!document.querySelector('.katex'));
   assert.equal(await page.locator('.katex').first().evaluate(node => getComputedStyle(node).fontFamily.includes('KaTeX_Main')), true);
   assert.equal(await page.locator('.wm-heading-icon use').first().evaluate(node => {
@@ -56,5 +62,5 @@ try {
   assert.equal(requests.filter(url => /copy-tex.*\.js$/.test(url)).length, 1);
   assert.equal(requests.filter(url => url.endsWith('/plain')).length, initialDocuments + 1, 'back navigation fetches HTML through the SPA');
   assert.deepEqual(errors, []);
-  console.log('PASS conditional math resources, SPA formula rendering, shared heading symbols and Shiki colors');
+  console.log('PASS zero hover article requests, click navigation, conditional math resources, shared heading symbols and Shiki colors');
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

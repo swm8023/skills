@@ -238,8 +238,6 @@ export const mobileCSS = `
 
 .sidebar.left:has(.knowledge-mobile-capsule) > :not(.knowledge-mobile-capsule):not(.knowledge-mobile-dialog) { display: none !important; }
 .page > #quartz-body .sidebar.right { display: none; }
-[data-knowledge-panel="search"] .search .preview-container { display: none; }
-[data-knowledge-panel="search"] .search .results-container { flex-basis: 100%; }
 @media (min-width: 801px) {
   .knowledge-mobile-dialog-header::after,
   .page > #quartz-body .knowledge-mobile-settings::before {
@@ -456,8 +454,6 @@ function installMobile() {
     move(".page-header .tags", "article-tags")
     dialog.querySelector(".knowledge-mobile-article-tags").hidden = !dialog.querySelector('[data-knowledge-slot="article-tags"] .tags > *')
     const search = dialog.querySelector(".search-container")
-    const searchLayout = dialog.querySelector(".search-layout")
-    if (searchLayout) searchLayout.dataset.preview = "false"
     if (search) {
       observer = new MutationObserver(() => {
         if (search.classList.contains("active")) {

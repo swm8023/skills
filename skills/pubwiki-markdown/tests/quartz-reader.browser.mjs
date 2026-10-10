@@ -179,7 +179,7 @@ try {
     await panel.locator('[data-knowledge-pane="search"]').click();
     await panel.locator('input').fill('正文搜索');
     await panel.locator('.result-card').first().waitFor();
-    assert.equal(await panel.locator('.preview-container').isVisible(), false);
+    assert.equal(await panel.locator('.preview-container').count(), 0);
     await page.evaluate(() => { window.sharedSearchInput = document.querySelector('#knowledge-mobile-panel input'); });
     await page.setViewportSize({ width: 390, height: 844 });
     await panel.waitFor({ state: 'hidden' });

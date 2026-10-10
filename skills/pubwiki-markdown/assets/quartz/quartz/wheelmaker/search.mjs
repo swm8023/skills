@@ -11,7 +11,7 @@ const searchIcon = h("svg", {
   h("circle", { stroke: "currentColor", cx: 8, cy: 8, r: 7 }),
 ]))
 
-export const WheelMakerSearch = ({ cfg = {}, enablePreview = true } = {}) => {
+export const WheelMakerSearch = ({ cfg = {} } = {}) => {
   const isChinese = String(cfg.locale || "").toLowerCase().startsWith("zh")
   const title = isChinese ? "搜索" : "Search"
   const placeholder = isChinese ? "搜索文章" : "Search for something"
@@ -29,9 +29,8 @@ export const WheelMakerSearch = ({ cfg = {}, enablePreview = true } = {}) => {
         "aria-label": placeholder,
         placeholder,
       }),
-      h("div", { class: "search-layout", "data-preview": String(enablePreview) }, [
+      h("div", { class: "search-layout" }, [
         h("div", { class: "results-container", "aria-live": "polite" }),
-        h("div", { class: "preview-container" }),
       ]),
     ])),
   ])
@@ -92,17 +91,7 @@ WheelMakerSearch.css = `
 .search-layout { display: none; flex-direction: row; border: 1px solid var(--lightgray); }
 .search-layout.display-results { display: flex; }
 .search-layout > div { height: calc(75vh - 12vh); border-radius: 5px; }
-.search-layout > .results-container { flex: 0 0 min(30%, 450px); overflow-y: auto; }
-.search-layout > .preview-container {
-  flex-grow: 1;
-  overflow: hidden auto;
-  padding: 0 2rem;
-  color: var(--dark);
-  font-weight: 400;
-  line-height: 1.5em;
-}
-.search-layout[data-preview="false"] > .preview-container { display: none; }
-.search-layout[data-preview="false"] > .results-container { flex-basis: 100%; }
+.search-layout > .results-container { flex: 1; width: 100%; overflow-y: auto; }
 .search-layout .highlight {
   border-radius: 5px;
   background: color-mix(in srgb, var(--tertiary) 60%, transparent);
@@ -149,7 +138,6 @@ WheelMakerSearch.css = `
   .search > .search-container > .search-space { width: 90%; }
   .search-layout { flex-direction: column; }
   .search-layout > .results-container { width: 100%; height: auto; flex: 0 0 100%; }
-  .search-layout > .preview-container { display: none; }
 }
 `
 
@@ -160,11 +148,8 @@ function installSearch(searchCandidates) {
 
   const resultLimit = 8
   const contextCharacters = 220
-  const parser = new DOMParser()
   let searchIndexPromise = null
   const textCache = new Map()
-  const previewCache = new Map()
-  const mobile = window.matchMedia("(max-width: 800px)")
   const cleanupFns = []
 
   const addCleanup = (fn) => cleanupFns.push(fn)
@@ -321,49 +306,6 @@ function installSearch(searchCandidates) {
   }
   const articleURL = slug => new URL(slug.split("/").map(encodeURIComponent).join("/"),
     window.location.origin + (window.__wheelmakerWikiRoot || "/")).href
-  const fetchPreview = slug => {
-    if (!previewCache.has(slug)) {
-      const url = articleURL(slug)
-      const pending = fetch(url).then(async response => {
-        if (!response.ok) throw new Error("Preview request failed: " + response.status)
-        const html = parser.parseFromString(await response.text(), "text/html")
-        const base = response.url || url
-        const absolute = value => {
-          try { return new URL(value, base).href } catch { return value }
-        }
-        html.querySelectorAll("[href], [src], [poster], [srcset]").forEach(node => {
-          for (const attribute of ["href", "src", "poster"]) {
-            if (node.hasAttribute(attribute)) node.setAttribute(attribute, absolute(node.getAttribute(attribute)))
-          }
-          // Parse URL tokens separately so commas in data URLs remain intact.
-          if (node.hasAttribute("srcset")) {
-            const candidates = []
-            const source = node.getAttribute("srcset")
-            let position = 0
-            while (position < source.length) {
-              while (/[\s,]/.test(source[position] || "") && position < source.length) position++
-              const start = position
-              while (position < source.length && !/\s/.test(source[position])) position++
-              let target = source.slice(start, position)
-              if (!target) break
-              let descriptor = ""
-              if (target.endsWith(",")) target = target.replace(/,+$/, "")
-              else {
-                const startDescriptor = position
-                while (position < source.length && source[position] !== ",") position++
-                descriptor = source.slice(startDescriptor, position).trim()
-              }
-              candidates.push(absolute(target) + (descriptor ? " " + descriptor : ""))
-            }
-            node.setAttribute("srcset", candidates.join(", "))
-          }
-        })
-        return [...html.getElementsByClassName("popover-hint")]
-      }).catch(error => { previewCache.delete(slug); throw error })
-      previewCache.set(slug, pending)
-    }
-    return previewCache.get(slug)
-  }
   const setupSearch = () => {
     for (const search of document.querySelectorAll(".search")) {
       const container = search.querySelector(".search-container")
@@ -371,23 +313,19 @@ function installSearch(searchCandidates) {
       const input = search.querySelector(".search-bar")
       const layout = search.querySelector(".search-layout")
       const results = search.querySelector(".results-container")
-      const preview = search.querySelector(".preview-container")
       if (!container || !button || !input || !layout || !results) continue
 
       const chinese = search.dataset.searchLocale === "zh"
       const messages = chinese
-        ? { loading: "正在加载搜索…", empty: "没有找到结果", hint: "请换一个关键词。", error: "搜索暂时无法加载", retry: "重试", preview: "预览暂时无法加载" }
-        : { loading: "Loading search…", empty: "No results", hint: "Try another search term.", error: "Search could not load", retry: "Retry", preview: "Preview could not load" }
+        ? { loading: "正在加载搜索…", empty: "没有找到结果", hint: "请换一个关键词。", error: "搜索暂时无法加载", retry: "重试" }
+        : { loading: "Loading search…", empty: "No results", hint: "Try another search term.", error: "Search could not load", retry: "Retry" }
       let generation = 0
-      let previewGeneration = 0
       let selected = -1
       let items = []
       let returnFocus = button
       let disposed = false
       let queryTimer
-      const invalidatePreview = () => { previewGeneration++; preview?.replaceChildren() }
       const clear = () => {
-        invalidatePreview()
         results.replaceChildren()
         layout.classList.remove("display-results")
         items = []
@@ -425,31 +363,6 @@ function installSearch(searchCandidates) {
         }
         results.append(message)
       }
-      const updatePreview = async () => {
-        invalidatePreview()
-        const item = items[selected]
-        if (!preview || !item || mobile.matches || layout.dataset.preview !== "true") return
-        const token = previewGeneration
-        try {
-          const nodes = await fetchPreview(item.slug)
-          if (disposed || token !== previewGeneration) return
-          const fragments = nodes.map(node => node.cloneNode(true))
-          for (const fragment of fragments) {
-            const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT)
-            const textNodes = []
-            while (walker.nextNode()) textNodes.push(walker.currentNode)
-            for (const node of textNodes) {
-              if (node.parentElement?.closest("script,style,textarea,.highlight")) continue
-              const replacement = document.createDocumentFragment()
-              appendHighlighted(replacement, node.nodeValue, item.terms)
-              node.replaceWith(replacement)
-            }
-          }
-          preview.replaceChildren(...fragments)
-        } catch {
-          if (!disposed && token === previewGeneration) preview.textContent = messages.preview
-        }
-      }
       const select = index => {
         selected = Math.min(Math.max(index, 0), items.length - 1)
         const cards = [...results.querySelectorAll(".result-card:not(.no-match)")]
@@ -459,7 +372,6 @@ function installSearch(searchCandidates) {
           input.setAttribute("aria-activedescendant", card.id)
           card.scrollIntoView({ block: "nearest" })
         }
-        void updatePreview()
       }
       const renderResults = matches => {
         clear()
@@ -551,14 +463,12 @@ function installSearch(searchCandidates) {
         else if (container.classList.contains("active")) hide()
         else show()
       }
-      const onViewport = () => { void updatePreview() }
       button.addEventListener("click", onButton)
       input.addEventListener("focus", onFocus)
       input.addEventListener("input", onInput)
       container.addEventListener("keydown", onKeydown)
       container.addEventListener("click", onBackdrop)
       document.addEventListener("keydown", onShortcut)
-      mobile.addEventListener("change", onViewport)
       addCleanup(() => {
         clearTimeout(queryTimer)
         disposed = true
@@ -569,7 +479,6 @@ function installSearch(searchCandidates) {
         container.removeEventListener("keydown", onKeydown)
         container.removeEventListener("click", onBackdrop)
         document.removeEventListener("keydown", onShortcut)
-        mobile.removeEventListener("change", onViewport)
       })
     }
   }

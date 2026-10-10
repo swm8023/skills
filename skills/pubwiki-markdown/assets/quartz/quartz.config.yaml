@@ -3,7 +3,7 @@ configuration:
   pageTitle: WheelMaker Knowledge
   pageTitleSuffix: ""
   enableSPA: true
-  enablePopovers: true
+  enablePopovers: false
   analytics: null
   locale: zh-CN
   # The Hub serves this site below /wiki/ and Quartz uses relative URLs where possible.

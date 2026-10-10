@@ -50,11 +50,6 @@ export function compactHTML(html, styles = new Map()) {
       })
       replace(node, `<div class="knowledge-tags-sidebar" aria-label="标签"><nav aria-label="标签导航"></nav><script type="application/json" data-knowledge-tags="true">${jsonForHTML(records)}</script></div>`)
     }
-    if (node.tagName === "a" && !attr(node, "data-no-popover") &&
-      (attr(node, "class").split(" ").some(name => ["knowledge-page-card-link", "knowledge-tag-link", "knowledge-mobile-home"].includes(name))
-        || attr(node.parentNode, "class").split(" ").includes("folder-container"))) {
-      edits.push({ startOffset: node.sourceCodeLocation.startTag.endOffset - 1, endOffset: node.sourceCodeLocation.startTag.endOffset - 1, value: ' data-no-popover="true"' })
-    }
   }
   // A parent replacement owns its descendants; never apply stale nested offsets.
   const filtered = []

@@ -286,7 +286,7 @@ try {
         await searchInput.fill('acp');
         await page.locator('.result-card').first().waitFor();
         assert.ok((await page.locator('.result-card > p').first().boundingBox()).height <= 78, 'desktop results use short excerpts');
-        assert.equal(await page.locator('.preview-container').isVisible(), false, 'search stays inside the sidebar');
+        assert.equal(await page.locator('.preview-container').count(), 0, 'search contains only result cards');
         if (artifacts) await page.screenshot({ path: path.join(artifacts, 'after-desktop-search.png') });
         await page.keyboard.press('Escape');
         await page.locator('.search-container').waitFor({ state: 'hidden' });

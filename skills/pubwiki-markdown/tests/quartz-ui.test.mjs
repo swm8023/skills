@@ -108,7 +108,7 @@ test('WheelMaker Wiki accepts host themes only when embedded and keeps standalon
 test('WheelMaker Wiki theme bridge validates embedded messages and ignores standalone pages', async () => {
   const source = await readFile(path.join(assetRoot, 'quartz', 'wheelmaker', 'layout.mjs'), 'utf8');
   const startMarker = '  Component.beforeDOMLoaded = `';
-  const endMarker = '`\n\n  Component.afterDOMLoaded = `';
+  const endMarker = '\n`';
   const start = source.indexOf(startMarker);
   const end = source.indexOf(endMarker, start + startMarker.length);
   assert.ok(start >= 0 && end > start, 'WheelMaker sidebar must expose its before-DOM script');

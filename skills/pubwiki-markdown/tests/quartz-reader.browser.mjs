@@ -83,6 +83,133 @@ async function check(name, viewport, run) {
   finally { await page.close(); }
 }
 try {
+  for (const width of [960, 1440, 1920]) await check(`wide sidebar collapse at ${width}px shares the drawer and preserves reading`, { width, height: 900 }, async page => {
+    await page.goto(base + 'guide/part2/note');
+    const panel = page.locator('#knowledge-mobile-panel');
+    const capsule = page.locator('.knowledge-mobile-capsule');
+    const toggle = panel.locator('[data-knowledge-sidebar-toggle]');
+    assert.equal(await toggle.count(), 1, 'wide readers can collapse the pinned sidebar');
+    assert.equal(await toggle.getAttribute('aria-label'), '收起侧栏');
+    assert.ok(Math.abs((await panel.boundingBox()).x) < 1, 'pinned sidebar reaches the Wiki left edge');
+    for (const [selector, pseudo] of [['.knowledge-mobile-dialog-header', '::after'], ['.knowledge-mobile-settings', '::before']]) {
+      assert.equal(await panel.locator(selector).evaluate((el, pseudo) => getComputedStyle(el, pseudo).left, pseudo), '0px', 'dividers align with the sidebar edge');
+    }
+    const toggleBounds = await toggle.boundingBox();
+    const homeBounds = await panel.locator('.knowledge-mobile-home').boundingBox();
+    const themeBounds = await panel.locator('.knowledge-mobile-theme-control').boundingBox();
+    assert.ok(toggleBounds.x >= homeBounds.x + homeBounds.width);
+    assert.ok(toggleBounds.x >= themeBounds.x + themeBounds.width, 'toggle is rightmost without overlapping theme');
+    await panel.locator('[data-knowledge-pane="tags"]').click();
+    await page.locator('article p').first().evaluate(el => {
+      const paragraphs = Array.from({ length: 24 }, (_, index) => {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = `Paragraph ${index}: ` + 'The reader keeps the visible paragraph in place when sidebar width changes the article line wrapping. '.repeat(3);
+        return paragraph;
+      });
+      el.replaceWith(...paragraphs);
+    });
+    await page.evaluate(() => { window.readerSearchNode = document.querySelector('#knowledge-mobile-panel input'); window.scrollTo({ top: 400, behavior: 'instant' }); });
+    const readingTop = await page.locator('article p').evaluateAll(paragraphs => {
+      const visible = paragraphs.find(el => el.getBoundingClientRect().bottom > 80);
+      visible.dataset.readingAnchor = 'true';
+      return visible.getBoundingClientRect().top;
+    });
+    const assertReading = async () => {
+      assert.ok(Math.abs((await page.locator('[data-reading-anchor]').boundingBox()).y - readingTop) < 1, 'line reflow keeps the same visible paragraph in place');
+      assert.ok(await page.evaluate(() => scrollY > 0), 'mode changes do not reset reading to the top');
+    };
+    const articleURL = page.url();
+    await toggle.click();
+    assert.equal(await panel.isVisible(), false);
+    assert.equal(await capsule.isVisible(), true);
+    assert.equal((await page.locator('.sidebar.left').boundingBox()).height, 0, 'collapsed sidebar reserves no column');
+    assert.equal(page.url(), articleURL);
+    await assertReading();
+    await capsule.click();
+    await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
+    assert.equal(await panel.evaluate(el => el.matches(':modal')), true);
+    assert.ok(Math.abs((await panel.boundingBox()).x) < 1);
+    assert.equal(await panel.locator('[data-knowledge-pane="tags"]').getAttribute('aria-selected'), 'true');
+    assert.equal(await toggle.getAttribute('aria-label'), '固定侧栏');
+    await panel.locator('[data-knowledge-pane="search"]').click();
+    await panel.locator('input').fill('正文搜索');
+    await panel.locator('.result-card').first().waitFor();
+    await toggle.click();
+    assert.equal(await panel.evaluate(el => el.matches(':modal')), false);
+    assert.equal(await panel.isVisible(), true);
+    assert.equal(await capsule.isVisible(), false);
+    assert.equal(await panel.locator('input').inputValue(), '正文搜索');
+    assert.equal(await panel.locator('input').evaluate(el => el === window.readerSearchNode), true, 'mode changes reuse the live input');
+    assert.equal(await page.evaluate(() => document.body.style.position), '');
+    await assertReading();
+    await panel.locator('[data-knowledge-pane="toc"]').click();
+    await toggle.focus();
+    await page.keyboard.press('Enter');
+    await capsule.click();
+    await panel.locator('.toc a').nth(1).click();
+    assert.equal(await panel.isVisible(), false, 'heading navigation closes the wide drawer');
+    assert.equal(decodeURIComponent(new URL(page.url()).hash), '#第二节');
+    await page.reload();
+    assert.equal(await panel.isVisible(), false, 'reload remembers the collapsed preference');
+    await capsule.click();
+    await page.keyboard.press('Escape');
+    assert.equal(await panel.isVisible(), false);
+    await capsule.click();
+    await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
+    await page.mouse.click(width - 2, 898);
+    await panel.waitFor({ state: 'hidden' });
+    assert.equal(await page.evaluate(() => document.body.style.position), '');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  });
+  await check('wide sidebar collapse preference survives SPA, viewport changes and unavailable storage', { width: 1440, height: 900 }, async page => {
+    const panel = page.locator('#knowledge-mobile-panel');
+    const capsule = page.locator('.knowledge-mobile-capsule');
+    const toggle = panel.locator('[data-knowledge-sidebar-toggle]');
+    assert.equal(await toggle.count(), 1);
+    await toggle.click();
+    const navigate = slug => page.evaluate(async target => {
+      const html = new DOMParser().parseFromString(await (await fetch(target)).text(), 'text/html');
+      document.dispatchEvent(new Event('prenav'));
+      document.body.replaceWith(html.body);
+      history.pushState({}, '', target);
+      document.dispatchEvent(new Event('nav'));
+    }, base + slug);
+    for (const slug of ['guide/part2/note', 'tags/topic', 'guide/part10/other']) {
+      await navigate(slug);
+      assert.equal(await panel.isVisible(), false);
+      assert.equal(await capsule.isVisible(), true);
+      await capsule.click();
+      assert.equal(await panel.evaluate(el => el.matches(':modal')), true);
+      await page.keyboard.press('Escape');
+    }
+    for (const width of [800, 390, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'dialog');
+      await capsule.click();
+      assert.equal(await toggle.isVisible(), width > 800, 'mobile does not expose desktop pinning');
+      await page.keyboard.press('Escape');
+    }
+    await capsule.click();
+    await toggle.click();
+    await page.reload();
+    assert.equal(await panel.isVisible(), true, 'expanded preference is saved too');
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'dialog');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAttribute('role') === 'complementary');
+    assert.equal(await panel.isVisible(), true, 'returning to wide mode restores expanded preference');
+    // Exercise the real UI with browser storage denied; only the storage boundary is replaced.
+    await page.addInitScript(() => {
+      Storage.prototype.getItem = Storage.prototype.setItem = () => { throw new DOMException('Storage unavailable', 'SecurityError'); };
+    });
+    await page.reload();
+    await toggle.click();
+    await navigate('guide/part2/note');
+    assert.equal(await panel.isVisible(), false, 'in-memory preference survives navigation when storage is denied');
+    await capsule.click();
+    await toggle.click();
+    assert.equal(await panel.isVisible(), true);
+  });
   for (const width of [390, 960, 1440]) await check(`TOC availability at ${width}px ignores retained page previews`, { width, height: 844 }, async page => {
     await page.goto(base + 'guide/part2/note');
     const panel = page.locator('#knowledge-mobile-panel');

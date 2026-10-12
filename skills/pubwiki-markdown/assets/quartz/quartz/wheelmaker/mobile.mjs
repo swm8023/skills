@@ -5,6 +5,8 @@ import { resolveRelative } from "@quartz-community/utils"
 function ChromeIcon({ name }) {
   const shapes = {
     menu: [h("rect", { x: 3, y: 3, width: 18, height: 18, rx: 2 }), h("path", { d: "M9 3v18" })],
+    collapse: [h("rect", { x: 3, y: 3, width: 18, height: 18, rx: 2 }), h("path", { d: "M9 3v18m7-6-3-3 3-3" })],
+    expand: [h("rect", { x: 3, y: 3, width: 18, height: 18, rx: 2 }), h("path", { d: "M9 3v18m5-12 3 3-3 3" })],
     directory: h("path", { d: "M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1-.8-.4l-.9-1.2A1 1 0 0 0 15 3h-2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Zm0 11a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-2.9a1 1 0 0 1-.88-.55l-.42-.85a1 1 0 0 0-.92-.6H13a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1ZM3 5a2 2 0 0 0 2 2h3M3 3v13a2 2 0 0 0 2 2h3" }),
     tags: [h("path", { d: "M13.172 2a2 2 0 0 1 1.414.586l6.71 6.71a2.4 2.4 0 0 1 0 3.408l-4.592 4.592a2.4 2.4 0 0 1-3.408 0l-6.71-6.71A2 2 0 0 1 6 9.172V3a1 1 0 0 1 1-1zM2 7v6.172a2 2 0 0 0 .586 1.414l6.71 6.71a2.4 2.4 0 0 0 3.191.193" }), h("circle", { cx: 10.5, cy: 6.5, r: 0.5, fill: "currentColor" })],
     toc: h("path", { d: "M8 5h13m-8 7h8m-8 7h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3" }),
@@ -34,7 +36,13 @@ export function MobileChrome({ fileData = {} }) {
       ] : h("div", { "data-knowledge-slot": name }))),
       h("footer", { class: "knowledge-mobile-settings" }, [
         h("a", { class: "knowledge-mobile-home internal", href: home }, [h(ChromeIcon, { name: "home" }), h("span", null, "全部文章")]),
-        h("div", { class: "knowledge-mobile-theme-control" }, [h("span", { "data-knowledge-theme-label": "" }), h("div", { "data-knowledge-slot": "theme" })]),
+        h("div", { class: "knowledge-mobile-settings-actions" }, [
+          h("div", { class: "knowledge-mobile-theme-control" }, [h("span", { "data-knowledge-theme-label": "" }), h("div", { "data-knowledge-slot": "theme" })]),
+          h("button", { type: "button", "data-knowledge-sidebar-toggle": "", "aria-label": "收起侧栏", title: "收起侧栏", "aria-controls": "knowledge-mobile-panel" }, [
+            h("span", { class: "knowledge-sidebar-collapse-icon" }, h(ChromeIcon, { name: "collapse" })),
+            h("span", { class: "knowledge-sidebar-expand-icon" }, h(ChromeIcon, { name: "expand" })),
+          ]),
+        ]),
       ]),
     ]),
   ])
@@ -42,6 +50,20 @@ export function MobileChrome({ fileData = {} }) {
 
 export const mobileCSS = `
 .knowledge-mobile-capsule, .knowledge-mobile-dialog { display: none; }
+.knowledge-mobile-capsule {
+  position: fixed; top: max(0.5rem, env(safe-area-inset-top)); right: max(0.75rem, env(safe-area-inset-right));
+  z-index: 10; align-items: center; justify-content: center;
+  width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid var(--lightgray); border-radius: 0.875rem;
+  background: var(--light); color: var(--dark); font: 500 0.875rem var(--knowledge-ui-font);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%); cursor: pointer; touch-action: manipulation;
+}
+.knowledge-mobile-capsule:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
+:root[data-knowledge-navigation="drawer"] .knowledge-mobile-capsule { display: inline-flex; }
+:root[data-knowledge-navigation="drawer"]:has(.knowledge-mobile-dialog[open]) { overflow: hidden; }
+:root[data-knowledge-navigation="drawer"] { scroll-padding-top: calc(3.75rem + env(safe-area-inset-top)); }
+:root[data-knowledge-navigation="drawer"] .page > #quartz-body .sidebar.left:has(.knowledge-mobile-capsule) {
+  display: block; position: static; height: 0; min-height: 0; padding: 0; margin: 0; border: 0; z-index: auto;
+}
 .knowledge-mobile-settings .darkmode:active { background: var(--highlight); }
 .knowledge-mobile-dialog {
   --motion-emphasized: 280ms;
@@ -173,7 +195,16 @@ export const mobileCSS = `
   flex-shrink: 0;
   font-size: 0.875rem;
 }
-.knowledge-mobile-settings .darkmode { width: 2.75rem; height: 2.75rem; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.knowledge-mobile-settings .darkmode,
+[data-knowledge-sidebar-toggle] { width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: 0.5rem; background: transparent; color: var(--darkgray); cursor: pointer; }
+.knowledge-mobile-settings-actions { display: flex; align-items: center; gap: 0.25rem; margin-left: auto; }
+[data-knowledge-sidebar-toggle] { display: none; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
+[data-knowledge-sidebar-toggle] span { display: inline-flex; }
+[data-knowledge-sidebar-toggle] .knowledge-sidebar-expand-icon,
+:root[data-knowledge-sidebar="collapsed"] [data-knowledge-sidebar-toggle] .knowledge-sidebar-collapse-icon { display: none; }
+:root[data-knowledge-sidebar="collapsed"] [data-knowledge-sidebar-toggle] .knowledge-sidebar-expand-icon { display: inline-flex; }
+[data-knowledge-sidebar-toggle]:focus-visible { outline: 2px solid var(--secondary); outline-offset: -2px; }
+[data-knowledge-sidebar-toggle]:hover, [data-knowledge-sidebar-toggle]:active { background: var(--highlight); color: var(--secondary); }
 .knowledge-mobile-theme-control { display: flex; align-items: center; gap: 0.5rem; }
 [data-knowledge-theme-label] { font-size: 0.8125rem; color: var(--darkgray); }
 [data-knowledge-panel="search"] {
@@ -239,18 +270,22 @@ export const mobileCSS = `
 .sidebar.left:has(.knowledge-mobile-capsule) > :not(.knowledge-mobile-capsule):not(.knowledge-mobile-dialog) { display: none !important; }
 .page > #quartz-body .sidebar.right { display: none; }
 @media (min-width: 801px) {
-  .knowledge-mobile-dialog-header::after,
-  .page > #quartz-body .knowledge-mobile-settings::before {
-    left: calc(-1 * var(--knowledge-desktop-page-gutter, 1.5rem));
-    right: 0;
-  }
-  .page > #quartz-body .sidebar.left:has(.knowledge-mobile-capsule) {
+  [data-knowledge-sidebar-toggle] { display: inline-flex; }
+  .knowledge-mobile-settings [data-knowledge-theme-label] { display: none; }
+  .page > #quartz-body .knowledge-mobile-settings { padding-inline: 0.5rem; }
+  :root[data-knowledge-navigation="pinned"] .page > #quartz-body .sidebar.left:has(.knowledge-mobile-capsule) {
     display: block; position: sticky; top: 0; height: 100dvh; padding: 0; margin: 0;
   }
-  .knowledge-mobile-dialog[open] {
+  :root[data-knowledge-navigation="pinned"] .knowledge-mobile-dialog[open] {
     position: static; width: 100%; height: 100dvh; padding: 0; border: 0; overflow: visible;
     box-shadow: none; transform: none;
   }
+  :root[data-knowledge-navigation="drawer"] .page:has(.knowledge-sidebar-switch) > #quartz-body { display: flow-root; padding-inline: 1.5rem; }
+  :root[data-knowledge-navigation="drawer"] .page > #quartz-body .center { margin-inline: auto; }
+  :root[data-knowledge-navigation="drawer"] :is(.article-title, .knowledge-page-title)::before {
+    content: ""; float: right; width: 3.25rem; height: 2.75rem;
+  }
+  :root[data-knowledge-navigation="drawer"] .center .knowledge-home > .knowledge-page-heading { padding-inline-end: 3.25rem; }
 }
 @media (max-width: 800px) {
   html {
@@ -258,7 +293,6 @@ export const mobileCSS = `
     scroll-padding-top: calc(3.75rem + env(safe-area-inset-top));
     text-size-adjust: 100%;
   }
-  html:has(.knowledge-mobile-dialog[open]) { overflow: hidden; }
   body { font-family: var(--bodyFont), system-ui, sans-serif; }
   .page:has(.knowledge-mobile-capsule) > #quartz-body {
     --knowledge-page-inset-start: max(1rem, env(safe-area-inset-left));
@@ -269,14 +303,6 @@ export const mobileCSS = `
   .page > #quartz-body .sidebar.left:has(.knowledge-mobile-capsule) {
     display: block; position: static; height: 0; min-height: 0; padding: 0; margin: 0; z-index: auto;
   }
-  .knowledge-mobile-capsule {
-    position: fixed; top: max(0.5rem, env(safe-area-inset-top)); right: max(0.75rem, env(safe-area-inset-right));
-    z-index: 10; display: inline-flex; align-items: center; justify-content: center;
-    width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid var(--lightgray); border-radius: 0.875rem;
-    background: var(--light); color: var(--dark); font: 500 0.875rem var(--knowledge-ui-font);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 8%); cursor: pointer; touch-action: manipulation;
-  }
-  .knowledge-mobile-capsule:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
   .knowledge-mobile-dialog .toc-content a { min-height: 2.75rem; padding: 0.375rem 0.75rem; font-size: 0.9375rem; }
   .page > #quartz-body .center { min-width: 0; width: 100%; }
   .page > #quartz-body .page-header { margin-top: max(0.5rem, env(safe-area-inset-top)); }
@@ -305,6 +331,14 @@ export const mobileCSS = `
 
 `
 
+export const sidebarPreferenceScript = `(() => {
+  if (document.documentElement.hasAttribute("data-knowledge-sidebar")) return
+  let collapsed = false
+  try { collapsed = localStorage.getItem("wheelmaker-wiki-sidebar:" + (window.__wheelmakerWikiRoot || "/")) === "collapsed" } catch {}
+  document.documentElement.dataset.knowledgeSidebar = collapsed ? "collapsed" : "expanded"
+  document.documentElement.dataset.knowledgeNavigation = matchMedia("(max-width: 800px)").matches || collapsed ? "drawer" : "pinned"
+})()`
+
 
 // One set of reader nodes serves a nonmodal wide sidebar and a modal narrow drawer.
 function installMobile() {
@@ -312,6 +346,9 @@ function installMobile() {
   window.__wheelmakerMobileBound = true
   const mobile = matchMedia("(max-width: 800px)")
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)")
+  const preferenceKey = "wheelmaker-wiki-sidebar:" + (window.__wheelmakerWikiRoot || "/")
+  let wideCollapsed = document.documentElement.dataset.knowledgeSidebar === "collapsed"
+  const drawerMode = () => mobile.matches || wideCollapsed
   let dialog, capsule, observer, activePane, savedScroll, bodyStyle
   let motion = null
   let placements = []
@@ -366,7 +403,7 @@ function installMobile() {
       capsule?.setAttribute("aria-expanded", "false")
       if (bodyStyle === null) document.body.removeAttribute("style")
       else document.body.setAttribute("style", bodyStyle)
-      if (savedScroll) window.scrollTo(savedScroll.x, savedScroll.y)
+      if (savedScroll) window.scrollTo({ left: savedScroll.x, top: savedScroll.y, behavior: "instant" })
       if (focus) capsule?.focus({ preventScroll: true })
       if (clear) clearSearch()
     }
@@ -399,7 +436,7 @@ function installMobile() {
     const hasToc = hasOutline()
     dialog.querySelector('[data-knowledge-pane="toc"]').disabled = !hasToc
     const pane = name || activePane || (hasToc ? "toc" : "directory")
-    if (!mobile.matches) { select(pane); return }
+    if (!drawerMode()) { select(pane); return }
     const opening = !dialog.open || dialog.dataset.knowledgeClosing === "true"
     const animated = animate && !reducedMotion.matches && typeof dialog.animate === "function"
     if (!dialog.open) {
@@ -462,7 +499,7 @@ function installMobile() {
         if (search.classList.contains("active")) {
           if (!dialog?.open || activePane !== "search") open("search")
         } else if (dialog?.open && activePane === "search") {
-          if (mobile.matches) close()
+          if (drawerMode()) close()
           else select("directory")
         }
       })
@@ -470,11 +507,15 @@ function installMobile() {
     }
     const hasToc = hasOutline()
     dialog.querySelector('[data-knowledge-pane="toc"]').disabled = !hasToc
-    applyMode()
+    applyMode(false)
     viewport()
   }
-  const applyMode = () => {
+  const applyMode = (preserveReading = true) => {
     if (!dialog) return
+    const readingPosition = preserveReading ? (dialog.matches(":modal") ? savedScroll : { x: scrollX, y: scrollY }) : null
+    const readingBlock = readingPosition && [...(document.querySelector(".center article")?.children || [])]
+      .find(node => node.getBoundingClientRect().bottom > 80)
+    const readingTop = readingBlock?.getBoundingClientRect().top
     const pane = activePane
     const focused = dialog.contains(document.activeElement) ? document.activeElement : null
     const panelScroll = [...dialog.querySelectorAll("[data-knowledge-panel]")].map(panel => [panel, panel.scrollTop])
@@ -483,8 +524,15 @@ function installMobile() {
     if (dialog.matches(":modal")) close(false, false)
     if (dialog.open) dialog.close()
     activePane = pane
-    dialog.setAttribute("role", mobile.matches ? "dialog" : "complementary")
-    if (!mobile.matches) {
+    document.documentElement.dataset.knowledgeSidebar = wideCollapsed ? "collapsed" : "expanded"
+    document.documentElement.dataset.knowledgeNavigation = drawerMode() ? "drawer" : "pinned"
+    dialog.setAttribute("role", drawerMode() ? "dialog" : "complementary")
+    const toggle = dialog.querySelector("[data-knowledge-sidebar-toggle]")
+    toggle.disabled = mobile.matches
+    const label = wideCollapsed ? "固定侧栏" : "收起侧栏"
+    toggle.setAttribute("aria-label", label)
+    toggle.title = label
+    if (!drawerMode()) {
       // Setting open avoids the focus jump caused by show() on initial desktop load.
       dialog.setAttribute("open", "")
       select(pane || (listingPage()?.classList.contains("knowledge-tag-page") ? "tags" : "directory"), false)
@@ -492,20 +540,34 @@ function installMobile() {
     } else if (focused) capsule.focus({ preventScroll: true })
     for (const [panel, top] of panelScroll) panel.scrollTop = top
     viewport()
+    if (readingPosition) {
+      // Keep the visible content in place when the article's line wrapping changes.
+      const shift = readingBlock ? readingBlock.getBoundingClientRect().top - readingTop : 0
+      window.scrollTo({ left: readingPosition.x, top: readingPosition.y + shift, behavior: "instant" })
+    }
   }
   document.addEventListener("click", event => {
     if (!dialog) return
     const target = event.target
     if (target.closest?.(".knowledge-mobile-capsule")) { open(undefined, event.detail > 0); return }
+    const toggle = target.closest?.("[data-knowledge-sidebar-toggle]")
+    if (toggle && !mobile.matches) {
+      wideCollapsed = !wideCollapsed
+      try { localStorage.setItem(preferenceKey, wideCollapsed ? "collapsed" : "expanded") } catch {}
+      applyMode()
+      if (wideCollapsed) capsule.focus({ preventScroll: true })
+      else toggle.focus({ preventScroll: true })
+      return
+    }
     if (!dialog.open) return
     const tab = target.closest?.("[data-knowledge-pane]")
     if (tab && !tab.disabled) { open(tab.dataset.knowledgePane, event.detail > 0); return }
-    if (mobile.matches && target === dialog) {
+    if (drawerMode() && target === dialog) {
       const rect = dialog.getBoundingClientRect()
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close(true, true, event.detail > 0)
     }
     const link = target.closest?.("a[href]")
-    if (mobile.matches && link && dialog.contains(link) && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {
+    if (drawerMode() && link && dialog.contains(link) && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {
       // Do not detach search result anchors before Quartz's SPA click handler sees them.
       close(false, false)
       queueMicrotask(clearSearch)
@@ -513,7 +575,7 @@ function installMobile() {
   }, true)
   document.addEventListener("keydown", event => {
     // A collapsed drawer may retain an active search after leaving wide mode.
-    if (mobile.matches && dialog && !dialog.open && !event.isComposing
+    if (drawerMode() && dialog && !dialog.open && !event.isComposing
       && event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)
       && dialog.querySelector(".search-container.active")) {
       event.preventDefault()
@@ -527,7 +589,7 @@ function installMobile() {
     }
     if (!dialog?.open) return
     if (event.key === "Escape") {
-      if (mobile.matches) { event.preventDefault(); event.stopPropagation(); close() }
+      if (drawerMode()) { event.preventDefault(); event.stopPropagation(); close() }
       else if (activePane === "search" && dialog.contains(event.target)) {
         event.preventDefault(); event.stopPropagation(); select("directory")
       }

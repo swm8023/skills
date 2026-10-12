@@ -1,5 +1,5 @@
 import { Fragment, h } from "preact"
-import { MobileChrome, mobileCSS, mobileScript } from "./mobile.mjs"
+import { MobileChrome, mobileCSS, mobileScript, sidebarPreferenceScript } from "./mobile.mjs"
 import { KnowledgeTagSidebar, directoryCounts, lazyTagsScript } from "./navigation.mjs"
 import { WheelMakerSearch } from "./search.mjs"
 import { WheelMakerExplorer } from "./explorer.mjs"
@@ -18,7 +18,6 @@ export const KnowledgeSidebarSwitch = () => {
   --knowledge-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --knowledge-sidebar-surface: var(--light);
   --knowledge-sidebar-divider: color-mix(in srgb, var(--lightgray) 55%, var(--light));
-  --knowledge-desktop-page-gutter: 1.5rem;
 }
 .sidebar.left :is(.page-title, .knowledge-mobile-dialog-header, .knowledge-mobile-home, .knowledge-mobile-settings) {
   font-family: var(--knowledge-ui-font);
@@ -86,15 +85,16 @@ export const KnowledgeSidebarSwitch = () => {
 @media (min-width: 801px) {
   .page:has(.knowledge-sidebar-switch) {
     --knowledge-desktop-top-inset: 1rem;
-    max-width: 100rem;
-    padding-inline: var(--knowledge-desktop-page-gutter);
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: 0;
     box-sizing: border-box;
   }
   .page:has(.knowledge-sidebar-switch) > #quartz-body {
     grid-template-columns: clamp(17rem, 22vw, 20rem) minmax(0, 1fr);
     grid-template-areas: "grid-sidebar-left grid-header" "grid-sidebar-left grid-center" "grid-sidebar-left grid-footer";
     column-gap: 2rem;
-    padding: 0;
+    padding: 0 1.5rem 0 0;
   }
   .page > #quartz-body .sidebar.left:has(.knowledge-sidebar-switch) {
     padding: var(--knowledge-desktop-top-inset) 1rem 1.25rem 0;
@@ -212,6 +212,7 @@ export const KnowledgeSidebarSwitch = () => {
   }).observe(document.documentElement, { childList: true, subtree: true })
 })()
 `
+  Component.beforeDOMLoaded += ";\n" + sidebarPreferenceScript
 
   Component.afterDOMLoaded = `
 (() => {

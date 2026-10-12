@@ -38,7 +38,7 @@ const server = createServer((request, response) => {
     response.end(JSON.stringify(Object.fromEntries(allFiles.map(file => [file.slug, { title: file.frontmatter.title, content: '正文搜索', tags: ['topic/sub'] }]))));
     return;
   }
-  const slug = url.pathname.replace(/^\/mount\/wiki\//, '').replace(/\/$/, '/index') || 'index';
+  const slug = decodeURIComponent(url.pathname).replace(/^\/mount\/wiki\//, '').replace(/\/$/, '/index') || 'index';
   const isList = slug === 'index' || slug.endsWith('/index') || slug.startsWith('tags/');
   const progress = slug === 'guide/progress/note';
   const fileData = { slug, toc: progress
@@ -83,6 +83,55 @@ async function check(name, viewport, run) {
   finally { await page.close(); }
 }
 try {
+  for (const width of [320, 390, 800, 960, 1440]) await check(`article parent directory at ${width}px uses the footer and current article`, { width, height: 844 }, async page => {
+    const panel = page.locator('#knowledge-mobile-panel');
+    const parent = panel.locator('[data-knowledge-parent]');
+    const openPanel = async () => {
+      if (await page.locator('.knowledge-mobile-capsule').isVisible()) {
+        await page.locator('.knowledge-mobile-capsule').click();
+        await page.waitForFunction(() => document.querySelector('#knowledge-mobile-panel').getAnimations().length === 0);
+      }
+    };
+    for (const [slug, destination] of [['guide/part2/note', 'guide/part2/'], ['项目/工具 链/笔记', '项目/工具 链/'], ['root-note', '']]) {
+      // Replace the body just as SPA navigation does, so the destination cannot stay on the previous article.
+      await page.evaluate(async target => {
+        const html = new DOMParser().parseFromString(await (await fetch(target)).text(), 'text/html');
+        document.dispatchEvent(new Event('prenav'));
+        document.body.replaceWith(html.body);
+        history.pushState({}, '', target);
+        document.dispatchEvent(new Event('nav'));
+      }, base + slug);
+      await openPanel();
+      assert.equal(await parent.count(), 1, 'articles expose a directory return action');
+      assert.equal(await parent.getAttribute('aria-label'), '返回所属目录');
+      assert.equal(await parent.getAttribute('title'), '返回所属目录');
+      assert.equal(decodeURIComponent(await parent.evaluate(el => el.href)), base + destination);
+      const homeBounds = await panel.locator('.knowledge-mobile-home').boundingBox();
+      const parentBounds = await parent.boundingBox();
+      assert.ok(parentBounds.x >= homeBounds.x + homeBounds.width - 1, 'return is to the right of all articles');
+      assert.ok(parentBounds.width >= 44 && parentBounds.height >= 44, 'return retains a touch target');
+      const controls = await panel.locator('.knowledge-mobile-settings a, .knowledge-mobile-settings .darkmode, [data-knowledge-sidebar-toggle]').evaluateAll(elements => elements
+        .filter(el => el.getBoundingClientRect().width > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right }; }).sort((a, b) => a.left - b.left));
+      const panelBounds = await panel.boundingBox();
+      assert.ok(controls[0].left >= panelBounds.x && controls.at(-1).right <= panelBounds.x + panelBounds.width, 'footer controls fit the panel');
+      for (let i = 1; i < controls.length; i++) assert.ok(controls[i].left >= controls[i - 1].right - 1, 'footer controls do not overlap');
+      if (width > 800) {
+        const toggleBounds = await panel.locator('[data-knowledge-sidebar-toggle]').boundingBox();
+        assert.equal(toggleBounds.x + toggleBounds.width, controls.at(-1).right, 'collapse remains rightmost');
+      }
+      // Observe the actual click after the reader's capture handler and before navigation.
+      await page.evaluate(() => document.addEventListener('click', event => {
+        if (event.target.closest('[data-knowledge-parent]')) sessionStorage.setItem('parent-panel-open', String(document.querySelector('#knowledge-mobile-panel').open));
+      }, { once: true }));
+      await parent.focus();
+      await page.keyboard.press('Enter');
+      await page.waitForURL(url => decodeURIComponent(url.href) === base + destination);
+      assert.equal(await page.evaluate(() => sessionStorage.getItem('parent-panel-open')), String(width > 800), 'drawer closes on directory return');
+      await openPanel();
+      assert.equal(await parent.count(), 0, 'listing pages do not expose the article action');
+    }
+  });
   for (const width of [960, 1440, 1920]) await check(`wide sidebar collapse at ${width}px shares the drawer and preserves reading`, { width, height: 900 }, async page => {
     await page.goto(base + 'guide/part2/note');
     const panel = page.locator('#knowledge-mobile-panel');

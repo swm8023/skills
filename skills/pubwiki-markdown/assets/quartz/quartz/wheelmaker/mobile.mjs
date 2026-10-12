@@ -1,9 +1,11 @@
 import { Fragment, h } from "preact"
 import { resolveRelative } from "@quartz-community/utils"
+import { isKnowledgePage } from "./pages.mjs"
 
 // Lucide outline icons share a 24px viewBox and 2px stroke.
 function ChromeIcon({ name }) {
   const shapes = {
+    back: h("path", { d: "m12 19-7-7 7-7m7 7H5" }),
     menu: [h("rect", { x: 3, y: 3, width: 18, height: 18, rx: 2 }), h("path", { d: "M9 3v18" })],
     collapse: [h("rect", { x: 3, y: 3, width: 18, height: 18, rx: 2 }), h("path", { d: "M9 3v18m7-6-3-3 3-3" })],
     expand: [h("rect", { x: 3, y: 3, width: 18, height: 18, rx: 2 }), h("path", { d: "M9 3v18m5-12 3 3-3 3" })],
@@ -22,6 +24,7 @@ function ChromeIcon({ name }) {
 
 export function MobileChrome({ fileData = {} }) {
   const home = resolveRelative(fileData.slug || "index", "index")
+  const parentSlug = fileData.slug?.includes("/") ? fileData.slug.slice(0, fileData.slug.lastIndexOf("/")) + "/index" : "index"
   return h(Fragment, null, [
     h("button", { type: "button", class: "knowledge-mobile-capsule", "aria-label": "打开知识库导航", "aria-controls": "knowledge-mobile-panel", "aria-expanded": "false", "aria-haspopup": "dialog" }, h(ChromeIcon, { name: "menu" })),
     h("dialog", { id: "knowledge-mobile-panel", class: "knowledge-mobile-dialog", "aria-label": "知识库导航" }, [
@@ -37,6 +40,7 @@ export function MobileChrome({ fileData = {} }) {
       h("footer", { class: "knowledge-mobile-settings" }, [
         h("a", { class: "knowledge-mobile-home internal", href: home }, [h(ChromeIcon, { name: "home" }), h("span", null, "全部文章")]),
         h("div", { class: "knowledge-mobile-settings-actions" }, [
+          isKnowledgePage(fileData) && h("a", { class: "knowledge-mobile-parent internal", "data-knowledge-parent": "", href: resolveRelative(fileData.slug, parentSlug), "aria-label": "返回所属目录", title: "返回所属目录" }, h(ChromeIcon, { name: "back" })),
           h("div", { class: "knowledge-mobile-theme-control" }, [h("span", { "data-knowledge-theme-label": "" }), h("div", { "data-knowledge-slot": "theme" })]),
           h("button", { type: "button", "data-knowledge-sidebar-toggle": "", "aria-label": "收起侧栏", title: "收起侧栏", "aria-controls": "knowledge-mobile-panel" }, [
             h("span", { class: "knowledge-sidebar-collapse-icon" }, h(ChromeIcon, { name: "collapse" })),
@@ -144,7 +148,7 @@ export const mobileCSS = `
   align-items: center;
   gap: 0.625rem;
   min-height: 2.75rem;
-  padding: 0 0.75rem;
+  padding: 0 0.5rem;
   background: none;
   color: var(--darkgray);
   font-size: 0.9375rem;
@@ -189,21 +193,24 @@ export const mobileCSS = `
   width: auto;
   min-width: 0;
   margin: 0;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   border-top: 0;
   opacity: 1;
   flex-shrink: 0;
   font-size: 0.875rem;
 }
 .knowledge-mobile-settings .darkmode,
+[data-knowledge-parent],
 [data-knowledge-sidebar-toggle] { width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: 0.5rem; background: transparent; color: var(--darkgray); cursor: pointer; }
+.knowledge-mobile-parent.internal { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: transparent; padding: 0; color: var(--darkgray); touch-action: manipulation; }
 .knowledge-mobile-settings-actions { display: flex; align-items: center; gap: 0.25rem; margin-left: auto; }
 [data-knowledge-sidebar-toggle] { display: none; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
 [data-knowledge-sidebar-toggle] span { display: inline-flex; }
 [data-knowledge-sidebar-toggle] .knowledge-sidebar-expand-icon,
 :root[data-knowledge-sidebar="collapsed"] [data-knowledge-sidebar-toggle] .knowledge-sidebar-collapse-icon { display: none; }
 :root[data-knowledge-sidebar="collapsed"] [data-knowledge-sidebar-toggle] .knowledge-sidebar-expand-icon { display: inline-flex; }
-[data-knowledge-sidebar-toggle]:focus-visible { outline: 2px solid var(--secondary); outline-offset: -2px; }
+[data-knowledge-parent]:focus-visible, [data-knowledge-sidebar-toggle]:focus-visible { outline: 2px solid var(--secondary); outline-offset: -2px; }
+[data-knowledge-parent]:hover, [data-knowledge-parent]:active,
 [data-knowledge-sidebar-toggle]:hover, [data-knowledge-sidebar-toggle]:active { background: var(--highlight); color: var(--secondary); }
 .knowledge-mobile-theme-control { display: flex; align-items: center; gap: 0.5rem; }
 [data-knowledge-theme-label] { font-size: 0.8125rem; color: var(--darkgray); }

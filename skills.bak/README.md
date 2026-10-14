@@ -10,9 +10,9 @@ live in `../skills/`.
   and SHA-256 hashes for checking the snapshot.
 - [Chinese skill library](../skills-zh/mattpocock/README.md): corresponding
   translation of every skill and its Markdown references.
-- `legacy-mattpocock-2026-06/`: the 13 old Matt Pocock skill folders previously
-  stored flat in this directory. Preserved as historical material, not current
-  upstream instructions.
+
+The outdated June Matt Pocock backup was removed. Previous versions are available
+in Git history; use `mattpocock/` for the current upstream snapshot.
 
 Other existing skill folders are from other sources and remain unchanged.
 The Matt Pocock snapshot preserves the upstream symlink blob `AGENTS.md` as

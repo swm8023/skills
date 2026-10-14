@@ -40,10 +40,10 @@ maintenance instructions, configuration, and scripts are retained verbatim;
 this is a complete Chinese **skill library**, not a translation of every
 repository maintenance file.
 
-The 13 older Matt Pocock skill folders from June are preserved under
-`skills.bak/legacy-mattpocock-2026-06/` and
-`skills-zh/legacy-mattpocock-2026-06/`. Other sources in those mixed archives are
-unchanged. Use the `mattpocock/` snapshots for current upstream material.
+The outdated English Matt Pocock backup from June was removed from `skills.bak/`;
+its previous contents remain available in Git history. Older Chinese translations
+remain under `skills-zh/legacy-mattpocock-2026-06/`. Other sources in those mixed
+archives are unchanged. Use the `mattpocock/` snapshots for current upstream material.
 
 These are reference archives. The repository's own `skills/` workflows,
 including `scope`, `implement`, `debug`, and `handoff`, keep their existing names

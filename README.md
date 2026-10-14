@@ -6,21 +6,24 @@ Add skills under `skills/<skill-name>/SKILL.md`, then push the repo.
 
 WheelMaker tracks this folder as a Project at `D:\Code\skills`. If the GitHub repository is public, or the local `skills` CLI can access it with Git credentials, it can also be used as a remote Skill Source with `swm8023/skills`.
 
-## Imported Matt Pocock skill
+## Matt Pocock reference archives
 
-The imported [mattpocock/skills](https://github.com/mattpocock/skills) skill is
-`writing-for-agents`, installed into `.agents/skills/` and `.claude/skills/`.
-It replaces the old `writing-great-skills` lock entry pinned to `v1.0.0`.
-The old installed files had already been removed in local commit `2465dd9`;
-this update installs the successor rather than updating an existing directory.
+The complete [mattpocock/skills](https://github.com/mattpocock/skills) repository
+snapshot is in [`skills.bak/mattpocock/`](skills.bak/mattpocock/README.md).
+The Chinese skill library is in
+[`skills-zh/mattpocock/`](skills-zh/mattpocock/README.md).
+Both contain all 38 skills, including stable, experimental, and frozen buckets,
+and all 190 upstream files with their original directory structure.
 
 Verified on 2026-10-14 against upstream `main` at
 [`49dd158d1076134a641b33efb035946536778336`](https://github.com/mattpocock/skills/commit/49dd158d1076134a641b33efb035946536778336)
 (2026-10-09). The latest release tag and package/plugin version are `v1.3.1` /
 `1.3.1`; this main snapshot also includes changes after that release.
-`skills-lock.json` follows `main` and records the installed folder hash;
-`.skill-source-lock.json` records the exact source commit and managed skill.
-The imported files are unchanged upstream content under the upstream
+[`skills.bak/mattpocock.UPSTREAM.json`](skills.bak/mattpocock.UPSTREAM.json)
+records the exact source commit, file modes, and source hashes.
+[`skills-zh/mattpocock.TRANSLATION.json`](skills-zh/mattpocock.TRANSLATION.json)
+records the same source plus per-file translation status and hashes.
+The original snapshot is unchanged upstream content under the upstream
 [MIT license](https://github.com/mattpocock/skills/blob/49dd158d1076134a641b33efb035946536778336/LICENSE).
 
 `writing-for-agents` is now model-invoked and covers skills, `AGENTS.md`,
@@ -29,17 +32,31 @@ merged into `SKILL.md`, while skill-specific invocation and frontmatter guidance
 lives in `SKILL-MECHANICS.md`. It also adds guidance about avoiding stale copies
 of environment facts and stating the desired behavior positively.
 
-Only this successor is imported. The repository's own `skills/` workflows,
+All 66 Markdown files inside upstream `skills/`, plus its root `README.md`,
+`GLOSSARY.md`, and `SCOPE.md`, are translated line by line. Code blocks, inline
+code, paths, links, identifiers, headings/anchors, and invocation-policy fields
+are preserved. The remaining upstream website pages, release history,
+maintenance instructions, configuration, and scripts are retained verbatim;
+this is a complete Chinese **skill library**, not a translation of every
+repository maintenance file.
+
+The 13 older Matt Pocock skill folders from June are preserved under
+`skills.bak/legacy-mattpocock-2026-06/` and
+`skills-zh/legacy-mattpocock-2026-06/`. Other sources in those mixed archives are
+unchanged. Use the `mattpocock/` snapshots for current upstream material.
+
+These are reference archives. The repository's own `skills/` workflows,
 including `scope`, `implement`, `debug`, and `handoff`, keep their existing names
-and behavior. Upstream's similarly named workflows are not installed alongside
-them.
+and behavior. The mistaken active `writing-for-agents` installation from commit
+`2d91555` was removed, and both installation lock files were restored to their
+previous contents. Archive versions are tracked by the adjacent manifests.
 
 ## Upstream changes since v1.0.0
 
 The stable `engineering/` and `productivity/` buckets grew from **19 to 27
 skills**. Counting experimental and other buckets, the repository grew from
 34 to 38 `SKILL.md` files. These counts describe the upstream catalog, not the
-number installed here.
+number activated in this repository.
 
 | New stable skill | Purpose |
 | --- | --- |
@@ -105,7 +122,8 @@ handoff paths, recommended-answer handling, and wizard script behavior.
 
 Upstream now recommends self-updating plugins where supported, or editable
 copies through `skills.sh`. Editable copies need explicit updates, and newly
-added skills need a fresh selection. This repository uses editable copies.
+added skills need a fresh selection. The copies here are archived reference
+material, not an installed upstream plugin.
 
 Sources: [version comparison](https://github.com/mattpocock/skills/compare/v1.0.0...49dd158d1076134a641b33efb035946536778336),
 [changelog](https://github.com/mattpocock/skills/blob/49dd158d1076134a641b33efb035946536778336/CHANGELOG.md),

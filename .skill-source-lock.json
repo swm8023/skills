@@ -20,16 +20,6 @@
       "managedSkills": [
         "find-skills"
       ]
-    },
-    {
-      "source": "https://github.com/mattpocock/skills.git",
-      "sourceKey": "github.com/mattpocock/skills",
-      "branch": "main",
-      "commit": "49dd158d1076134a641b33efb035946536778336",
-      "updatedAt": "2026-10-14T03:05:26Z",
-      "managedSkills": [
-        "writing-for-agents"
-      ]
     }
   ]
 }

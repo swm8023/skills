@@ -5,3 +5,108 @@ Personal skills repository for WheelMaker.
 Add skills under `skills/<skill-name>/SKILL.md`, then push the repo.
 
 WheelMaker tracks this folder as a Project at `D:\Code\skills`. If the GitHub repository is public, or the local `skills` CLI can access it with Git credentials, it can also be used as a remote Skill Source with `swm8023/skills`.
+
+## Imported Matt Pocock skill
+
+The imported [mattpocock/skills](https://github.com/mattpocock/skills) skill is
+`writing-for-agents`, installed into `.agents/skills/` and `.claude/skills/`.
+It replaces the old `writing-great-skills` lock entry pinned to `v1.0.0`.
+The old installed files had already been removed in local commit `2465dd9`;
+this update installs the successor rather than updating an existing directory.
+
+Verified on 2026-10-14 against upstream `main` at
+[`49dd158d1076134a641b33efb035946536778336`](https://github.com/mattpocock/skills/commit/49dd158d1076134a641b33efb035946536778336)
+(2026-10-09). The latest release tag and package/plugin version are `v1.3.1` /
+`1.3.1`; this main snapshot also includes changes after that release.
+`skills-lock.json` follows `main` and records the installed folder hash;
+`.skill-source-lock.json` records the exact source commit and managed skill.
+The imported files are unchanged upstream content under the upstream
+[MIT license](https://github.com/mattpocock/skills/blob/49dd158d1076134a641b33efb035946536778336/LICENSE).
+
+`writing-for-agents` is now model-invoked and covers skills, `AGENTS.md`,
+`CLAUDE.md`, and other documents consumed by agents. Its former glossary is
+merged into `SKILL.md`, while skill-specific invocation and frontmatter guidance
+lives in `SKILL-MECHANICS.md`. It also adds guidance about avoiding stale copies
+of environment facts and stating the desired behavior positively.
+
+Only this successor is imported. The repository's own `skills/` workflows,
+including `scope`, `implement`, `debug`, and `handoff`, keep their existing names
+and behavior. Upstream's similarly named workflows are not installed alongside
+them.
+
+## Upstream changes since v1.0.0
+
+The stable `engineering/` and `productivity/` buckets grew from **19 to 27
+skills**. Counting experimental and other buckets, the repository grew from
+34 to 38 `SKILL.md` files. These counts describe the upstream catalog, not the
+number installed here.
+
+| New stable skill | Purpose |
+| --- | --- |
+| `code-review` | Review coding standards and spec compliance on separate axes. |
+| `implement-spec` | Implement a whole spec as a ticket graph with parallel worktrees and an integration branch. |
+| `pr` | Write a PR body with a small visual, before/after evidence, and merge risk. |
+| `research` | Investigate a question using primary sources and save cited findings. |
+| `retro` | Suggest improvements to the agent's environment after a coding session. |
+| `wizard` | Generate an interactive Bash guide for steps requiring human action. |
+| `to-questionnaire` | Prepare questions for an external decision maker. |
+| `wait-what` | Re-explain an unclear response in plain language and project terminology. |
+
+Other migrations:
+
+- `to-prd` becomes `to-spec`; `to-issues` becomes `to-tickets`.
+- `writing-great-skills` becomes `writing-for-agents`, with no old-name alias.
+- Experimental `decision-mapping` becomes stable `wayfinder`: resolve a large
+  project's decision tickets and their dependencies across sessions.
+- `resolving-merge-conflicts` is removed without a replacement skill.
+- Deprecated `design-an-interface`, `qa`, `request-refactor-plan`, and
+  `ubiquitous-language`, personal `edit-article` and `obsidian-vault`, and
+  experimental `review` are removed from the tree.
+- New experimental directories include `chief-of-staff`, `claude-handoff`,
+  `loop-me`, and `setup-ts-deep-modules`. The first is present in the tree but
+  not yet listed in the experimental README. Existing `writing-beats`,
+  `writing-fragments`, and `writing-shape` remain experimental.
+- `misc/` contains four frozen, unmaintained skills. Experimental and misc
+  skills are excluded from the stable plugin bundle.
+
+## Current upstream workflow
+
+The invocation split already existed at `v1.0.0`. It now has matching Claude
+frontmatter and Codex `agents/openai.yaml` metadata: user-invoked skills require
+an explicit user request; model-invoked skills may also be reached automatically.
+A workflow may call model-invoked skills, while another user-invoked workflow
+must be requested by the human.
+
+User-invoked stable skills:
+
+- Engineering: `ask-matt`, `grill-with-docs`, `triage`,
+  `improve-codebase-architecture`, `setup-matt-pocock-skills`, `to-spec`,
+  `to-tickets`, `implement`, `implement-spec`, `wayfinder`, `retro`.
+- Productivity: `grill-me`, `handoff`, `teach`, `to-questionnaire`, `wait-what`.
+
+Model-invoked stable skills:
+
+- Engineering: `prototype`, `diagnosing-bugs`, `research`, `tdd`,
+  `domain-modeling`, `codebase-design`, `code-review`, `pr`, `wizard`.
+- Productivity: `grilling`, `writing-for-agents`.
+
+A typical engineering flow is repository setup, requirements discussion with
+`grill-with-docs`, synthesis with `to-spec`, decomposition with `to-tickets`,
+implementation with `implement` or `implement-spec`, code review, and optional
+`retro`. Domain vocabulary now lives in `GLOSSARY.md` / `GLOSSARY-MAP.md`,
+replacing `CONTEXT.md` / `CONTEXT-MAP.md`.
+
+Existing workflows also changed: `prototype` can produce a self-contained HTML
+demo retained as evidence; `implement` uses TDD and closes with code review;
+`diagnosing-bugs` requires a demonstrated red feedback loop; `tdd` explains what
+each proposed test seam catches and misses. Main after `v1.3.1` additionally
+fixes tracker setup, ticket references and sub-issues, review discovery,
+handoff paths, recommended-answer handling, and wizard script behavior.
+
+Upstream now recommends self-updating plugins where supported, or editable
+copies through `skills.sh`. Editable copies need explicit updates, and newly
+added skills need a fresh selection. This repository uses editable copies.
+
+Sources: [version comparison](https://github.com/mattpocock/skills/compare/v1.0.0...49dd158d1076134a641b33efb035946536778336),
+[changelog](https://github.com/mattpocock/skills/blob/49dd158d1076134a641b33efb035946536778336/CHANGELOG.md),
+[catalog and installation](https://github.com/mattpocock/skills/blob/49dd158d1076134a641b33efb035946536778336/README.md).

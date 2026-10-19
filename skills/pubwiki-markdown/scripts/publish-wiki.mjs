@@ -9,6 +9,7 @@ import { promisify } from 'node:util';
 
 import { ensureWikiState, readGitStatus, runGit } from './wiki-state.mjs';
 import { parseWikiConfig } from './yaml.mjs';
+import { ensureReader } from './ensure-reader.mjs';
 
 const execFile = promisify(execFileCallback);
 
@@ -137,6 +138,8 @@ export async function publishWiki({
     };
   }
 
+  try { await ensureReader({ env }); }
+  catch (error) { return { status: 'blocked', paths: state.paths, message: `Reader is not ready: ${error.message}` }; }
   try {
     await runGit(['-C', state.paths.data, 'add', '--', ...preflight.paths], { env });
     const staged = await stagedNames(state.paths.data, { env });

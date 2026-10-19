@@ -13,7 +13,7 @@ const run = promisify(execFile);
 
 async function makeHome(t) {
   const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'pubwiki-markdown-home-')));
-  t.after(() => import('node:fs/promises').then(({ rm }) => rm(home, { recursive: true, force: true })));
+  t.after(() => import('node:fs/promises').then(({ rm }) => rm(home, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })));
   return home;
 }
 

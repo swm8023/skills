@@ -86,5 +86,5 @@ Obsidian 的 Backlinks 不是需要写入的字段，而是由其他笔记指向
 - 当前 `title`、`description`、`date`、`tags`、`draft` frontmatter 和路径/发布规则继续有效。
 - 页面关系优先通过正文 Wikilinks 表达，不引入必需的 `kind`、`slug`、`project`、`projects`、`references` 或 `backlinks` 属性。
 - Block references 是 Obsidian 专有能力；生成它们时要在预览中接受较低的跨平台兼容性。
-- Quartz 公开渲染依赖其已启用的 Obsidian Flavored Markdown、Backlinks 和 Graph 插件；不要假设普通 GitHub Markdown 页面也会呈现这些交互。
+- 公开渲染由本 Skill 的独立阅读器实现；不要假设本地 Obsidian 插件或普通 GitHub Markdown 页面具有相同交互。
 - 所有新特性都必须保持可审阅、可回滚，并遵循现有的重复检查、链接映射和一次性预览确认流程。

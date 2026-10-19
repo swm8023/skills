@@ -33,7 +33,7 @@ node <this-skill>/scripts/prepare-wiki.mjs --sync
 
 此命令不会在已有修改上自动 stash 或 rebase；发生 rebase 或远程冲突时，要报告给用户处理。
 
-Git 检查成功后，助手只会在缺失时创建带注释的 `wiki.config.yaml`、`content/` 和 `content/assets/`。不会静默替换已有配置。数据根目录是唯一的内容配置根；AI 索引和 Quartz runtime 位于其外部。
+Git 检查成功后，助手只会在缺失时创建带注释的 `wiki.config.yaml`、`content/` 和 `content/assets/`。不会静默替换已有配置。数据根目录是唯一的内容配置根；AI 索引和 阅读器 runtime 位于其外部。
 
 ## 内容目录
 
@@ -100,9 +100,9 @@ site:
   description: Browse the WheelMaker knowledge base.
 ```
 
-如果提供这两个值，必须都是非空字符串。标题会同时用于公开首页标题、Quartz 页面标题、虚拟首页元数据和站点元数据。
+如果提供这两个值，必须都是非空字符串。标题会同时用于公开首页标题和站点元数据。
 
-不要为根目录、repo 或普通目录创建 `index.md`。Quartz 会在构建时创建公开的虚拟首页和目录列表。
+不要为根目录、repo 或普通目录创建 `index.md`。静态阅读器在构建时创建首页，目录通过页面筛选浏览。
 
 ## 创建、导入和分类
 
@@ -123,7 +123,7 @@ site:
 1. **清点与映射**：检查 Markdown 图片、引用式图片、Obsidian 嵌入及已有 HTML 图片引用；代码示例中的图片语法不作为实际依赖。为实际引用的本地图片建立来源到最终路径的映射，与笔记共用同一批次。导入默认复制并保留来源；发布引用不能依赖本机绝对路径、`file://` 或会话附件临时路径。外链图片保留为外链并标明外部依赖，不擅自下载归档。
 2. **按最终分类保存**：新导入的项目图片默认放在 `content/assets/<实际repo>/<directory>/`，沿用笔记最终确认的 repo 和嵌套分类。已有的共享资源可以原路径复用，不为符合新布局批量迁移。确需移动资源时，先检查整个 Vault 的引用，将受影响页面的链接改写纳入同一预览；仍被其他页面引用的资源不得直接删除。
 3. **重名与缺失检查**：确认本地图片来源存在、目标可确定；复用已有资源前核对内容。相同目标路径但内容不同、同名文件导致解析歧义时，在预览中提出保留、复用或重命名方案，不静默覆盖。未解决的缺失资源、重名歧义或资源冲突会阻止本批发布。
-4. **按运行配置改写引用**：读取当前 Quartz runtime 的链接解析配置；Skill 随附配置使用 `markdownLinkResolution: shortest`，不能假定所有图片都按当前页面的相对路径解析。采用能唯一指向目标的路径，保留 alt、标题和尺寸信息；不硬编码构建产物 URL。规范化助手未覆盖的引用形式需另行核查和改写，助手没有诊断不代表图片已验证。
+4. **按运行配置改写引用**：读取当前 阅读器 runtime 的链接解析配置；Skill 随附配置使用 `markdownLinkResolution: shortest`，不能假定所有图片都按当前页面的相对路径解析。采用能唯一指向目标的路径，保留 alt、标题和尺寸信息；不硬编码构建产物 URL。规范化助手未覆盖的引用形式需另行核查和改写，助手没有诊断不代表图片已验证。
 5. **同批保存、提交和发布**：预览中逐项列出 Markdown 与资源的新增、修改、移动、删除路径；移动要包含旧、新路径。确认后一起写入并校验，再将所有发生变更的精确文件路径交给发布助手。已跟踪且未变化的复用资源不必重复提交，但必须验证仍存在且引用可解析。
 
 这些规则复用下方的同一份完整预览与确认，不另加图片确认轮次。构建和发布后的图片验证见「构建与发布验证」。
@@ -155,7 +155,7 @@ draft: false
 ---
 ```
 
-保留仍有意义的来源属性。只有来源中已有 `aliases` 或用户要求时才保留它；绝不要添加空的 aliases 数组。标签可以写在 frontmatter 或行内写成 `#tag`，也可以使用 `a/b` 这样的层级形式。`draft: true` 表示本地/私有内容，不会输出到公开 Quartz 站点。
+保留仍有意义的来源属性。只有来源中已有 `aliases` 或用户要求时才保留它；绝不要添加空的 aliases 数组。标签可以写在 frontmatter 或行内写成 `#tag`，也可以使用 `a/b` 这样的层级形式。`draft: true` 表示本地/私有内容，不会输出到公开静态站点。
 
 存在相似笔记时，展示候选笔记并让用户选择更新、合并或新建；除非当前请求或此前批准已经明确给出该选择，否则不得静默覆盖。准备预览前先读取相关候选笔记。
 
@@ -184,79 +184,72 @@ draft: false
 
 ## Git 和发布
 
-### 准备运行环境
+### 准备独立阅读器
 
-发布前安装或校验固定版本的 Quartz runtime：
+阅读器源码位于本 Skill 的 `assets/dochub/`，最初从 DocHub 复制，之后独立维护。
+运行时不连接 NeoExporter、DocHub MCP 或 DocHub Git checkout，也不安装 Quartz。
 
-```text
-node <this-skill>/scripts/ensure-quartz.mjs
-```
-
-runtime 位于 `~/.wheelmaker/wiki/quartz/`，使用 Quartz `v5.0.0` 和 Node.js 22 或更高版本。准备助手部署 `assets/quartz/` 中的 YAML 配置、`quartz.ts` 入口和 WheelMaker 本地插件，按 `quartz.lock.json` 恢复 Quartz Community 插件，并记录安装指纹。运行环境与 Wiki 数据仓库分开存放。
-
-### 绑定和更新插件
-
-使用支持 Skill 插件绑定的 Hub，在 Wiki 发布和其他 setup 均已结束后执行：
+首次使用或依赖变化时执行：
 
 ```text
-node <this-skill>/scripts/ensure-quartz.mjs --link-skill
+node <this-skill>/scripts/ensure-reader.mjs --install
 ```
 
-该命令将 runtime 中的 WheelMaker 插件连接到当前安装 Skill 的 `assets/quartz/quartz/wheelmaker/`。Windows 使用目录 junction，其他平台使用目录 symlink。重复执行可修复链接或重新绑定移动后的 Skill 安装。
+助手在阅读器自身目录执行固定 lockfile 的 npm ci，并建立：
 
-启用链接模式后，按变更类型选择操作：
+```text
+~/.wheelmaker/wiki/reader -> <this-skill>/assets/dochub
+~/.wheelmaker/wiki/.pubwiki-reader.json
+```
 
-| 变更 | 操作 |
-| --- | --- |
-| 本地插件目录中的 MJS 逻辑、样式或 SVG 资源 | 编辑完成后执行正常发布 |
-| `quartz.ts`、YAML 配置、插件 manifest 或 lockfile | 执行 `ensure-quartz.mjs --refresh --link-skill`，再发布 |
-| Skill 安装位置或插件链接 | 执行 `ensure-quartz.mjs --link-skill`，再发布 |
+Windows 使用 Junction，其他平台使用目录符号链接。链接、依赖和私有索引均在 Vault 外。
+已有普通 reader 目录不会被覆盖。Hub 的固定导出入口必须先升级到支持 PubWiki reader 的版本；
+仅运行安装助手不会更新正在运行的 Hub。
 
-未启用链接模式时，准备助手以安装快照部署本地插件；更新插件后执行 `ensure-quartz.mjs --refresh`，再发布。所有编辑和 setup 完成后再开始构建。
+普通发布前运行不带 --install 的就绪检查。JS、CSS 和导出代码通过链接在下一次导出中生效；
+package.json 或依赖变化后重新执行 --install。构建中改变源码会使本次构建失败。
 
-固定导出器使用 Node 的 `--preserve-symlinks` 从 Quartz runtime 解析依赖，通过 `--import` 预加载本地插件。构建前后会校验运行配置、目录链接、插件 manifest 和插件树指纹。Release 元数据记录安装与来源信息，供下一次构建校验。
+### 保存并发布
 
-### 保存并发布笔记
-
-仅本地保存时，写入并校验已确认的笔记和资源。保存并发布时，用本次变更的精确路径调用发布助手；每个文件分别传入一个 `--paths`，不传目录或通配符。以下示例同时提交笔记与新增图片；移动、删除还需列出对应旧路径：
+仅本地保存时，只写入并校验已确认的笔记和资源。保存并发布时，使用精确的已批准文件路径：
 
 ```text
 node <this-skill>/scripts/publish-wiki.mjs --paths "content/<实际repo>/<目录>/<文件>.md" --paths "content/assets/<实际repo>/<目录>/<图片>.png"
 ```
 
-发布助手不会自动收集 Markdown 引用的图片；调用前核对路径清单与已确认的全部变更一致，不能只提交 Markdown 而遗漏新增、移动或删除的资源。
+每个文件分别传 --paths，不传目录或通配符；移动和删除也包括旧路径。
+固定 data 仓库的 Git 生命周期只由本 Skill 的准备、发布助手管理。
+发布助手在 Git 写入前检查 reader 就绪状态、已有暂存和本批之外的修改，然后仅提交批准路径，
+执行 pull --rebase、push，最后调用 wheelmaker wiki publish。
+冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。
+用户配置 publish.mode 为 off、disabled、manual 或 false 时返回 skipped。
 
-固定 `data/` 仓库的 Git 生命周期完整交由专用准备/发布助手管理，同一批数据变更只通过这些助手执行 Git 操作。普通来源仓库使用自己的 Git 生命周期。发布助手按以下顺序执行：
+### 本地预览与重新发布
 
-1. 检查 worktree 和 index；存在预先暂存的文件或本次路径之外的修改时停止。
-2. 暂存精确的已批准路径并 commit。
-3. 执行 `pull --rebase`，然后 push。
-4. Git 阶段成功后，调用 `wheelmaker wiki publish`。
+本地预览只读取 Vault，在独立 .previews 目录生成站点，并监听 127.0.0.1；不上传、不修改笔记：
 
-助手保留用户修改，采用普通 rebase 和 push；rebase、commit 或 push 冲突时保留现场并报告。`wiki.config.yaml` 中的 `publish.mode` 控制发布助手是否执行：`auto` 使用上述流程；`off`、`disabled`、`manual` 和 `false` 返回 `skipped`。
+```text
+node <this-skill>/scripts/preview-reader.mjs
+```
 
-### 重新发布站点
-
-仅更新站点插件或运行配置、现有笔记内容保持原样时，先完成对应的运行环境准备和源码仓库提交。在已有重新发布授权的情况下，直接调用：
+纯阅读器修改或已存在内容的重新发布，在已有发布授权时调用：
 
 ```text
 wheelmaker wiki publish
 ```
 
-此操作以现有 Wiki 数据作为构建输入。本地插件和配置的提交由其所属源码仓库管理。
+Hub 使用固定输入 data、固定输出 .output 和链接的阅读器进行构建、校验、打包及上传；
+Registry 仍在 /wiki/ 提供静态站点，沿用现有应用鉴权和独立阅读入口。
+构建失败不得覆盖当前发布版本。
 
-### 构建与发布验证
+### 验证
 
-`wheelmaker wiki publish` 由 Hub 调用内嵌的固定导出器 `exporter/engine.mjs`，使用已准备的 Quartz runtime 将 `data/content/` 构建到 Hub 输出目录。Hub 完成校验、归档、认证和静态产物上传，Registry 在 `/wiki/` 提供站点访问。
-
-WheelMaker 插件负责首页、目录和标签结果页、阅读器导航、搜索及资源优化。构建时压缩重复 HTML 表达，为静态资源生成内容哈希，并为搜索生成候选索引和正文文件。页面按需加载公式、标签树和搜索数据。
-
-发布后确认命令结果为成功，并核对页面、导航和搜索。在性能迭代时读取 [量化检查说明](scripts/wiki-metrics.md)，用已发布 HTML 快照或合成构建产物，在相同浏览器环境下比较三次测量的中位数；记录 HTML 体积、压缩下载量、请求数、DOM 数量和搜索结果一致性。
-
-含图片的发布还要核对构建产物中的图片文件与页面实际生成的 `src`/`srcset` 等引用能否对应；移动资源时，确认受影响页面没有遗留旧引用。线上检查覆盖本批图片能否加载。站点需要登录而当前没有认证时，明确区分已完成的本地/构建验证与未完成的线上验证，不把登录重定向或未认证响应当成图片缺失，也不据此宣称线上图片验证通过。
-
-涉及 Registry 缓存策略的变更时，部署对应的 WheelMaker 服务端版本，并检查已认证请求的响应头。内容哈希静态资源使用 `private, max-age=86400, immutable`；HTML、元数据和搜索正文使用 `private, no-cache`。
+导出必须保留源 Markdown、目录和附件布局；草稿、已删除文章、用户配置、索引和凭据不得进入产物。
+检查目录、筛选分页、浏览器搜索、Wikilinks、别名、标题/块链接及本批引用的图片。
+公式由本地 KaTeX 渲染，Mermaid 使用随产物提供的资源，不依赖 CDN 或 MCP。
+涉及图片时核对实际产物文件和页面 src，线上验证必须使用已认证入口。
+就绪检查和本地导出不能替代线上发布成功的证据。
 
 ## 范围边界
 
-本 Skill 维护纯 Markdown 数据、本地 runtime 资源以及已确认的 WheelMaker 发布流程。
+本 Skill 维护纯 Obsidian Markdown 数据、自带阅读器代码和已确认的 WheelMaker 静态发布流程。

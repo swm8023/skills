@@ -27,7 +27,6 @@ export const DEFAULT_WIKI_CONFIG = `# Content configuration only; data and index
 #     create: confirm
 # publish:
 #   mode: auto
-#   quartz: auto
 #   git:
 #     sync: rebase
 #     commit: auto
@@ -60,7 +59,7 @@ export function resolveWikiPaths({ env = process.env } = {}) {
     content: path.join(data, 'content'),
     assets: path.join(data, 'content', 'assets'),
     index: path.join(wiki, '.index'),
-    quartz: path.join(wiki, 'quartz'),
+    reader: path.join(wiki, 'reader'),
     output: path.join(wiki, '.output'),
   };
 }

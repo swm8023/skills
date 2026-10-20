@@ -53,9 +53,9 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     let result = html.replace('<html lang="zh-CN"', `<html lang="zh-CN" data-pubwiki-engine="dochub" data-static-index="${prefix}/static/search.json"`)
       .replace(/<form method="post" action="[^"]*\/logout">[\s\S]*?<\/form>/g, '')
       .replace('<script src=', '<script type="module" src=')
-      .replace('<span>DocHub</span>', `<span>${escapeText(site.title)}</span>`)
-      .replace('aria-label="DocHub 文档总览"', `aria-label="${escapeText(site.title)} 文档总览"`)
-      .replace(/<title>([\s\S]*?) · DocHub<\/title>/, (_match, title) => `<title>${title} · ${escapeText(site.title)}</title>`)
+      .replace('<span>WheelMaker Wiki</span>', `<span>${escapeText(site.title)}</span>`)
+      .replace('aria-label="WheelMaker Wiki 文档总览"', `aria-label="${escapeText(site.title)} 文档总览"`)
+      .replace(/<title>([\s\S]*?) · WheelMaker Wiki<\/title>/, (_match, title) => `<title>${title} · ${escapeText(site.title)}</title>`)
       .replaceAll('团队知识库', escapeText(site.title))
       .replaceAll('知识，随手可得。', escapeText(site.title))
       .replaceAll('从项目约定到问题解法，找到下一步需要的答案。', escapeText(site.description));

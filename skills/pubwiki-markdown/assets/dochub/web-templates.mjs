@@ -4,7 +4,7 @@ import { sidebar, breadcrumbs } from './web-navigation.mjs';
 import { route, queryUrl, documentUrl, highlightText, icon, dateText, sizeText } from './web-ui.mjs';
 
 function brand(prefix, { subtitle = false } = {}) {
-  return `<a class="brand" href="${escapeText(route(prefix))}" aria-label="DocHub 文档总览"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>DocHub</span>${subtitle ? '<small>团队知识库</small>' : ''}</a>`;
+  return `<a class="brand" href="${escapeText(route(prefix))}" aria-label="WheelMaker Wiki 文档总览"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>WheelMaker Wiki</span>${subtitle ? '<small>团队知识库</small>' : ''}</a>`;
 }
 
 function layout(title, body, { prefix = '/docs', page = 'standalone', directory = '' } = {}) {
@@ -12,7 +12,7 @@ function layout(title, body, { prefix = '/docs', page = 'standalone', directory 
   return `<!doctype html>
 <html lang="zh-CN" data-page="${page}" data-base-path="${escapeText(prefix)}" data-directory="${escapeText(directory)}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark"><title>${escapeText(title)} · DocHub</title>
+<meta name="color-scheme" content="light dark"><title>${escapeText(title)} · WheelMaker Wiki</title>
 <link rel="stylesheet" href="${asset('dochub.css')}"><script src="${asset('dochub.js')}" defer></script></head>
 <body>${body}<div class="toast" role="status" aria-live="polite" hidden></div></body></html>`;
 }
@@ -52,7 +52,7 @@ function tagHtml(tags = [], { prefix = '/docs', directory = '' } = {}) {
 
 export function loginPage({ error = '', prefix = '/docs' } = {}) {
   return layout('登录', `${header(prefix, { standalone: true })}<main class="access-page"><section class="access-panel">
-    <span class="access-symbol">${icon('lock')}</span><p class="eyebrow">THE TEAM KNOWLEDGE BASE</p><h1>知识，随手可得。</h1><p class="access-description">登录 DocHub，浏览团队的技术文档与经验。</p>
+    <span class="access-symbol">${icon('lock')}</span><p class="eyebrow">THE TEAM KNOWLEDGE BASE</p><h1>知识，随手可得。</h1><p class="access-description">登录 WheelMaker Wiki，浏览团队的技术文档与经验。</p>
     ${error ? `<p class="error-message" role="alert">${escapeText(error)}</p>` : ''}
     <form method="post" action="${escapeText(route(prefix, '/login'))}"><label for="token">共享访问密钥</label><input id="token" name="token" type="password" autocomplete="current-password" required autofocus><button class="primary-button" type="submit">进入知识库 ${icon('arrow')}</button></form>
     <p class="access-foot">${icon('lock')}只读访问 · 登录状态在连续 30 天未使用后过期</p>
@@ -77,7 +77,7 @@ export function homePage({ results = [], query = '', directory = '', tag = '', s
     <div class="list-heading"><p>共找到 <strong>${total}</strong> 篇文档${total ? `，本页显示 ${results.length} 篇` : ''}</p>${query || directory || tag ? `<a href="${queryUrl(prefix)}">清除筛选</a>` : ''}</div>
     ${results.length ? `<ul class="document-list">${list}</ul>` : `<div class="empty-state">${icon('search')}<h2>${navigation.total === 0 ? '知识库还没有文档' : '没有找到匹配文档'}</h2><p>${navigation.total === 0 ? '发布文档后，文章和目录会显示在这里。' : '试试其他关键词，或清除目录与标签筛选。'}</p></div>`}
     ${total > limit ? `<nav class="pagination" aria-label="分页">${offset > 0 ? `<a href="${queryUrl(prefix, { ...values, offset: Math.max(0, offset - limit) })}">← 上一页</a>` : '<span></span>'}<span>第 ${Math.floor(offset / limit) + 1} / ${pages} 页</span>${offset + limit < total ? `<a href="${queryUrl(prefix, { ...values, offset: offset + limit })}">下一页 →</a>` : '<span></span>'}</nav>` : ''}
-    <footer class="page-foot"><span>DocHub / 团队知识，持续生长。</span><span>只读知识库</span></footer></section>`;
+    <footer class="page-foot"><span>WheelMaker Wiki / 团队知识，持续生长。</span><span>只读知识库</span></footer></section>`;
   return workspace(body, { prefix, directory, tag, navigation, indexStatus });
 }
 
@@ -103,13 +103,13 @@ export function documentPage(document, { html, outline = [], indexStatus = 'read
   <article class="article-body" id="article-body">${html ?? ''}</article>
   ${assets ? `<section class="attachments" aria-label="附件"><h2>附件 <span>${document.assets.length}</span></h2>${assets}</section>` : ''}
   ${related.length ? `<section class="related-documents" aria-label="延伸阅读"><h2>延伸阅读</h2>${related.map(entry => `<a href="${documentUrl(prefix, entry.document_id)}">${icon('file')}<span>${escapeText(entry.title)}</span>${icon('arrow')}</a>`).join('')}</section>` : ''}${neighbors}
-  <footer class="page-foot"><span>DocHub / 团队知识，持续生长。</span><a href="${queryUrl(prefix, { directory })}">返回文档列表</a></footer></div>
+  <footer class="page-foot"><span>WheelMaker Wiki / 团队知识，持续生长。</span><a href="${queryUrl(prefix, { directory })}">返回文档列表</a></footer></div>
   <aside class="reading-outline" aria-label="本页大纲"><div class="outline-sticky"><p class="outline-label">ON THIS PAGE <span>/ 本页大纲</span></p>${outline.length ? `<nav>${links}</nav>` : '<p class="outline-empty">本文没有章节标题</p>'}<div class="outline-foot"><span data-reading-progress>阅读进度 0%</span><div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div><a href="#main-content">${icon('up')}返回顶部</a></div></div></aside></div>`;
   return workspace({ title: metadata.title || '文档', html: content }, { prefix, directory, documentId: document.document_id, navigation, indexStatus, page: 'document' });
 }
 
 export function errorPage(title, message, status = 500, prefix = '/docs') {
-  return layout(title, `${header(prefix, { standalone: true })}<main class="access-page"><section class="access-panel"><p class="eyebrow">DOCHUB / ${status}</p><h1>${escapeText(title)}</h1><p class="error-message" role="alert">${escapeText(message)}</p><a class="primary-button" href="${escapeText(route(prefix))}">返回文档站 ${icon('arrow')}</a></section></main>`, { prefix });
+  return layout(title, `${header(prefix, { standalone: true })}<main class="access-page"><section class="access-panel"><p class="eyebrow">WHEELMAKER WIKI / ${status}</p><h1>${escapeText(title)}</h1><p class="error-message" role="alert">${escapeText(message)}</p><a class="primary-button" href="${escapeText(route(prefix))}">返回文档站 ${icon('arrow')}</a></section></main>`, { prefix });
 }
 
 export { layout, route, tagHtml };

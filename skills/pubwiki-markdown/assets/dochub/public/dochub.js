@@ -162,16 +162,54 @@ import { initializeTheme } from './theme.mjs';
   });
 
   const outline = $('.outline-menu');
+  const outlinePanel = outline?.querySelector('.outline-popover');
+  const outlineDock = $('.docked-outline');
+  const outlineToggle = outline?.querySelector('summary');
+  let canDockOutline = false, outlineCollapsed = false;
+  function updateOutline() {
+    if (!outlinePanel || !outlineDock) return;
+    const docked = canDockOutline && !outlineCollapsed;
+    root.dataset.outlineLayout = docked ? 'docked' : 'floating';
+    const destination = docked ? outlineDock : outline;
+    if (outlinePanel.parentElement !== destination) {
+      outline.open = false;
+      destination.append(outlinePanel);
+    }
+    const label = canDockOutline ? (docked ? '收起本页大纲' : '展开本页大纲') : '本页大纲';
+    outlineToggle.setAttribute('aria-label', label);
+    outlineToggle.title = label;
+    outlineToggle.setAttribute('aria-expanded', String(docked || outline.open));
+    outlineToggle.classList.toggle('is-active', docked || outline.open);
+  }
   const closeOutline = (restore = false) => {
     if (!outline?.open) return;
     outline.open = false;
-    if (restore) outline.querySelector('summary').focus({ preventScroll: true });
+    updateOutline();
+    if (restore) outlineToggle.focus({ preventScroll: true });
   };
+  function measureOutline() {
+    if (!outlinePanel || !outlineDock) return;
+    // Reserve comfortable article width before adding the outline column.
+    const available = $('#main-content').clientWidth >= 1120 && headingLinks.length > 0;
+    if (available !== canDockOutline) closeOutline();
+    canDockOutline = available;
+    updateOutline();
+  }
+  outlineToggle?.addEventListener('click', event => {
+    if (!canDockOutline) return;
+    event.preventDefault();
+    outlineCollapsed = !outlineCollapsed;
+    updateOutline();
+    scheduleReading();
+  });
   document.addEventListener('click', event => { if (outline && !outline.contains(event.target)) closeOutline(); });
   outline?.addEventListener('toggle', () => {
-    outline.querySelector('summary').setAttribute('aria-expanded', String(outline.open));
+    updateOutline();
     if (outline.open) outline.querySelector('[aria-current="location"]')?.scrollIntoView({ block: 'nearest' });
   });
+  if (outlinePanel && globalThis.ResizeObserver) new ResizeObserver(measureOutline).observe($('#main-content'));
+  addEventListener('resize', measureOutline, { passive: true });
+  measureOutline();
   document.addEventListener('keydown', event => { if (event.key === 'Escape') closeOutline(true); });
 
   const directory = $('#knowledge-directory');
@@ -187,6 +225,8 @@ import { initializeTheme } from './theme.mjs';
     const label = visible ? '收起知识目录' : '展开知识目录';
     directoryToggle?.setAttribute('aria-label', label);
     directoryToggle?.setAttribute('title', label);
+    if ($('[data-directory-close-icon]')) $('[data-directory-close-icon]').hidden = !visible;
+    if ($('[data-directory-open-icon]')) $('[data-directory-open-icon]').hidden = visible;
   }
   function closeDirectory(restore = true) {
     if (!directory) return;

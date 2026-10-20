@@ -186,17 +186,20 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
 .article-body th { font-weight: 500; background: var(--panel); color: var(--muted); }
 .article-body tr:last-child td { border-bottom: 0; }
 .article-body hr { border: 0; height: 1px; background: var(--line); margin-block: 28px; }
-.document-location { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden; }
-.document-parents { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; color: var(--muted); }
+.document-location { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; }
+.document-parents { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 13px; color: var(--muted); }
 .document-parents a { color: var(--muted); overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; }
-.document-parents span { color: var(--line); }
+.path-symbol { color: var(--muted); display: flex; flex-shrink: 0; }
+.path-symbol .icon { width: 16px; height: 16px; }
+.path-separator { display: flex; color: var(--muted); opacity: .65; flex-shrink: 0; }
+.path-separator .icon { width: 12px; height: 12px; }
 .toolbar-title { font-size: 14px; font-weight: 600; letter-spacing: 0; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 70px; flex-shrink: 0; max-width: min(38vw, 540px); }
 .has-js .directory-collapsed .knowledge-directory { display: none; }
 .directory-collapsed .workspace-body { grid-template-columns: minmax(0, 1fr); }
 .outline-menu { position: relative; }
 .outline-menu summary { display: flex; padding: 0; list-style: none; font-size: 12px; user-select: none; }
 .outline-menu summary::-webkit-details-marker { display: none; }
-.outline-menu[open] summary { background: var(--soft); color: var(--accent); }
+.outline-menu[open] summary, .outline-menu summary.is-active { background: var(--soft); color: var(--accent); }
 .outline-popover { position: absolute; top: calc(100% + 12px); right: 0; width: 304px; max-height: calc(100dvh - 88px); overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 17px 14px 13px; background: var(--raised); box-shadow: 0 12px 32px var(--floating-shadow); }
 .outline-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 7px 12px; }
 .outline-heading strong { font-size: 12px; font-weight: 600; }
@@ -212,6 +215,13 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
 .reading-progress { height: 2px; border-radius: 2px; background: var(--line); margin: 8px 0 2px; }
 .reading-progress span { display: block; height: 100%; background: var(--accent-primary); width: 0; }
 .outline-empty { color: var(--muted); font-size: 12px; padding: 7px; }
+.docked-outline { display: none; }
+[data-outline-layout="docked"] .reading-layout { grid-template-columns: minmax(0, var(--article-width)) 216px; gap: 32px; }
+[data-outline-layout="docked"] .docked-outline { display: block; position: sticky; top: 80px; align-self: start; min-width: 0; }
+.docked-outline .outline-popover { position: static; width: auto; max-height: none; overflow: visible; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.docked-outline .outline-heading { padding-inline: 0; }
+.docked-outline .outline-popover nav { max-height: calc(100dvh - 220px); }
+.docked-outline .outline-foot { padding-inline: 0; }
 .attachments, .related-documents { margin-top: 30px; }
 .attachments h2, .related-documents h2 { font-size: 17px; font-weight: 500; margin-bottom: 13px; }
 .attachments h2 span { color: var(--muted); font-size: 11px; margin-left: 7px; }
@@ -277,7 +287,7 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
   .reading-layout { display: block; padding: 30px; }
   .library-page { padding: 30px; }
   .search-trigger { min-width: 260px; width: 260px; }
-  .document-parents { display: none; }
+  .document-parents, .path-symbol { display: none; }
   .toolbar-title { flex-shrink: 1; max-width: none; }
 }
 @media (max-width: 650px) {
@@ -338,7 +348,7 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
 @media print {
-  .topbar-actions, .directory-toggle, .document-parents, .knowledge-directory, .page-foot, .search-dialog, .toast, .skip-link, .code-toolbar { display: none !important; }
+  .topbar-actions, .directory-toggle, .document-parents, .path-symbol, .docked-outline, .knowledge-directory, .page-foot, .search-dialog, .toast, .skip-link, .code-toolbar { display: none !important; }
   .workspace, .workspace-body, .reading-layout { display: block; border: 0; padding: 0; }
   .topbar { position: static; height: auto; padding: 0 0 20px; border: 0; }
   .toolbar-title { max-width: none; white-space: normal; font-size: 24px; }

@@ -174,6 +174,38 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
 .code-toolbar button { padding: 3px 6px; color: var(--muted); font-size: 11px; border-radius: 4px; }
 .code-toolbar button:hover { color: var(--accent); background: var(--soft); }
 .code-block pre { border-top: 0; border-radius: 0 0 7px 7px; }
+.code-actions, .diagram-actions { display: flex; align-items: center; gap: 3px; }
+.reader-control { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 4px; color: var(--muted); flex-shrink: 0; }
+.reader-control:hover, .reader-control[aria-pressed="true"] { color: var(--accent); background: var(--soft); }
+.reader-control:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-toolbar .reader-control { padding: 0; }
+.article-body pre.shiki, .article-body pre.shiki span { color: var(--shiki-light); }
+html[data-theme="dark"] .article-body pre.shiki, html[data-theme="dark"] .article-body pre.shiki span { color: var(--shiki-dark); }
+.article-body pre.shiki code { color: inherit; display: block; width: max-content; min-width: 100%; font: 13px/1.65 Consolas, 'Courier New', monospace; counter-reset: code-line; }
+.code-numbered .line { display: inline-block; width: 100%; position: relative; padding-left: 3.5em; }
+.code-numbered .line::before { content: counter(code-line); counter-increment: code-line; position: absolute; left: 0; width: 2.3em; text-align: right; color: var(--muted); opacity: .65; user-select: none; }
+.article-body .code-wrapped pre code { width: auto; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+.diagram-slot { margin-block: 20px; min-width: 0; }
+.diagram-block { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: var(--canvas); }
+.diagram-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 42px; padding: 5px 10px 5px 14px; border-bottom: 1px solid var(--line); color: var(--muted); background: var(--panel); font: 11px/1.4 system-ui, sans-serif; }
+.diagram-scale { min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; font-size: 11px; }
+.diagram-canvas { position: relative; overflow: hidden; min-height: 140px; cursor: grab; touch-action: pan-y; }
+.diagram-canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.diagram-canvas.is-dragging { cursor: grabbing; user-select: none; }
+.diagram-content { transform-origin: 0 0; padding: 24px; }
+.diagram-content svg { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+.diagram-status { padding: 26px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.diagram-content:empty { padding: 0; }
+.diagram-source { padding: 12px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.diagram-source summary { cursor: pointer; }
+.diagram-source pre { margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; font: 12px/1.6 Consolas, monospace; }
+.diagram-dialog { width: min(1400px, 94vw); height: 90dvh; max-width: 94vw; max-height: 90dvh; padding: 0; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--canvas); }
+.diagram-dialog::backdrop { background: rgb(0 0 0 / .6); }
+.diagram-dialog .diagram-block { height: 100%; display: flex; flex-direction: column; border: 0; border-radius: 0; }
+.diagram-dialog .diagram-toolbar { flex-shrink: 0; height: 46px; }
+.diagram-dialog .diagram-canvas { flex: 1; min-height: 0; touch-action: none; }
+.diagram-dialog .diagram-content { height: 100%; display: grid; align-items: center; }
+.diagram-dialog .diagram-content svg { max-height: calc(90dvh - 110px); width: 100%; }
 .article-body blockquote { margin: 20px 0; padding: 10px 17px; border-left: 3px solid var(--line); color: var(--muted); }
 .article-body blockquote p { margin-block: 5px; }
 .article-body .callout { border-left-color: var(--accent); color: var(--ink); background: var(--soft); border-radius: 0 6px 6px 0; padding: 13px 17px; font-size: 13px; }

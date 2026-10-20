@@ -38,6 +38,26 @@ async function files(root, prefix = '') {
   return result;
 }
 
+test('exports adaptive Shiki colors, language aliases and safe plain-text fallback before browser scripts', async t => {
+  const exportVault = await engine(), f = await fixture(t);
+  await writeFile(f.note, '---\ntitle: Code\n---\n# Code\n\n```ts\nconst answer: number = 42;\nconsole.log("<script>alert(1)</script>");\n```\n\n```unknown-lang\na < b && c > d\n```\n\n```cpp\nint main() { return 0; }\n```');
+  await exportVault({ input: f.input, output: f.output });
+  const html = await readFile(path.join(f.output, 'Project/Guides/start.html'), 'utf8');
+  assert.match(html, /--shiki-dark:/);
+  assert.match(html, /--shiki-light:/);
+  assert.match(html, /data-language="ts"/);
+  assert.match(html, /data-language="cpp"/);
+  assert.match(html, /data-language="unknown-lang"/);
+  const plainCode = html.match(/<pre[^>]*data-language="unknown-lang"[^>]*>([\s\S]*?)<\/pre>/)[1]
+    .replace(/<[^>]*>/g, '').replace(/&#x([\da-f]+);/gi, (_, value) => String.fromCodePoint(parseInt(value, 16)))
+    .replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
+  assert.equal(plainCode, 'a < b && c > d');
+  assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
+  assert.doesNotMatch(html, /src="https?:\/\//);
+  for (const name of ['reader-code.mjs', 'reader-diagrams.mjs', 'reader-controls.mjs', 'mermaid-viewport.mjs'])
+    assert.ok((await readFile(path.join(f.output, 'assets', name))).length, `${name} must be available without the host app`);
+});
+
 test('exports unchanged nested Vault notes, reader pages, links, referenced assets and private-free search', async t => {
   const exportVault = await engine(), f = await fixture(t);
   const before = await readFile(f.note, 'utf8');

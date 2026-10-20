@@ -7,6 +7,7 @@ import { homePage, documentPage } from './web-templates.mjs';
 import { renderWebArticle, markdownText, escapeText } from './web-markdown.mjs';
 import { inside, loadVault, prepareMarkdown, regularFiles } from './vault.mjs';
 import { searchDocuments } from './public/search.mjs';
+import { highlightCodeBlocks } from './code-highlight.mjs';
 
 export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
   input = path.resolve(input); output = path.resolve(output);
@@ -39,6 +40,7 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
   for (const note of vault.notes) {
     const body = await prepareMarkdown(note, vault, diagnostics);
     const article = renderWebArticle(body, { documentId: note.document_id, documentTitle: note.title, publicBasePath: prefix });
+    article.html = await highlightCodeBlocks(article.html);
     hasMath ||= article.html.includes('class="katex"');
     hasMermaid ||= article.html.includes('class="mermaid"');
     prepared.push({ note, article });
@@ -84,7 +86,8 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     await emit(`${note.slug}.html`, html);
   }
   await emit('static/search.json', JSON.stringify({ version: 1, documents: records }));
-  for (const name of ['dochub.css', 'dochub.js', 'search.mjs', 'library.mjs', 'theme.mjs', 'location.mjs'])
+  for (const name of ['dochub.css', 'dochub.js', 'search.mjs', 'library.mjs', 'theme.mjs', 'location.mjs',
+    'reader-code.mjs', 'reader-controls.mjs', 'reader-diagrams.mjs', 'mermaid-viewport.mjs'])
     await emit(`assets/${name}`, await readFile(new URL(`./public/${name}`, import.meta.url)));
   for (const asset of vault.assets.values()) await emit(`static/assets/${asset.name}`, asset.bytes);
   const require = createRequire(import.meta.url);

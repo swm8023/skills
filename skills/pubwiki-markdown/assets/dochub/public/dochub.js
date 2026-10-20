@@ -1,5 +1,7 @@
 import { staticSearch, prepareStaticLibrary } from './library.mjs';
 import { initializeTheme } from './theme.mjs';
+import { initializeCodeBlocks } from './reader-code.mjs';
+import { initializeDiagrams } from './reader-diagrams.mjs';
 
 (async () => {
   'use strict';
@@ -16,25 +18,8 @@ import { initializeTheme } from './theme.mjs';
   const saveSetting = (key, value) => { try { localStorage.setItem(`dochub:${key}`, value); } catch { /* Preferences are optional. */ } };
   const media = matchMedia('(max-width: 650px)');
   let toastTimer;
-  const diagrams = $$('.mermaid');
-  if (diagrams.length) {
-    const sources = diagrams.map(node => node.textContent);
-    let rendering = false, pending = false;
-    refreshDiagrams = async () => {
-      if (!globalThis.mermaid) return;
-      if (rendering) { pending = true; return; }
-      rendering = true;
-      globalThis.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: themeMode() === 'dark' ? 'dark' : 'default' });
-      diagrams.forEach((node, i) => { node.removeAttribute('data-processed'); node.textContent = sources[i]; });
-      try { await globalThis.mermaid.run({ nodes: diagrams }); }
-      catch { toast('部分图表未能渲染，请检查 Mermaid 语法。'); }
-      finally { rendering = false; if (pending) { pending = false; refreshDiagrams(); } }
-    };
-    const script = document.createElement('script');
-    script.src = `${base}/assets/mermaid.min.js`;
-    script.onload = refreshDiagrams;
-    document.head.append(script);
-  }
+  refreshDiagrams = initializeDiagrams(base, themeMode);
+  refreshDiagrams();
 
   function toast(message) {
     const target = $('.toast');
@@ -94,28 +79,7 @@ import { initializeTheme } from './theme.mjs';
     }
   }
 
-  $$('.article-body pre').forEach(pre => {
-    const code = pre.querySelector('code');
-    if (!code) return;
-    const block = document.createElement('div');
-    block.className = 'code-block';
-    const toolbar = document.createElement('div');
-    toolbar.className = 'code-toolbar';
-    const label = document.createElement('span');
-    label.textContent = [...code.classList].find(name => name.startsWith('language-'))?.slice(9).toUpperCase() || 'TEXT';
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = '复制代码';
-    button.addEventListener('click', async () => {
-      if (await copy(code.textContent, '代码已复制')) {
-        button.textContent = '已复制';
-        setTimeout(() => { button.textContent = '复制代码'; }, 2200);
-      }
-    });
-    toolbar.append(label, button);
-    pre.before(block);
-    block.append(toolbar, pre);
-  });
+  initializeCodeBlocks(copy);
 
   const headings = $$('.article-body h1[id], .article-body h2[id], .article-body h3[id], .article-body h4[id], .article-body h5[id], .article-body h6[id]');
   const headingLinks = $$('[data-heading]');

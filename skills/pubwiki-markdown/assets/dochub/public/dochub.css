@@ -73,7 +73,6 @@ kbd { font: 11px/1.6 "Segoe UI", sans-serif; padding: 1px 5px; border: 1px solid
 .directory-mobile-head { display: none; }
 .reader-mark { display: flex; align-items: center; justify-content: center; width: 36px; flex-shrink: 0; }
 .directory-toggle { display: none; flex-shrink: 0; }
-.directory-toggle[aria-expanded="false"] { background: var(--soft); color: var(--accent); }
 .has-js .directory-toggle { display: inline-flex; }
 .workspace-body { display: grid; grid-template-columns: clamp(260px, 20vw, 320px) minmax(0, 1fr); }
 #main-content { min-width: 0; scroll-margin-top: 72px; }

@@ -2,7 +2,7 @@ import { escapeText } from './web-markdown.mjs';
 import { webAssets } from './web-assets.mjs';
 import { sidebar } from './web-navigation.mjs';
 import { bootstrapTheme } from './public/theme.mjs';
-import { renderLocation } from './public/location.mjs';
+import { renderLocation, bootstrapLocation } from './public/location.mjs';
 import { route, queryUrl, documentUrl, highlightText, icon, dateText, sizeText } from './web-ui.mjs';
 
 function brand(prefix, { subtitle = false } = {}) {
@@ -27,11 +27,11 @@ function directoryButton() {
 
 function header(prefix, { standalone = false, page = '', directory = '', title = '', outline = [] } = {}) {
   const tools = page === 'document' ? `<button class="icon-button secondary-tool" type="button" data-copy-link aria-label="复制当前章节链接" title="复制当前章节链接">${icon('link')}</button><button class="icon-button reading-width-toggle secondary-tool" type="button" data-toggle-width aria-label="切换宽屏阅读" aria-pressed="false" title="宽屏阅读">${icon('width')}</button>${directoryButton()}<details class="outline-menu"><summary class="icon-button" aria-label="本页大纲" title="本页大纲" aria-controls="article-outline">${icon('outline')}</summary><section class="outline-popover" id="article-outline" aria-label="本页大纲"><div class="outline-heading"><strong>本页大纲</strong><span>${outline.length} 个章节</span></div>${outline.length ? `<nav aria-label="章节导航">${outlineLinks(outline)}</nav>` : '<p class="outline-empty">本文没有章节标题</p>'}<div class="outline-foot"><span data-reading-progress>阅读进度 0%</span><div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div></div></section></details>` : '';
-  return `<header class="topbar"><div class="topbar-start">${standalone ? brand(prefix) : `<span class="reader-mark" aria-hidden="true"><span class="brand-mark"><span></span><span></span><span></span></span></span><div class="document-location" title="${escapeText([directory, title].filter(Boolean).join(' / '))}">${renderLocation(prefix, directory, page === 'document' ? title : '')}</div>`}</div><div class="topbar-actions">
+  return `<header class="topbar"><div class="topbar-start">${standalone ? brand(prefix) : `<span class="reader-mark" aria-hidden="true"><span class="brand-mark"><span></span><span></span><span></span></span></span><div class="document-location" data-directory="${escapeText(directory)}" title="${escapeText([directory, title].filter(Boolean).join(' / '))}">${renderLocation(prefix, directory, page === 'document' ? title : '')}</div>`}</div><div class="topbar-actions">
     ${standalone ? '' : `<button type="button" class="search-trigger" data-open-search aria-label="搜索文档">${icon('search')}<span>搜索文档、内容、标签…</span><kbd>Ctrl K</kbd></button>`}
     ${tools}${!standalone && page !== 'document' ? directoryButton() : ''}<button type="button" class="icon-button" data-toggle-theme aria-label="切换明暗主题" title="切换明暗主题">${icon('theme')}</button>
     ${standalone ? '' : `<form method="post" action="${escapeText(route(prefix, '/logout'))}"><button class="icon-button logout-button" type="submit" aria-label="退出登录" title="退出登录">${icon('logout')}</button></form>`}
-  </div></header>`;
+  </div></header>${page === 'library' ? `<script>(${bootstrapLocation.toString()})(window, (${renderLocation.toString()}));</script>` : ''}`;
 }
 
 function searchDialog(prefix, directory) {

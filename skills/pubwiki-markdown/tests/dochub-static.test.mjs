@@ -3,6 +3,7 @@ import test from 'node:test';
 import { mkdtemp, mkdir, readFile, writeFile, rm, readdir, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { runInNewContext } from 'node:vm';
 
 const engineURL = new URL('../assets/dochub/exporter.mjs', import.meta.url);
 async function engine() {
@@ -96,7 +97,7 @@ test('query-driven location updates even when the search index is unavailable', 
   const previous = { document: globalThis.document, location: globalThis.location, fetch: globalThis.fetch };
   t.after(() => Object.assign(globalThis, previous));
   const root = { dataset: { page: 'library', basePath: '/wiki', staticIndex: '/wiki/static/search.json' } };
-  const locationElement = { innerHTML: '', title: '' };
+  const locationElement = { innerHTML: '', title: '', dataset: {} };
   globalThis.document = { documentElement: root, querySelector: selector => selector === '.document-location' ? locationElement : null };
   globalThis.location = new URL('https://wiki.example/wiki/?directory=Project%2FGuides');
   globalThis.fetch = async () => { throw new Error('offline'); };
@@ -105,6 +106,27 @@ test('query-driven location updates even when the search index is unavailable', 
   assert.equal(root.dataset.directory, 'Project/Guides');
   assert.match(locationElement.innerHTML, />Project<\/a>/);
   assert.match(locationElement.innerHTML, /data-library-location>Guides<\/span>/);
+});
+
+test('query location is correct before deferred modules and is not replaced again', async t => {
+  const exportVault = await engine(), f = await fixture(t);
+  await exportVault({ input: f.input, output: f.output });
+  const html = await readFile(path.join(f.output, 'index.html'), 'utf8');
+  const bootstrap = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .find(match => match[1].includes('bootstrapLocation'));
+  assert.ok(bootstrap, 'the initial library title must not wait for deferred modules');
+  const root = { dataset: { page: 'library', basePath: '/wiki', staticIndex: '/wiki/static/search.json', directory: '' } };
+  let writes = 0, markup = '全部文档';
+  const locationElement = { dataset: { directory: '' }, title: '',
+    get innerHTML() { return markup; }, set innerHTML(value) { writes++; markup = value; } };
+  const view = { document: { documentElement: root, querySelector: () => locationElement },
+    location: new URL('https://wiki.example/wiki/?directory=Project%2FGuides') };
+  runInNewContext(bootstrap[1], { window: view, URLSearchParams });
+  assert.match(markup, /data-library-location>Guides<\/span>/);
+  assert.equal(root.dataset.directory, 'Project/Guides');
+  const { bootstrapLocation } = await import('../assets/dochub/public/location.mjs');
+  bootstrapLocation(view);
+  assert.equal(writes, 1, 'module initialization must retain the existing title nodes');
 });
 
 test('rejects content links and output paths that escape the Vault', async t => {

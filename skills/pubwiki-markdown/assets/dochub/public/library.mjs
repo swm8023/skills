@@ -1,5 +1,5 @@
 import { searchDocuments } from './search.mjs';
-import { renderLocation } from './location.mjs';
+import { bootstrapLocation } from './location.mjs';
 
 let indexPromise;
 export function staticSearch(values) {
@@ -29,17 +29,12 @@ function highlighted(tag, text, query, className) {
 export async function prepareStaticLibrary() {
   const root = document.documentElement;
   if (!root.dataset.staticIndex || root.dataset.page !== 'library') return;
+  bootstrapLocation(globalThis);
   const params = new URLSearchParams(location.search), values = Object.fromEntries(params);
   values.directory ??= root.dataset.directory || '';
   values.tag ??= root.dataset.staticTag || '';
   values.tag_descendants = root.dataset.tagDescendants === 'true';
   const query = values.q || '', directory = values.directory || '', tag = values.tag || '';
-  root.dataset.directory = directory;
-  const locationElement = document.querySelector('.document-location');
-  if (locationElement) {
-    locationElement.innerHTML = renderLocation(root.dataset.basePath, directory);
-    locationElement.title = directory || '全部文档';
-  }
   const form = document.querySelector('.library-search');
   for (const name of ['q', 'directory', 'sort']) {
     const field = form?.elements.namedItem(name);

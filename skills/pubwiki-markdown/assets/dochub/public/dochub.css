@@ -71,13 +71,13 @@ h1, h2, h3, h4, p { margin: 0; }
 kbd { font: 11px/1.6 "Segoe UI", sans-serif; padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); background: var(--paper); white-space: nowrap; }
 .search-trigger kbd { margin-left: auto; }
 .directory-mobile-head { display: none; }
-.directory-toggle { display: none; padding: 2px; width: 36px; flex-shrink: 0; }
+.reader-mark { display: flex; align-items: center; justify-content: center; width: 36px; flex-shrink: 0; }
+.directory-toggle { display: none; flex-shrink: 0; }
+.directory-toggle[aria-expanded="false"] { background: var(--soft); color: var(--accent); }
 .has-js .directory-toggle { display: inline-flex; }
 .workspace-body { display: grid; grid-template-columns: clamp(260px, 20vw, 320px) minmax(0, 1fr); }
 #main-content { min-width: 0; scroll-margin-top: 72px; }
 .knowledge-directory { position: sticky; top: 56px; align-self: start; height: calc(100dvh - 56px); overflow-y: auto; overscroll-behavior: contain; padding: 26px 14px 25px; background: var(--sidebar); border-right: 1px solid var(--line); scrollbar-width: thin; }
-.library-nav-link { display: flex; margin-bottom: 18px; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 6px; color: var(--muted); font-size: 13px; }
-.library-nav-link[aria-current="page"] { background: var(--soft); color: var(--accent); }
 .sidebar-section-label { display: flex; align-items: center; justify-content: space-between; color: var(--muted); padding: 0 11px; margin: 27px 0 12px; font-size: 11px; letter-spacing: .06em; }
 .sidebar-section-label span { font: 9px Consolas, monospace; letter-spacing: .08em; }
 .directory-title { margin-top: 0; }
@@ -191,14 +191,10 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
 .document-parents a { color: var(--muted); overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; }
 .document-parents span { color: var(--line); }
 .toolbar-title { font-size: 14px; font-weight: 600; letter-spacing: 0; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 70px; flex-shrink: 0; max-width: min(38vw, 540px); }
-.directory-collapsed-icon { display: none; color: var(--accent-primary); }
-.directory-collapsed-icon .icon { width: 25px; height: 25px; }
-.directory-toggle[aria-expanded="false"] .directory-expanded-icon { display: none; }
-.directory-toggle[aria-expanded="false"] .directory-collapsed-icon { display: flex; }
 .has-js .directory-collapsed .knowledge-directory { display: none; }
 .directory-collapsed .workspace-body { grid-template-columns: minmax(0, 1fr); }
 .outline-menu { position: relative; }
-.outline-menu summary { display: flex; gap: 6px; padding: 0 9px; list-style: none; font-size: 12px; user-select: none; }
+.outline-menu summary { display: flex; padding: 0; list-style: none; font-size: 12px; user-select: none; }
 .outline-menu summary::-webkit-details-marker { display: none; }
 .outline-menu[open] summary { background: var(--soft); color: var(--accent); }
 .outline-popover { position: absolute; top: calc(100% + 12px); right: 0; width: 304px; max-height: calc(100dvh - 88px); overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 17px 14px 13px; background: var(--raised); box-shadow: 0 12px 32px var(--floating-shadow); }
@@ -232,9 +228,6 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
 .adjacent-documents > :last-child { text-align: right; }
 .adjacent-documents small { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
 .adjacent-documents span { font-size: 13px; }
-.has-js .reading-focused .knowledge-directory { display: none; }
-.reading-focused .workspace-body { grid-template-columns: minmax(0, 1fr); }
-.reading-focused .reading-layout { grid-template-columns: minmax(0, var(--article-width)); }
 .search-dialog { padding: 0; width: min(650px, calc(100% - 28px)); max-height: min(750px, calc(100dvh - 60px)); margin: 8dvh auto auto; overflow-y: auto; color: var(--ink); background: var(--raised); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 16px 40px var(--floating-shadow); }
 .search-dialog::backdrop { background: var(--scrim); backdrop-filter: blur(3px); }
 .dialog-search-form { display: flex; align-items: center; gap: 9px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
@@ -299,15 +292,13 @@ mark { background: var(--soft); color: var(--accent); border-radius: 2px; paddin
   .has-js .directory-toggle { display: inline-flex; }
   .icon-button { min-width: 36px; min-height: 44px; }
   .topbar-start { gap: 9px; }
-  .outline-menu summary { padding-inline: 7px; }
-  .outline-menu summary > span { display: none; }
+
   .outline-popover { position: fixed; top: 64px; right: 12px; width: min(304px, calc(100vw - 24px)); }
   .workspace-body { display: block; }
   .knowledge-directory { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
   .has-js .knowledge-directory { display: none; position: fixed; z-index: 50; inset: 0 auto 0 0; width: min(310px, 87%); height: 100dvh; border-right: 1px solid var(--line); border-bottom: 0; box-shadow: 10px 0 50px var(--floating-shadow); }
   .has-js .directory-is-open .knowledge-directory { display: block; }
   .directory-mobile-head { display: flex; justify-content: space-between; align-items: center; padding: 0 7px 16px; font-size: 15px; }
-  .library-nav-link { display: flex; min-height: 44px; margin-bottom: 22px; }
   .drawer-shade { display: block; position: fixed; inset: 0; z-index: 40; background: var(--scrim); }
   .directory-is-open { overflow: hidden; }
   .knowledge-directory .directory-tree a { font-size: 13px; }

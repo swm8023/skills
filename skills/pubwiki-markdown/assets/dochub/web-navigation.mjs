@@ -25,11 +25,10 @@ export function directoryTree(navigation, { prefix, directory = '', documentId =
 }
 
 export function sidebar(navigation, options) {
-  const { prefix, tag = '', documentId = '', directory = '' } = options;
+  const { prefix, tag = '' } = options;
   return `<button class="drawer-shade" type="button" data-close-directory aria-label="关闭知识目录" hidden></button>
   <aside class="knowledge-directory" id="knowledge-directory" aria-label="知识目录">
     <div class="directory-mobile-head"><span>知识目录</span><button class="icon-button" type="button" data-close-directory aria-label="关闭知识目录">${icon('close')}</button></div>
-    <a class="library-nav-link" href="${queryUrl(prefix)}"${!documentId && !directory && !tag ? ' aria-current="page"' : ''}>${icon('library')}<span>文档总览</span></a>
     <div class="sidebar-section-label directory-title">知识目录<span class="directory-total">${navigation.total ?? navigation.documents?.length ?? 0} 篇</span></div>
     <nav class="directory-tree" aria-label="文章目录">${directoryTree(navigation, options) || '<p class="sidebar-empty">发布文档后，目录会显示在这里。</p>'}</nav>
     ${(navigation.tags?.length ?? 0) > 0 ? `<div class="sidebar-section-label">常用标签</div><div class="sidebar-tags">${navigation.tags.slice(0, 12).map(entry => `<a class="tag" href="${queryUrl(prefix, { tag: entry.tag })}"${tag.toLocaleLowerCase('en-US') === entry.tag.toLocaleLowerCase('en-US') ? ' aria-current="page"' : ''}># ${escapeText(entry.tag)}<span>${entry.count}</span></a>`).join('')}</div>` : ''}

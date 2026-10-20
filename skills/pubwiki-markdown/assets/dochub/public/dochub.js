@@ -45,18 +45,6 @@ import { initializeTheme } from './theme.mjs';
     toastTimer = setTimeout(() => { target.hidden = true; }, 3200);
   }
 
-  function focusMode(enabled) {
-    document.body.classList.toggle('reading-focused', enabled);
-    $('[data-toggle-focus]')?.setAttribute('aria-pressed', String(enabled));
-    requestAnimationFrame(updateReading);
-  }
-  if (root.dataset.page === 'document') focusMode(readSetting('focus') === 'true');
-  $('[data-toggle-focus]')?.addEventListener('click', () => {
-    const enabled = !document.body.classList.contains('reading-focused');
-    focusMode(enabled);
-    saveSetting('focus', String(enabled));
-  });
-
   function wideMode(enabled) {
     document.body.classList.toggle('reading-wide', enabled);
     const button = $('[data-toggle-width]');
@@ -190,10 +178,10 @@ import { initializeTheme } from './theme.mjs';
   const directoryToggle = $('[data-open-directory]');
   const shade = $('.drawer-shade');
   let directoryOpener;
-  let collapsed = readSetting('directory-collapsed') === 'true';
+  let collapsed = (readSetting('directory-collapsed') ?? readSetting('focus')) === 'true';
   function updateDirectory() {
     const visible = media.matches ? document.body.classList.contains('directory-is-open')
-      : !collapsed && !document.body.classList.contains('reading-focused');
+      : !collapsed;
     document.body.classList.toggle('directory-collapsed', collapsed);
     directoryToggle?.setAttribute('aria-expanded', String(visible));
     const label = visible ? '收起知识目录' : '展开知识目录';
@@ -215,8 +203,7 @@ import { initializeTheme } from './theme.mjs';
   directoryToggle?.addEventListener('click', () => {
     closeOutline();
     if (!media.matches) {
-      if (document.body.classList.contains('reading-focused')) { focusMode(false); saveSetting('focus', 'false'); collapsed = false; }
-      else collapsed = !collapsed;
+      collapsed = !collapsed;
       saveSetting('directory-collapsed', String(collapsed));
       updateDirectory();
       scheduleReading();
@@ -233,7 +220,6 @@ import { initializeTheme } from './theme.mjs';
     directory.querySelector('[data-close-directory]').focus({ preventScroll: true });
   });
   $$('[data-close-directory]').forEach(button => button.addEventListener('click', () => closeDirectory()));
-  $('[data-toggle-focus]')?.addEventListener('click', updateDirectory);
   media.addEventListener('change', () => { closeDirectory(false); updateReading(); });
   updateDirectory();
 

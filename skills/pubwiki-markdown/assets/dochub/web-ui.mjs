@@ -30,7 +30,6 @@ export function highlightText(value, query = '') {
 }
 
 const paths = {
-  directory: '<path d="M4 4.5v15" stroke-width="2.1"/><path d="M9 5.5h11M9 12h8M9 18.5h10"/>',
   outline: '<path d="M8 6h12M8 12h9M8 18h11M3 6h.01M3 12h.01M3 18h.01"/>',
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>',
   file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h6"/>',

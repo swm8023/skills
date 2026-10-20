@@ -14,7 +14,7 @@ function layout(title, body, { prefix = '/docs', page = 'standalone', directory 
   return `<!doctype html>
 <html lang="zh-CN" data-page="${page}" data-base-path="${escapeText(prefix)}" data-directory="${escapeText(directory)}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<script>(${bootstrapTheme.toString()})(window);</script>
+<script>window.document.documentElement.classList.add('has-js');(${bootstrapTheme.toString()})(window);</script>
 <style>:root{color-scheme:light dark;background:light-dark(#fffefa,#1e1e1e)}html[data-theme="light"]{color-scheme:light}html[data-theme="dark"]{color-scheme:dark}html[data-embedded="true"] [data-toggle-theme]{display:none}</style>
 <meta name="color-scheme" content="light dark"><title>${escapeText(title)} · WheelMaker Wiki</title>
 <link rel="stylesheet" href="${asset('dochub.css')}"><script src="${asset('dochub.js')}" defer></script></head>

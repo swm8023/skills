@@ -15,7 +15,8 @@ async function initialize() {
 function browser({ embedded = false, stored = 'dark', hostTheme = 'light' } = {}) {
   const view = new EventTarget(), button = new EventTarget(), media = new EventTarget();
   const settings = new Map([['dochub:theme', stored]]);
-  const root = { dataset: {} };
+  const classes = new Set();
+  const root = { dataset: {}, classList: { add: name => classes.add(name), contains: name => classes.has(name) } };
   Object.assign(button, { hidden: false });
   Object.assign(media, { matches: false });
   Object.assign(view, {
@@ -84,6 +85,7 @@ for (const embedded of [false, true]) {
     assert.ok(script.index < html.indexOf('<link rel="stylesheet"'));
     const f = browser({ embedded });
     runInNewContext(script[1], { window: f.view });
+    assert.equal(f.root.classList.contains('has-js'), true, 'toolbar controls must occupy space from first paint');
     assert.equal(f.root.dataset.theme, embedded ? 'light' : 'dark');
     assert.equal(f.settings.get('dochub:theme'), 'dark');
   });

@@ -1,8 +1,11 @@
 import { staticSearch, prepareStaticLibrary } from './library.mjs';
+import { initializeTheme } from './theme.mjs';
 
 (async () => {
   'use strict';
-  await prepareStaticLibrary();
+  let refreshDiagrams = () => {};
+  const themeMode = initializeTheme(window, () => refreshDiagrams());
+  const libraryReady = prepareStaticLibrary();
   const root = document.documentElement;
   root.classList.add('has-js');
   const $ = selector => document.querySelector(selector);
@@ -11,29 +14,27 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
   const currentDirectory = root.dataset.directory || '';
   const readSetting = key => { try { return localStorage.getItem(`dochub:${key}`); } catch { return null; } };
   const saveSetting = (key, value) => { try { localStorage.setItem(`dochub:${key}`, value); } catch { /* Preferences are optional. */ } };
-  const storedTheme = readSetting('theme');
-  if (storedTheme === 'light' || storedTheme === 'dark') root.dataset.theme = storedTheme;
   const media = matchMedia('(max-width: 650px)');
-  const prefersDark = matchMedia('(prefers-color-scheme: dark)');
   let toastTimer;
   const diagrams = $$('.mermaid');
   if (diagrams.length) {
+    const sources = diagrams.map(node => node.textContent);
+    let rendering = false, pending = false;
+    refreshDiagrams = async () => {
+      if (!globalThis.mermaid) return;
+      if (rendering) { pending = true; return; }
+      rendering = true;
+      globalThis.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: themeMode() === 'dark' ? 'dark' : 'default' });
+      diagrams.forEach((node, i) => { node.removeAttribute('data-processed'); node.textContent = sources[i]; });
+      try { await globalThis.mermaid.run({ nodes: diagrams }); }
+      catch { toast('部分图表未能渲染，请检查 Mermaid 语法。'); }
+      finally { rendering = false; if (pending) { pending = false; refreshDiagrams(); } }
+    };
     const script = document.createElement('script');
     script.src = `${base}/assets/mermaid.min.js`;
-    script.onload = () => {
-      globalThis.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict',
-        theme: (root.dataset.theme || (prefersDark.matches ? 'dark' : 'light')) === 'dark' ? 'dark' : 'default' });
-      globalThis.mermaid.run({ nodes: diagrams }).catch(() => toast('部分图表未能渲染，请检查 Mermaid 语法。'));
-    };
+    script.onload = refreshDiagrams;
     document.head.append(script);
   }
-  addEventListener('message', event => {
-    if (event.source !== parent || event.origin !== location.origin || event.data?.type !== 'wheelmaker-theme'
-      || !['light', 'dark'].includes(event.data.mode)) return;
-    root.dataset.theme = event.data.mode;
-    root.dataset.embedded = 'true';
-    $('[data-toggle-theme]')?.setAttribute('hidden', '');
-  });
 
   function toast(message) {
     const target = $('.toast');
@@ -43,12 +44,6 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
     target.hidden = false;
     toastTimer = setTimeout(() => { target.hidden = true; }, 3200);
   }
-
-  $('[data-toggle-theme]')?.addEventListener('click', () => {
-    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : prefersDark.matches;
-    root.dataset.theme = dark ? 'light' : 'dark';
-    saveSetting('theme', root.dataset.theme);
-  });
 
   function focusMode(enabled) {
     document.body.classList.toggle('reading-focused', enabled);
@@ -141,7 +136,7 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
   function updateReading() {
     readingFrame = 0;
     if (!article) return;
-    const top = media.matches ? 90 : 110;
+    const top = 72;
     let active = headings[0];
     for (const heading of headings) {
       if (heading.getBoundingClientRect().top <= top + 32) active = heading;
@@ -168,7 +163,7 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
   if (article && globalThis.ResizeObserver) new ResizeObserver(scheduleReading).observe(article);
   updateReading();
   headingLinks.forEach(link => link.addEventListener('click', () => {
-    const details = link.closest('.mobile-outline');
+    const details = link.closest('.outline-menu');
     if (details) details.open = false;
     requestAnimationFrame(updateReading);
   }));
@@ -178,36 +173,69 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
     copy(url.href, '章节链接已复制');
   });
 
+  const outline = $('.outline-menu');
+  const closeOutline = (restore = false) => {
+    if (!outline?.open) return;
+    outline.open = false;
+    if (restore) outline.querySelector('summary').focus({ preventScroll: true });
+  };
+  document.addEventListener('click', event => { if (outline && !outline.contains(event.target)) closeOutline(); });
+  outline?.addEventListener('toggle', () => {
+    outline.querySelector('summary').setAttribute('aria-expanded', String(outline.open));
+    if (outline.open) outline.querySelector('[aria-current="location"]')?.scrollIntoView({ block: 'nearest' });
+  });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeOutline(true); });
+
   const directory = $('#knowledge-directory');
   const directoryToggle = $('[data-open-directory]');
   const shade = $('.drawer-shade');
   let directoryOpener;
+  let collapsed = readSetting('directory-collapsed') === 'true';
+  function updateDirectory() {
+    const visible = media.matches ? document.body.classList.contains('directory-is-open')
+      : !collapsed && !document.body.classList.contains('reading-focused');
+    document.body.classList.toggle('directory-collapsed', collapsed);
+    directoryToggle?.setAttribute('aria-expanded', String(visible));
+    const label = visible ? '收起知识目录' : '展开知识目录';
+    directoryToggle?.setAttribute('aria-label', label);
+    directoryToggle?.setAttribute('title', label);
+  }
   function closeDirectory(restore = true) {
     if (!directory) return;
     document.body.classList.remove('directory-is-open');
     directory.removeAttribute('role');
     directory.removeAttribute('aria-modal');
-    directoryToggle?.setAttribute('aria-expanded', 'false');
     shade.hidden = true;
     $('#main-content').inert = false;
     $('.topbar').inert = false;
+    updateDirectory();
     if (restore && directoryOpener?.isConnected) directoryOpener.focus({ preventScroll: true });
     directoryOpener = null;
   }
   directoryToggle?.addEventListener('click', () => {
-    if (!media.matches) return;
+    closeOutline();
+    if (!media.matches) {
+      if (document.body.classList.contains('reading-focused')) { focusMode(false); saveSetting('focus', 'false'); collapsed = false; }
+      else collapsed = !collapsed;
+      saveSetting('directory-collapsed', String(collapsed));
+      updateDirectory();
+      scheduleReading();
+      return;
+    }
     directoryOpener = document.activeElement;
     document.body.classList.add('directory-is-open');
     directory.setAttribute('role', 'dialog');
     directory.setAttribute('aria-modal', 'true');
-    directoryToggle.setAttribute('aria-expanded', 'true');
     shade.hidden = false;
     $('#main-content').inert = true;
     $('.topbar').inert = true;
+    updateDirectory();
     directory.querySelector('[data-close-directory]').focus({ preventScroll: true });
   });
   $$('[data-close-directory]').forEach(button => button.addEventListener('click', () => closeDirectory()));
+  $('[data-toggle-focus]')?.addEventListener('click', updateDirectory);
   media.addEventListener('change', () => { closeDirectory(false); updateReading(); });
+  updateDirectory();
 
   const dialog = $('#document-search');
   let searchTimer, searchController, searchSequence = 0, searchIndex = 0, searchScope = 'all', searchOpener;
@@ -309,6 +337,7 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
   function openSearch() {
     if (!dialog || dialog.open) return;
     closeDirectory(false);
+    closeOutline();
     searchOpener = document.activeElement;
     searchInput.value = '';
     searchScope = 'all';
@@ -368,4 +397,5 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }
   });
+  await libraryReady;
 })();

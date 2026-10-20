@@ -1,6 +1,6 @@
 import { escapeText } from './web-markdown.mjs';
 import { webAssets } from './web-assets.mjs';
-import { sidebar, breadcrumbs } from './web-navigation.mjs';
+import { sidebar } from './web-navigation.mjs';
 import { route, queryUrl, documentUrl, highlightText, icon, dateText, sizeText } from './web-ui.mjs';
 
 function brand(prefix, { subtitle = false } = {}) {
@@ -17,11 +17,14 @@ function layout(title, body, { prefix = '/docs', page = 'standalone', directory 
 <body>${body}<div class="toast" role="status" aria-live="polite" hidden></div></body></html>`;
 }
 
-function header(prefix, { standalone = false, page = '' } = {}) {
-  return `<header class="topbar"><div class="topbar-start">${brand(prefix, { subtitle: standalone })}${standalone ? '' : `<nav class="primary-navigation" aria-label="全局导航"><a href="${escapeText(route(prefix))}"${page === 'library' ? ' aria-current="page"' : ''}>文档库</a></nav>`}</div><div class="topbar-actions">
+function header(prefix, { standalone = false, page = '', directory = '', title = '', outline = [] } = {}) {
+  const parts = directory.split('/').filter(Boolean);
+  const path = (page === 'document' ? parts : []).map((part, i) => `<a href="${queryUrl(prefix, { directory: parts.slice(0, i + 1).join('/') })}">${escapeText(part)}</a><span aria-hidden="true">/</span>`).join('');
+  const tools = page === 'document' ? `<button class="icon-button secondary-tool" type="button" data-copy-link aria-label="复制当前章节链接" title="复制当前章节链接">${icon('link')}</button><button class="icon-button reading-width-toggle secondary-tool" type="button" data-toggle-width aria-label="切换宽屏阅读" aria-pressed="false" title="宽屏阅读">${icon('width')}</button><button class="icon-button secondary-tool" type="button" data-toggle-focus aria-label="切换专注阅读" aria-pressed="false" title="专注阅读">${icon('focus')}</button><details class="outline-menu"><summary class="icon-button" aria-label="本页大纲" title="本页大纲">${icon('outline')}<span>大纲</span></summary><section class="outline-popover" aria-label="本页大纲"><div class="outline-heading"><strong>本页大纲</strong><span>${outline.length} 个章节</span></div>${outline.length ? `<nav aria-label="章节导航">${outlineLinks(outline)}</nav>` : '<p class="outline-empty">本文没有章节标题</p>'}<div class="outline-foot"><span data-reading-progress>阅读进度 0%</span><div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div></div></section></details>` : '';
+  return `<header class="topbar"><div class="topbar-start">${standalone ? brand(prefix) : `<button class="icon-button directory-toggle" type="button" data-open-directory aria-label="收起知识目录" title="收起知识目录" aria-expanded="true" aria-controls="knowledge-directory"><span class="brand-mark directory-expanded-icon" aria-hidden="true"><span></span><span></span><span></span></span><span class="directory-collapsed-icon">${icon('directory')}</span></button><div class="document-location" title="${escapeText([directory, title].filter(Boolean).join(' / '))}"><nav class="document-parents" aria-label="文档路径">${path}</nav>${page === 'document' ? `<h1 class="toolbar-title">${escapeText(title)}</h1>` : `<span class="toolbar-title" data-library-location>${escapeText(directory || '全部文档')}</span>`}</div>`}</div><div class="topbar-actions">
     ${standalone ? '' : `<button type="button" class="search-trigger" data-open-search aria-label="搜索文档">${icon('search')}<span>搜索文档、内容、标签…</span><kbd>Ctrl K</kbd></button>`}
-    <button type="button" class="icon-button" data-toggle-theme aria-label="切换明暗主题" title="切换明暗主题">${icon('theme')}</button>
-    ${standalone ? '' : `<form method="post" action="${escapeText(route(prefix, '/logout'))}"><button class="icon-button logout-button" type="submit" aria-label="退出登录" title="退出登录">${icon('logout')}</button></form><button class="icon-button directory-toggle" type="button" data-open-directory aria-label="展开知识目录" aria-expanded="false" aria-controls="knowledge-directory">${icon('panel')}</button>`}
+    ${tools}<button type="button" class="icon-button" data-toggle-theme aria-label="切换明暗主题" title="切换明暗主题">${icon('theme')}</button>
+    ${standalone ? '' : `<form method="post" action="${escapeText(route(prefix, '/logout'))}"><button class="icon-button logout-button" type="submit" aria-label="退出登录" title="退出登录">${icon('logout')}</button></form>`}
   </div></header>`;
 }
 
@@ -39,9 +42,9 @@ function searchDialog(prefix, directory) {
   </dialog>`;
 }
 
-function workspace(body, { prefix, directory = '', documentId = '', tag = '', navigation, indexStatus = 'ready', page = 'library' }) {
+function workspace(body, { prefix, directory = '', documentId = '', tag = '', navigation, indexStatus = 'ready', page = 'library', outline = [] }) {
   return layout(page === 'library' ? '文档' : body.title, `<a class="skip-link" href="#main-content">跳到正文</a>
-  <div class="workspace">${header(prefix, { page })}<div class="workspace-body">${sidebar(navigation, { prefix, directory, documentId, tag })}
+  <div class="workspace">${header(prefix, { page, directory, title: body.title || '', outline })}<div class="workspace-body">${sidebar(navigation, { prefix, directory, documentId, tag })}
     <main id="main-content">${indexStatus === 'stale' ? '<div class="sync-warning" role="status">暂时无法同步文档，当前显示最近一次已确认快照。</div>' : ''}${typeof body === 'string' ? body : body.html}</main>
   </div></div>${searchDialog(prefix, directory)}`, { prefix, page, directory });
 }
@@ -67,7 +70,7 @@ export function homePage({ results = [], query = '', directory = '', tag = '', s
     ${query && item.snippet ? `<p class="document-snippet">${highlightText(item.snippet, query)}</p>` : !item.description && item.snippet ? `<p class="document-description">${escapeText(item.snippet)}</p>` : ''}
     <div class="document-row-meta">${item.date ? `<time>${dateText(item.date)}</time>` : ''}${item.author ? `<span>${escapeText(item.author)}</span>` : ''}${tagHtml(item.tags, { prefix, directory })}</div></div><a class="document-open" href="${documentUrl(prefix, item.document_id)}" aria-label="打开 ${escapeText(item.title)}">${icon('arrow')}</a></li>`).join('');
   const pages = Math.max(1, Math.ceil(total / limit));
-  const body = `<div class="contextbar">${breadcrumbs(prefix, directory)}</div><section class="library-page" aria-label="文档总览">
+  const body = `<section class="library-page" aria-label="文档总览">
     <div class="library-heading"><h1 class="library-title">文档库</h1></div>
     <form class="library-search" method="get" action="${escapeText(route(prefix))}"><label class="library-input">${icon('search')}<input type="search" name="q" value="${escapeText(query)}" aria-label="搜索文档库" placeholder="搜索标题、正文或标签…" maxlength="1000"></label>
       <div class="library-selects"><label><span class="sr-only">目录</span><select name="directory" aria-label="目录"><option value="">全部目录</option>${navigation.directories.map(entry => typeof entry === 'string' ? entry : entry.directory).map(path => `<option value="${escapeText(path)}"${path === directory ? ' selected' : ''}>${escapeText(path)}</option>`).join('')}</select></label>
@@ -88,7 +91,6 @@ function outlineLinks(outline) {
 
 export function documentPage(document, { html, outline = [], indexStatus = 'ready', prefix = '/docs', navigation = { documents: [], directories: [], tags: [], total: 0 } } = {}) {
   const metadata = document.metadata ?? {}, directory = metadata.directory ?? '';
-  const links = outlineLinks(outline);
   const minutes = Math.max(1, Math.ceil(String(document.body ?? '').length / 450));
   const assets = (document.assets ?? []).map(asset => `<a class="attachment" href="${escapeText(route(prefix, `/document/${encodeURIComponent(document.document_id)}/asset/${encodeURIComponent(asset.filename)}`))}">${icon('file')}<span><strong>${escapeText(asset.filename)}</strong><small>${escapeText(asset.mime_type)} · ${sizeText(asset.size)}</small></span>${icon('download')}</a>`).join('');
   const peers = navigation.documents.filter(entry => entry.directory === directory);
@@ -96,16 +98,15 @@ export function documentPage(document, { html, outline = [], indexStatus = 'read
   const adjacent = [peers[position - 1], peers[position + 1]];
   const neighbors = adjacent.some(Boolean) ? `<nav class="adjacent-documents" aria-label="相邻文档">${adjacent.map((entry, i) => entry ? `<a href="${documentUrl(prefix, entry.document_id)}"><small>${i ? '下一篇 →' : '← 上一篇'}</small><span>${escapeText(entry.title)}</span></a>` : '<span></span>').join('')}</nav>` : '';
   const related = navigation.documents.filter(entry => entry.document_id !== document.document_id && !adjacent.includes(entry) && entry.tags.some(tag => (metadata.tags ?? []).some(current => current.toLocaleLowerCase('en-US') === tag.toLocaleLowerCase('en-US')))).slice(0, 3);
-  const content = `<div class="contextbar">${breadcrumbs(prefix, directory)}<div class="reading-tools"><button class="icon-button" type="button" data-copy-link aria-label="复制当前章节链接" title="复制当前章节链接">${icon('link')}</button><button class="icon-button reading-width-toggle" type="button" data-toggle-width aria-label="切换宽屏阅读" aria-pressed="false" title="宽屏阅读">${icon('width')}<span>宽屏</span></button><button class="icon-button" type="button" data-toggle-focus aria-label="切换专注阅读" aria-pressed="false" title="专注阅读">${icon('focus')}</button></div></div>
-  <div class="reading-layout"><div class="reading-column"><header class="article-header"><h1>${escapeText(metadata.title || '未命名文档')}</h1>${metadata.description ? `<p class="article-description">${escapeText(metadata.description)}</p>` : ''}
+  const content = `<div class="reading-layout"><div class="reading-column"><header class="article-header">${metadata.description ? `<p class="article-description">${escapeText(metadata.description)}</p>` : ''}
     <div class="article-meta">${metadata.author ? `<span><span class="author-avatar" aria-hidden="true">${escapeText(Array.from(metadata.author)[0])}</span>${escapeText(metadata.author)}</span>` : ''}${metadata.date ? `<time>${icon('calendar')}${dateText(metadata.date)}</time>` : ''}<span>${icon('clock')}约 ${minutes} 分钟</span></div>${tagHtml(metadata.tags, { prefix, directory })}
-  </header>${outline.length ? `<details class="mobile-outline"><summary>本页大纲 · ${outline.length} 个章节</summary><nav aria-label="折叠式本页大纲">${links}</nav></details>` : ''}
+  </header>
   <article class="article-body" id="article-body">${html ?? ''}</article>
   ${assets ? `<section class="attachments" aria-label="附件"><h2>附件 <span>${document.assets.length}</span></h2>${assets}</section>` : ''}
   ${related.length ? `<section class="related-documents" aria-label="延伸阅读"><h2>延伸阅读</h2>${related.map(entry => `<a href="${documentUrl(prefix, entry.document_id)}">${icon('file')}<span>${escapeText(entry.title)}</span>${icon('arrow')}</a>`).join('')}</section>` : ''}${neighbors}
   <footer class="page-foot"><a href="${queryUrl(prefix, { directory })}">返回文档列表</a></footer></div>
-  <aside class="reading-outline" aria-label="本页大纲"><div class="outline-sticky"><p class="outline-label">本页大纲</p>${outline.length ? `<nav>${links}</nav>` : '<p class="outline-empty">本文没有章节标题</p>'}<div class="outline-foot"><span data-reading-progress>阅读进度 0%</span><div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div><a href="#main-content">${icon('up')}返回顶部</a></div></div></aside></div>`;
-  return workspace({ title: metadata.title || '文档', html: content }, { prefix, directory, documentId: document.document_id, navigation, indexStatus, page: 'document' });
+  </div>`;
+  return workspace({ title: metadata.title || '文档', html: content }, { prefix, directory, documentId: document.document_id, navigation, indexStatus, page: 'document', outline });
 }
 
 export function errorPage(title, message, status = 500, prefix = '/docs') {

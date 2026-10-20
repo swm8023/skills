@@ -94,11 +94,6 @@ export async function prepareStaticLibrary() {
     node.href = next.href;
     if (selectedTag === tag) node.setAttribute('aria-current', 'page'); else node.removeAttribute('aria-current');
   });
-  const crumb = document.querySelector('.breadcrumbs');
-  if (crumb && directory) {
-    crumb.replaceChildren(link(root.dataset.basePath + '/', '知识库'));
-    const parts = directory.split('/');
-    parts.forEach((part, i) => { const url = new URL(root.dataset.basePath + '/', location.origin);
-      url.searchParams.set('directory', parts.slice(0, i + 1).join('/')); crumb.append(element('span', '/'), link(url.href, part)); });
-  }
+  const locationTitle = document.querySelector('[data-library-location]');
+  if (locationTitle) locationTitle.textContent = directory || '全部文档';
 }

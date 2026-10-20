@@ -50,6 +50,9 @@ test('exports unchanged nested Vault notes, reader pages, links, referenced asse
   assert.match(article, /Next guide<\/a>/);
   assert.match(article, /reading-progress/);
   assert.match(article, /section-setup/);
+  assert.equal((article.match(/<h1\b/g) || []).length, 1, 'the fixed toolbar owns the article title');
+  assert.match(article, /<h1 class="toolbar-title">Start<\/h1>/);
+  assert.match(await readFile(path.join(f.output, 'assets/theme.mjs'), 'utf8'), /export function initializeTheme/);
   assert.match(await readFile(path.join(f.output, 'Project/Guides/index.html'), 'utf8'), /data-directory="Project\/Guides"/);
   assert.match(await readFile(path.join(f.output, 'tags/UE.html'), 'utf8'), /data-static-tag="UE"/);
   const index = JSON.parse(await readFile(path.join(f.output, 'static/search.json'), 'utf8'));

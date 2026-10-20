@@ -57,8 +57,7 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
       .replace('aria-label="WheelMaker Wiki 文档总览"', `aria-label="${escapeText(site.title)} 文档总览"`)
       .replace(/<title>([\s\S]*?) · WheelMaker Wiki<\/title>/, (_match, title) => `<title>${title} · ${escapeText(site.title)}</title>`)
       .replaceAll('团队知识库', escapeText(site.title))
-      .replaceAll('知识，随手可得。', escapeText(site.title))
-      .replaceAll('从项目约定到问题解法，找到下一步需要的答案。', escapeText(site.description));
+      .replace('<h1 class="library-title">文档库</h1>', `<h1 class="library-title">${escapeText(site.title)}</h1>`);
     if (result.includes('class="katex"')) result = result.replace('</head>', `<link rel="stylesheet" href="${prefix}/assets/katex/katex.min.css"></head>`);
     for (const note of vault.notes) result = result.replaceAll(`${prefix}/document/${note.document_id}`, note.url);
     return result;

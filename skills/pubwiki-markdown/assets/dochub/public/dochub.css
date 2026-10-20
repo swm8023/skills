@@ -65,7 +65,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .topbar-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .topbar-actions form { display: flex; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; border-radius: 6px; color: var(--muted); }
-.icon-button:hover, .icon-button[aria-pressed="true"] { background: var(--soft); color: var(--accent); }
+.icon-button:not(.directory-toggle):hover, .icon-button[aria-pressed="true"] { background: var(--soft); color: var(--accent); }
 .search-trigger { display: none; align-items: center; gap: 10px; width: 280px; min-width: 260px; height: 34px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); padding: 8px 12px; border-radius: 7px; font-size: 13px; text-align: left; }
 .has-js .search-trigger { display: flex; }
 kbd { font: 11px/1.6 "Segoe UI", sans-serif; padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); background: var(--paper); white-space: nowrap; }

@@ -54,6 +54,11 @@ test('exports unchanged nested Vault notes, reader pages, links, referenced asse
   assert.match(article, /<h1 class="toolbar-title">Start<\/h1>/);
   assert.match(await readFile(path.join(f.output, 'assets/theme.mjs'), 'utf8'), /export function initializeTheme/);
   assert.match(await readFile(path.join(f.output, 'Project/Guides/index.html'), 'utf8'), /data-directory="Project\/Guides"/);
+  const directory = await readFile(path.join(f.output, 'Project/Guides/index.html'), 'utf8');
+  const location = /<div class="document-location"[^>]*>([\s\S]*?)<\/div>/.exec(directory)?.[1];
+  assert.match(location, /class="path-symbol"/, 'directory and article locations share the folder icon');
+  assert.match(location, />Project<\/a>/);
+  assert.match(location, /data-library-location>Guides<\/span>/);
   assert.match(await readFile(path.join(f.output, 'tags/UE.html'), 'utf8'), /data-static-tag="UE"/);
   const index = JSON.parse(await readFile(path.join(f.output, 'static/search.json'), 'utf8'));
   assert.equal(index.documents.length, 2);
@@ -76,6 +81,30 @@ test('filters, ranks and paginates the public browser index', async () => {
   assert.equal(result.total, 2);
   assert.equal(result.results[0].document_id, 'a');
   assert.equal(searchDocuments(docs, { directory: 'UE', offset: 1, limit: 1 }).results.length, 1);
+});
+
+test('query-driven locations escape directory and article labels', async () => {
+  const { renderLocation } = await import('../assets/dochub/public/location.mjs');
+  const location = renderLocation('/wiki', 'Project/A&B/<script>', '<img src=x onerror=alert(1)>');
+  assert.doesNotMatch(location, /<script>|<img /);
+  assert.match(location, /A&amp;B/);
+  assert.match(location, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.match(location, /directory=Project%2FA%26B/);
+});
+
+test('query-driven location updates even when the search index is unavailable', async t => {
+  const previous = { document: globalThis.document, location: globalThis.location, fetch: globalThis.fetch };
+  t.after(() => Object.assign(globalThis, previous));
+  const root = { dataset: { page: 'library', basePath: '/wiki', staticIndex: '/wiki/static/search.json' } };
+  const locationElement = { innerHTML: '', title: '' };
+  globalThis.document = { documentElement: root, querySelector: selector => selector === '.document-location' ? locationElement : null };
+  globalThis.location = new URL('https://wiki.example/wiki/?directory=Project%2FGuides');
+  globalThis.fetch = async () => { throw new Error('offline'); };
+  const { prepareStaticLibrary } = await import('../assets/dochub/public/library.mjs');
+  await prepareStaticLibrary();
+  assert.equal(root.dataset.directory, 'Project/Guides');
+  assert.match(locationElement.innerHTML, />Project<\/a>/);
+  assert.match(locationElement.innerHTML, /data-library-location>Guides<\/span>/);
 });
 
 test('rejects content links and output paths that escape the Vault', async t => {

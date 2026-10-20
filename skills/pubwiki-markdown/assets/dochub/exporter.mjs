@@ -84,7 +84,7 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     await emit(`${note.slug}.html`, html);
   }
   await emit('static/search.json', JSON.stringify({ version: 1, documents: records }));
-  for (const name of ['dochub.css', 'dochub.js', 'search.mjs', 'library.mjs', 'theme.mjs'])
+  for (const name of ['dochub.css', 'dochub.js', 'search.mjs', 'library.mjs', 'theme.mjs', 'location.mjs'])
     await emit(`assets/${name}`, await readFile(new URL(`./public/${name}`, import.meta.url)));
   for (const asset of vault.assets.values()) await emit(`static/assets/${asset.name}`, asset.bytes);
   const require = createRequire(import.meta.url);

@@ -1,4 +1,5 @@
 import { searchDocuments } from './search.mjs';
+import { renderLocation } from './location.mjs';
 
 let indexPromise;
 export function staticSearch(values) {
@@ -34,6 +35,11 @@ export async function prepareStaticLibrary() {
   values.tag_descendants = root.dataset.tagDescendants === 'true';
   const query = values.q || '', directory = values.directory || '', tag = values.tag || '';
   root.dataset.directory = directory;
+  const locationElement = document.querySelector('.document-location');
+  if (locationElement) {
+    locationElement.innerHTML = renderLocation(root.dataset.basePath, directory);
+    locationElement.title = directory || '全部文档';
+  }
   const form = document.querySelector('.library-search');
   for (const name of ['q', 'directory', 'sort']) {
     const field = form?.elements.namedItem(name);
@@ -94,6 +100,4 @@ export async function prepareStaticLibrary() {
     node.href = next.href;
     if (selectedTag === tag) node.setAttribute('aria-current', 'page'); else node.removeAttribute('aria-current');
   });
-  const locationTitle = document.querySelector('[data-library-location]');
-  if (locationTitle) locationTitle.textContent = directory || '全部文档';
 }

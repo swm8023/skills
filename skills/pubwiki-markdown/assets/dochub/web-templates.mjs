@@ -1,6 +1,8 @@
 import { escapeText } from './web-markdown.mjs';
 import { webAssets } from './web-assets.mjs';
 import { sidebar } from './web-navigation.mjs';
+import { bootstrapTheme } from './public/theme.mjs';
+import { renderLocation } from './public/location.mjs';
 import { route, queryUrl, documentUrl, highlightText, icon, dateText, sizeText } from './web-ui.mjs';
 
 function brand(prefix, { subtitle = false } = {}) {
@@ -12,6 +14,8 @@ function layout(title, body, { prefix = '/docs', page = 'standalone', directory 
   return `<!doctype html>
 <html lang="zh-CN" data-page="${page}" data-base-path="${escapeText(prefix)}" data-directory="${escapeText(directory)}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(${bootstrapTheme.toString()})(window);</script>
+<style>:root{color-scheme:light dark;background:light-dark(#fffefa,#1e1e1e)}html[data-theme="light"]{color-scheme:light}html[data-theme="dark"]{color-scheme:dark}html[data-embedded="true"] [data-toggle-theme]{display:none}</style>
 <meta name="color-scheme" content="light dark"><title>${escapeText(title)} · WheelMaker Wiki</title>
 <link rel="stylesheet" href="${asset('dochub.css')}"><script src="${asset('dochub.js')}" defer></script></head>
 <body>${body}<div class="toast" role="status" aria-live="polite" hidden></div></body></html>`;
@@ -22,10 +26,8 @@ function directoryButton() {
 }
 
 function header(prefix, { standalone = false, page = '', directory = '', title = '', outline = [] } = {}) {
-  const parts = directory.split('/').filter(Boolean);
-  const path = (page === 'document' ? parts : []).map((part, i) => `<a href="${queryUrl(prefix, { directory: parts.slice(0, i + 1).join('/') })}">${escapeText(part)}</a><span class="path-separator">${icon('chevron')}</span>`).join('');
   const tools = page === 'document' ? `<button class="icon-button secondary-tool" type="button" data-copy-link aria-label="复制当前章节链接" title="复制当前章节链接">${icon('link')}</button><button class="icon-button reading-width-toggle secondary-tool" type="button" data-toggle-width aria-label="切换宽屏阅读" aria-pressed="false" title="宽屏阅读">${icon('width')}</button>${directoryButton()}<details class="outline-menu"><summary class="icon-button" aria-label="本页大纲" title="本页大纲" aria-controls="article-outline">${icon('outline')}</summary><section class="outline-popover" id="article-outline" aria-label="本页大纲"><div class="outline-heading"><strong>本页大纲</strong><span>${outline.length} 个章节</span></div>${outline.length ? `<nav aria-label="章节导航">${outlineLinks(outline)}</nav>` : '<p class="outline-empty">本文没有章节标题</p>'}<div class="outline-foot"><span data-reading-progress>阅读进度 0%</span><div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div></div></section></details>` : '';
-  return `<header class="topbar"><div class="topbar-start">${standalone ? brand(prefix) : `<span class="reader-mark" aria-hidden="true"><span class="brand-mark"><span></span><span></span><span></span></span></span><div class="document-location" title="${escapeText([directory, title].filter(Boolean).join(' / '))}">${path ? `<span class="path-symbol">${icon('folder')}</span>` : ''}<nav class="document-parents" aria-label="文档路径">${path}</nav>${page === 'document' ? `<h1 class="toolbar-title">${escapeText(title)}</h1>` : `<span class="toolbar-title" data-library-location>${escapeText(directory || '全部文档')}</span>`}</div>`}</div><div class="topbar-actions">
+  return `<header class="topbar"><div class="topbar-start">${standalone ? brand(prefix) : `<span class="reader-mark" aria-hidden="true"><span class="brand-mark"><span></span><span></span><span></span></span></span><div class="document-location" title="${escapeText([directory, title].filter(Boolean).join(' / '))}">${renderLocation(prefix, directory, page === 'document' ? title : '')}</div>`}</div><div class="topbar-actions">
     ${standalone ? '' : `<button type="button" class="search-trigger" data-open-search aria-label="搜索文档">${icon('search')}<span>搜索文档、内容、标签…</span><kbd>Ctrl K</kbd></button>`}
     ${tools}${!standalone && page !== 'document' ? directoryButton() : ''}<button type="button" class="icon-button" data-toggle-theme aria-label="切换明暗主题" title="切换明暗主题">${icon('theme')}</button>
     ${standalone ? '' : `<form method="post" action="${escapeText(route(prefix, '/logout'))}"><button class="icon-button logout-button" type="submit" aria-label="退出登录" title="退出登录">${icon('logout')}</button></form>`}

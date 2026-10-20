@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { runInNewContext } from 'node:vm';
+import { layout } from '../assets/dochub/web-templates.mjs';
 
 async function initialize() {
   const module = await import('../assets/dochub/public/theme.mjs').catch(error => {
@@ -72,4 +74,27 @@ test('standalone messages cannot lock its theme control', async () => {
   f.message({ type: 'wheelmaker-theme', mode: 'light' });
   assert.equal(mode(), 'dark');
   assert.equal(f.button.hidden, false);
+});
+
+for (const embedded of [false, true]) {
+  test(`HTML establishes ${embedded ? 'host' : 'saved'} theme before external modules load`, () => {
+    const html = layout('First paint', '');
+    const script = /<script>([\s\S]*?)<\/script>/.exec(html);
+    assert.ok(script, 'first paint cannot wait for the module graph');
+    assert.ok(script.index < html.indexOf('<link rel="stylesheet"'));
+    const f = browser({ embedded });
+    runInNewContext(script[1], { window: f.view });
+    assert.equal(f.root.dataset.theme, embedded ? 'light' : 'dark');
+    assert.equal(f.settings.get('dochub:theme'), 'dark');
+  });
+}
+
+test('unavailable preferences fall back to the system and continue following it', async () => {
+  const init = await initialize(), f = browser();
+  f.view.localStorage.getItem = () => { throw new Error('storage blocked'); };
+  const mode = init(f.view);
+  assert.equal(mode(), 'light');
+  f.media.matches = true;
+  f.media.dispatchEvent(new Event('change'));
+  assert.equal(mode(), 'dark');
 });

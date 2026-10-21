@@ -2,7 +2,6 @@ import { mkdir, writeFile, readFile, readdir, lstat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-import { parse } from 'yaml';
 import { homePage, documentPage } from './web-templates.mjs';
 import { renderWebArticle, markdownText, escapeText } from './web-markdown.mjs';
 import { inside, loadVault, prepareMarkdown, regularFiles } from './vault.mjs';
@@ -17,10 +16,15 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
   if ((await lstat(input)).isSymbolicLink()) throw new Error('Vault root must not be a link');
   try { if ((await lstat(output)).isSymbolicLink() || (await readdir(output)).length) throw new Error('Output must be an empty regular directory'); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
-  const config = parse(await readFile(path.join(input, 'wiki.config.yaml'), 'utf8')) ?? {};
+  let config;
+  try { config = JSON.parse(await readFile(path.join(input, 'public-input.json'), 'utf8')); }
+  catch { throw new Error('PubWiki requires a Hub-prepared public projection; update WheelMaker and use wiki preview or wiki publish'); }
+  if (config.format !== 'wheelmaker-public-vault-v1') throw new Error('Unsupported public Wiki input');
+  try { await lstat(path.join(input, 'wiki.config.yaml')); throw new Error('Private Wiki configuration must not reach the reader'); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
   const site = { title: 'WheelMaker Knowledge', description: 'Browse the WheelMaker knowledge base.' };
   for (const field of ['title', 'description']) if (config.site?.[field] !== undefined) {
-    if (typeof config.site[field] !== 'string' || !config.site[field].trim()) throw new Error(`wiki.config.yaml site.${field} must be a non-empty string`);
+    if (typeof config.site[field] !== 'string' || !config.site[field].trim()) throw new Error(`Public Wiki site.${field} must be a non-empty string`);
     site[field] = config.site[field].trim();
   }
   const vault = await loadVault(input, prefix), diagnostics = [];
@@ -120,7 +124,7 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const args = process.argv.slice(2), values = {};
   for (let i = 0; i < args.length; i += 2) {
-    if (!['--input', '--output'].includes(args[i]) || !args[i + 1]) throw new Error('Usage: exporter.mjs --input <Vault> --output <empty directory>');
+    if (!['--input', '--output'].includes(args[i]) || !args[i + 1]) throw new Error('Usage: exporter.mjs --input <public projection> --output <empty directory>');
     values[args[i].slice(2)] = args[i + 1];
   }
   if (!values.input || !values.output) throw new Error('Both --input and --output are required');

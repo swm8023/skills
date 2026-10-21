@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, readFile, readdir, realpath, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, realpath, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
-import { parseWikiConfig } from './yaml.mjs';
+import { inspectWikiConfiguration } from './wiki-runtime.mjs';
 
 const execFile = promisify(execFileCallback);
 
@@ -175,13 +175,7 @@ async function ensureDefaultConfig(config) {
   }
 }
 
-export async function validateWikiConfig(config) {
-  const source = await readFile(config, 'utf8');
-  parseWikiConfig(source, config);
-  return true;
-}
-
-export async function ensureWikiState({ env = process.env, gitUrl = '' } = {}) {
+export async function ensureWikiState({ env = process.env, gitUrl = '', runCLI } = {}) {
   const paths = resolveWikiPaths({ env });
   const exists = await pathExists(paths.data);
   const empty = exists ? await isDirectoryEmpty(paths.data) : true;
@@ -221,8 +215,9 @@ export async function ensureWikiState({ env = process.env, gitUrl = '' } = {}) {
   }
 
   const configCreated = await ensureDefaultConfig(paths.config);
+  let policy;
   try {
-    await validateWikiConfig(paths.config);
+    policy = await inspectWikiConfiguration({ env, runCLI });
   } catch (error) {
     return { status: 'blocked', cloned, paths, configCreated, message: `${WIKI_CONFIG_FILENAME} is malformed: ${error.message}` };
   }
@@ -232,6 +227,7 @@ export async function ensureWikiState({ env = process.env, gitUrl = '' } = {}) {
     status: 'ready',
     cloned,
     configCreated,
+    publishMode: policy.publishMode,
     paths,
     gitRoot: git.root,
   };

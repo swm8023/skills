@@ -22,7 +22,7 @@ async function fixture(t) {
   const input = path.join(root, 'data'), output = path.join(root, 'out');
   await mkdir(path.join(input, 'content', 'Project', 'Guides'), { recursive: true });
   await mkdir(path.join(input, 'content', 'assets', 'Project'), { recursive: true });
-  await writeFile(path.join(input, 'wiki.config.yaml'), 'site:\n  title: My Notes\n  description: A local Vault\nprivate: never-export-this-setting\n');
+  await writeFile(path.join(input, 'public-input.json'), JSON.stringify({ format: 'wheelmaker-public-vault-v1', site: { title: 'My Notes', description: 'A local Vault' } }));
   const note = path.join(input, 'content', 'Project', 'Guides', 'start.md');
   await writeFile(note, '---\ntitle: Start\ntags: [UE/render]\ndate: 2026-10-19\n---\n# Start\n\n## Setup\n\nSearchable schema. [[Other|Next guide]]\n\n![[assets/Project/picture.png]]\n');
   await writeFile(path.join(input, 'content', 'Project', 'Guides', 'other.md'), '---\ntitle: Other\naliases: [Second guide]\n---\n# Other\n\n## Detail\n\nHello.');
@@ -44,6 +44,16 @@ function readerModule(html, name) {
   const imports = JSON.parse(/<script type="importmap">([\s\S]*?)<\/script>/.exec(html)[1]).imports;
   return imports[`pubwiki-reader/${name}`].slice('/wiki/'.length);
 }
+
+test('reader rejects raw Vaults and private configuration rather than silently filtering them', async t => {
+  const exportVault = await engine(), f = await fixture(t);
+  await rm(path.join(f.input, 'public-input.json'));
+  await writeFile(path.join(f.input, 'wiki.config.yaml'), 'private: never-export-this-setting');
+  await assert.rejects(exportVault({ input: f.input, output: f.output }), /Hub-prepared public projection/);
+  await writeFile(path.join(f.input, 'public-input.json'), JSON.stringify({ format: 'wheelmaker-public-vault-v1', site: {} }));
+  await assert.rejects(exportVault({ input: f.input, output: f.output }), /Private Wiki configuration/);
+  await assert.rejects(readdir(f.output), { code: 'ENOENT' });
+});
 
 test('exports content-addressed presentation modules and lazy Mermaid import maps', async t => {
   const exportVault = await engine(), f = await fixture(t);

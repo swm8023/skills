@@ -32,4 +32,7 @@ local workflow extension, not upstream syntax material.
 The reader in assets/dochub was copied from DocHub and is maintained independently.
 See [reader provenance](../assets/dochub/ORIGIN.md). It uses pinned npm dependencies
 and does not install or invoke Quartz. Hub owns artifact validation, authentication
-and upload; Registry continues to serve the resulting static website.
+and upload. Its trusted Go boundary prepares a public-only projection before
+calling the reader; raw Vaults and user configuration are not reader inputs.
+The local CLI also owns preview generation and returns bounded publication policy
+to the Skill. Registry continues to serve the resulting static website.

@@ -6,10 +6,13 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
 
-import { ensureWikiState, readGitStatus, resolveWikiPaths } from '../scripts/wiki-state.mjs';
+import { ensureWikiState as ensureState, readGitStatus, resolveWikiPaths } from '../scripts/wiki-state.mjs';
+import { fixtureWikiCLI } from './fixtures/wiki-cli.mjs';
 import { publishWiki } from '../scripts/publish-wiki.mjs';
+import { ensureReader } from '../scripts/ensure-reader.mjs';
 
 const run = promisify(execFile);
+const ensureWikiState = options => ensureState({ ...options, runCLI: fixtureWikiCLI });
 
 async function fixture(t) {
   const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'knowledge-publish-home-')));
@@ -21,6 +24,7 @@ async function fixture(t) {
   await run('git', ['-C', paths.data, 'config', 'user.email', 'test@example.invalid']);
   await run('git', ['-C', paths.data, 'config', 'user.name', 'Knowledge Test']);
   await ensureWikiState({ env });
+  await ensureReader({ env, bind: true });
   await run('git', ['-C', paths.data, 'add', '--', 'wiki.config.yaml']);
   await run('git', ['-C', paths.data, 'commit', '-m', 'initialize Wiki']);
   return { env, paths };
@@ -34,6 +38,7 @@ async function callPublish(fixtureValue, options = {}) {
     push: false,
     pull: false,
     invokeWheelmaker: async (args) => { calls.push(args); },
+    runCLI: fixtureWikiCLI,
     ...options,
   });
   return { result, calls };

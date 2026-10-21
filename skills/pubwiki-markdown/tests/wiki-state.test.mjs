@@ -6,10 +6,12 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
 
-import { ensureWikiState, resolveWikiPaths } from '../scripts/wiki-state.mjs';
+import { ensureWikiState as ensureState, resolveWikiPaths } from '../scripts/wiki-state.mjs';
+import { fixtureWikiCLI } from './fixtures/wiki-cli.mjs';
 import { parseWikiConfig } from '../scripts/yaml.mjs';
 
 const run = promisify(execFile);
+const ensureWikiState = options => ensureState({ ...options, runCLI: fixtureWikiCLI });
 
 async function makeHome(t) {
   const home = await import('node:fs/promises').then(({ mkdtemp }) => mkdtemp(path.join(os.tmpdir(), 'pubwiki-markdown-home-')));

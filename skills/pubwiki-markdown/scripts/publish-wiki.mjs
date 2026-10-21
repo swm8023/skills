@@ -1,14 +1,12 @@
 #!/usr/bin/env node
 
 import { execFile as execFileCallback } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 import { ensureWikiState, readGitStatus, runGit } from './wiki-state.mjs';
-import { parseWikiConfig } from './yaml.mjs';
 import { ensureReader } from './ensure-reader.mjs';
 
 const execFile = promisify(execFileCallback);
@@ -25,12 +23,6 @@ function allowedPath(relativePath, requestedPaths) {
 
 function parseNameList(output) {
   return String(output || '').split('\0').map(normalizePath).filter(Boolean);
-}
-
-function publishMode(config) {
-  if (config?.publish === false) return 'false';
-  if (typeof config?.publish?.mode === 'boolean') return config.publish.mode ? 'auto' : 'false';
-  return typeof config?.publish?.mode === 'string' ? config.publish.mode.toLowerCase() : 'auto';
 }
 
 async function missingGitIdentity(data, { env = process.env } = {}) {
@@ -99,21 +91,17 @@ export async function publishWiki({
   pull = true,
   force = false,
   invokeWheelmaker: invoke = invokeWheelmaker,
+  runCLI,
 } = {}) {
   if (force) return { status: 'blocked', message: 'Force-push is not permitted for Wiki publishing.' };
   let state;
   try {
-    state = await ensureWikiState({ env, gitUrl });
+    state = await ensureWikiState({ env, gitUrl, runCLI });
   } catch (error) {
     return { status: 'blocked', message: error.message };
   }
   if (state.status !== 'ready') return { status: 'blocked', ...state };
-  let mode;
-  try {
-    mode = publishMode(parseWikiConfig(await readFile(state.paths.config, 'utf8'), state.paths.config));
-  } catch (error) {
-    return { status: 'blocked', paths: state.paths, message: `${path.basename(state.paths.config)} is malformed: ${error.message}` };
-  }
+  const mode = state.publishMode;
   if (mode === 'manual' || mode === 'disabled' || mode === 'off' || mode === 'false') {
     return { status: 'skipped', paths: state.paths, mode, pushed: false };
   }

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "pubwiki": {
+    "inputFormat": "wheelmaker-public-vault-v1"
+  },
   "engines": {
     "node": ">=22.12.0"
   },

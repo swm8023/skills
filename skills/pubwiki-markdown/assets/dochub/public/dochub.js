@@ -139,11 +139,11 @@ import { initializeDiagrams } from './reader-diagrams.mjs';
       outline.open = false;
       destination.append(outlinePanel);
     }
-    const label = canDockOutline ? (docked ? '收起本页大纲' : '展开本页大纲') : '本页大纲';
+    const expanded = docked || outline.open;
+    const label = expanded ? '收起本页大纲' : '展开本页大纲';
     outlineToggle.setAttribute('aria-label', label);
     outlineToggle.title = label;
-    outlineToggle.setAttribute('aria-expanded', String(docked || outline.open));
-    outlineToggle.classList.toggle('is-active', docked || outline.open);
+    outlineToggle.setAttribute('aria-expanded', String(expanded));
   }
   const closeOutline = (restore = false) => {
     if (!outline?.open) return;

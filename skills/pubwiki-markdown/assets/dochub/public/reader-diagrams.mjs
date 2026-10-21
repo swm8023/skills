@@ -3,13 +3,12 @@ import { createMermaidViewport, setMermaidViewportScale, panMermaidViewport, pin
   mermaidViewportKeyAction, MERMAID_ZOOM_STEP, MERMAID_PAN_STEP } from './mermaid-viewport.mjs';
 
 let mermaidPromise;
-function loadMermaid(base) {
-  if (globalThis.mermaid) return Promise.resolve(globalThis.mermaid);
-  mermaidPromise ??= new Promise((resolve, reject) => {
-    const script = document.createElement('script'); script.src = `${base}/assets/mermaid.min.js`;
-    script.onload = () => globalThis.mermaid ? resolve(globalThis.mermaid) : reject(new Error('图表引擎不可用'));
-    script.onerror = () => { script.remove(); mermaidPromise = undefined; reject(new Error('图表引擎加载失败，请刷新重试')); };
-    document.head.append(script);
+function loadMermaid() {
+  const entry = document.documentElement.dataset.mermaidEntry;
+  if (!entry) return Promise.reject(new Error('图表引擎不可用，请重新发布知识库'));
+  mermaidPromise ??= import(entry).then(module => module.default).catch(() => {
+    mermaidPromise = undefined;
+    throw new Error('图表引擎加载失败，请刷新重试');
   });
   return mermaidPromise;
 }
@@ -29,7 +28,7 @@ function diagramCard(pre, index) {
   const canvas = document.createElement('div'); canvas.className = 'diagram-canvas'; canvas.tabIndex = 0;
   canvas.setAttribute('role', 'region'); canvas.setAttribute('aria-label', '图表画布，可拖动平移，使用加减号缩放，0 重置');
   const content = document.createElement('div'); content.className = 'diagram-content';
-  const status = document.createElement('div'); status.className = 'diagram-status'; status.setAttribute('role', 'status'); status.textContent = '正在渲染图表…';
+  const status = document.createElement('div'); status.className = 'diagram-status'; status.setAttribute('role', 'status'); status.textContent = '图表加载中…';
   canvas.append(content, status); block.append(toolbar, canvas); pre.replaceWith(slot); slot.append(block);
   const sourceDetails = document.createElement('details'); sourceDetails.className = 'diagram-source';
   const sourceSummary = document.createElement('summary'); sourceSummary.textContent = '查看 Mermaid 源码';
@@ -108,34 +107,63 @@ function diagramCard(pre, index) {
     if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
   }
   canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('pointercancel', endPointer);
-  return { source, render(svg) {
+  return { node: slot, expanded: () => Boolean(dialog?.open), source, render(svg) {
     // Mermaid runs in strict mode; document Markdown never supplies this markup.
     content.innerHTML = svg; status.hidden = true; sourceDetails.hidden = true; canvas.classList.remove('diagram-failed');
     block.setAttribute('aria-busy', 'false'); actions.hidden = false; resetView();
-  }, pending() { block.setAttribute('aria-busy', 'true'); }, fail(error) {
+  }, pending() { block.setAttribute('aria-busy', 'true'); if (!content.childElementCount) status.textContent = '正在渲染图表…'; }, fail(error) {
     if (dialog?.open) dialog.close();
     content.replaceChildren(); status.hidden = false; status.textContent = `图表无法渲染：${error.message || error}`;
     canvas.classList.add('diagram-failed'); sourceDetails.hidden = false; actions.hidden = true; block.setAttribute('aria-busy', 'false');
   } };
 }
 
-export function initializeDiagrams(base, themeMode) {
+export function initializeDiagrams(themeMode) {
   const cards = [...document.querySelectorAll('.article-body pre.mermaid')].map(diagramCard);
-  let rendering = false, pending = false;
-  return async function refreshDiagrams() {
-    if (!cards.length) return;
-    if (rendering) { pending = true; return; }
+  if (!cards.length) return () => {};
+  const visible = new Set(), dirty = new Set(cards);
+  let rendering = false, revision = 0;
+  const active = card => visible.has(card) || card.expanded();
+  async function renderVisible() {
+    if (rendering || !cards.some(card => active(card) && dirty.has(card))) return;
     rendering = true;
+    const currentRevision = revision;
     try {
-      const mermaid = await loadMermaid(base);
+      const mermaid = await loadMermaid();
       mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', suppressErrorRendering: true,
         theme: themeMode() === 'dark' ? 'dark' : 'default' });
       for (const [index, card] of cards.entries()) {
+        if (revision !== currentRevision) break;
+        if (!active(card) || !dirty.has(card)) continue;
+        dirty.delete(card);
         card.pending();
-        try { const { svg } = await mermaid.render(`pubwiki-diagram-${index}`, card.source.trim()); card.render(svg); }
+        try {
+          const { svg } = await mermaid.render(`pubwiki-diagram-${index}`, card.source.trim());
+          if (revision === currentRevision) card.render(svg); else dirty.add(card);
+        }
         catch (error) { card.fail(error); }
+        // Yield between graphs so scrolling and visibility updates stay responsive.
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
-    } catch (error) { cards.forEach(card => card.fail(error)); }
-    finally { rendering = false; if (pending) { pending = false; refreshDiagrams(); } }
+    } catch (error) {
+      for (const card of cards.filter(active)) { dirty.delete(card); card.fail(error); }
+    } finally { rendering = false; renderVisible(); }
+  }
+  if (typeof IntersectionObserver === 'function') {
+    const byNode = new Map(cards.map(card => [card.node, card]));
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        const card = byNode.get(entry.target);
+        entry.isIntersecting ? visible.add(card) : visible.delete(card);
+      }
+      renderVisible();
+    }, { rootMargin: '400px 0px' });
+    cards.forEach(card => observer.observe(card.node));
+  } else cards.forEach(card => visible.add(card));
+  window.addEventListener('beforeprint', () => { cards.forEach(card => visible.add(card)); renderVisible(); });
+  return function refreshDiagrams() {
+    revision++;
+    cards.forEach(card => dirty.add(card));
+    return renderVisible();
   };
 }

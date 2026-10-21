@@ -11,6 +11,7 @@
     "@shikijs/engine-javascript": "4.0.2",
     "@shikijs/langs": "4.0.2",
     "@shikijs/themes": "4.0.2",
+    "es-module-lexer": "2.0.0",
     "katex": "0.16.32",
     "marked": "18.0.13",
     "mermaid": "12.2.0",

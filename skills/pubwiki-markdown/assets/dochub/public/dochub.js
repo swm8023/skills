@@ -18,7 +18,7 @@ import { initializeDiagrams } from './reader-diagrams.mjs';
   const saveSetting = (key, value) => { try { localStorage.setItem(`dochub:${key}`, value); } catch { /* Preferences are optional. */ } };
   const media = matchMedia('(max-width: 650px)');
   let toastTimer;
-  refreshDiagrams = initializeDiagrams(base, themeMode);
+  refreshDiagrams = initializeDiagrams(themeMode);
   refreshDiagrams();
 
   function toast(message) {

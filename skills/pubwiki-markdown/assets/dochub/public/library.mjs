@@ -1,12 +1,14 @@
 import { searchDocuments } from './search.mjs';
 import { bootstrapLocation } from './location.mjs';
 
-let indexPromise;
-export function staticSearch(values) {
-  indexPromise ??= fetch(document.documentElement.dataset.staticIndex, { credentials: 'same-origin' })
+const indexes = new Map();
+export function staticSearch(values = {}) {
+  const root = document.documentElement;
+  const url = String(values.q || '').trim() ? root.dataset.staticIndex : root.dataset.staticCatalog || root.dataset.staticIndex;
+  if (!indexes.has(url)) indexes.set(url, fetch(url, { credentials: 'same-origin' })
     .then(response => { if (!response.ok) throw new Error('Static search index unavailable'); return response.json(); })
-    .catch(error => { indexPromise = undefined; throw error; });
-  return indexPromise.then(index => searchDocuments(index.documents, values));
+    .catch(error => { indexes.delete(url); throw error; }));
+  return indexes.get(url).then(index => searchDocuments(index.documents, values));
 }
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -35,6 +37,9 @@ export async function prepareStaticLibrary() {
   values.tag ??= root.dataset.staticTag || '';
   values.tag_descendants = root.dataset.tagDescendants === 'true';
   const query = values.q || '', directory = values.directory || '', tag = values.tag || '';
+  if (root.dataset.staticDirectory !== undefined && !query && !values.sort && !(Number(values.offset) || 0)
+    && (!values.limit || Number(values.limit) === 20)
+    && directory === root.dataset.staticDirectory && tag === (root.dataset.staticTag || '')) return;
   const form = document.querySelector('.library-search');
   for (const name of ['q', 'directory', 'sort']) {
     const field = form?.elements.namedItem(name);

@@ -8,6 +8,7 @@ import { renderWebArticle, markdownText, escapeText } from './web-markdown.mjs';
 import { inside, loadVault, prepareMarkdown, regularFiles } from './vault.mjs';
 import { searchDocuments } from './public/search.mjs';
 import { highlightCodeBlocks } from './code-highlight.mjs';
+import { staticAssets } from './static-assets.mjs';
 
 export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
   input = path.resolve(input); output = path.resolve(output);
@@ -42,7 +43,7 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     const article = renderWebArticle(body, { documentId: note.document_id, documentTitle: note.title, publicBasePath: prefix });
     article.html = await highlightCodeBlocks(article.html);
     hasMath ||= article.html.includes('class="katex"');
-    hasMermaid ||= article.html.includes('class="mermaid"');
+    hasMermaid ||= article.html.includes('<pre class="mermaid">');
     prepared.push({ note, article });
   }
   const emit = async (name, bytes) => {
@@ -51,10 +52,18 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, bytes);
   };
+  const assets = await staticAssets(prefix, hasMermaid);
+  const occupied = new Set(vault.notes.map(note => `${note.slug}.html`));
   const adjust = html => {
-    let result = html.replace('<html lang="zh-CN"', `<html lang="zh-CN" data-pubwiki-engine="dochub" data-static-index="${prefix}/static/search.json"`)
+    const diagramPage = html.includes('<pre class="mermaid">');
+    const renderedDirectory = /<html[^>]*data-directory="([^"]*)"/.exec(html)?.[1] || '';
+    const imports = { ...assets.readerImports, ...(diagramPage ? assets.mermaidImports : {}) };
+    let result = html.replace('<html lang="zh-CN"', `<html lang="zh-CN" data-pubwiki-engine="dochub" data-static-directory="${renderedDirectory}" data-static-catalog="${prefix}/static/catalog.json" data-static-index="${prefix}/static/search.json"${diagramPage ? ` data-mermaid-entry="${assets.mermaidEntry}"` : ''}`)
       .replace(/<form method="post" action="[^"]*\/logout">[\s\S]*?<\/form>/g, '')
       .replace('<script src=', '<script type="module" src=')
+      .replace(/href="[^"]*\/assets\/dochub\.css\?v=[^"]*"/, `href="${assets.style}"`)
+      .replace(/src="[^"]*\/assets\/dochub\.js\?v=[^"]*"/, `src="${assets.script}"`)
+      .replace('<link rel="stylesheet"', `<script type="importmap">${JSON.stringify({ imports })}</script><link rel="stylesheet"`)
       .replace('<span>WheelMaker Wiki</span>', `<span>${escapeText(site.title)}</span>`)
       .replace('aria-label="WheelMaker Wiki 文档总览"', `aria-label="${escapeText(site.title)} 文档总览"`)
       .replace(/<title>([\s\S]*?) · WheelMaker Wiki<\/title>/, (_match, title) => `<title>${title} · ${escapeText(site.title)}</title>`)
@@ -62,11 +71,18 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
       .replace('<h1 class="library-title">文档库</h1>', `<h1 class="library-title">${escapeText(site.title)}</h1>`);
     if (result.includes('class="katex"')) result = result.replace('</head>', `<link rel="stylesheet" href="${prefix}/assets/katex/katex.min.css"></head>`);
     for (const note of vault.notes) result = result.replaceAll(`${prefix}/document/${note.document_id}`, note.url);
+    result = result.replace(/href="([^"<>]*)"/g, (attribute, href) => {
+      if (!href.startsWith(`${prefix}/?`)) return attribute;
+      const params = new URLSearchParams(href.slice(prefix.length + 2).replaceAll('&amp;', '&'));
+      const directory = params.get('directory');
+      if (!directory || !directories.has(directory) || occupied.has(`${directory}/index.html`)) return attribute;
+      if ([...params].some(([key, value]) => key !== 'directory' && !(key === 'limit' && value === '20'))) return attribute;
+      return `href="${prefix}/${directory.split('/').map(encodeURIComponent).join('/')}/index.html"`;
+    });
     return result;
   };
   const first = searchDocuments(records, { limit: 20 });
   await emit('index.html', adjust(homePage({ ...first, prefix, navigation })));
-  const occupied = new Set(vault.notes.map(note => `${note.slug}.html`));
   for (const directory of directories.keys()) {
     const name = `${directory}/index.html`;
     if (!occupied.has(name)) await emit(name, adjust(homePage({
@@ -86,9 +102,9 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     await emit(`${note.slug}.html`, html);
   }
   await emit('static/search.json', JSON.stringify({ version: 1, documents: records }));
-  for (const name of ['dochub.css', 'dochub.js', 'search.mjs', 'library.mjs', 'theme.mjs', 'location.mjs',
-    'reader-code.mjs', 'reader-controls.mjs', 'reader-diagrams.mjs', 'mermaid-viewport.mjs'])
-    await emit(`assets/${name}`, await readFile(new URL(`./public/${name}`, import.meta.url)));
+  const catalog = records.map(({ text, ...metadata }) => ({ ...metadata, description: metadata.description || text.slice(0, 180) }));
+  await emit('static/catalog.json', JSON.stringify({ version: 1, documents: catalog }));
+  for (const [name, bytes] of assets.files) await emit(name, bytes);
   for (const asset of vault.assets.values()) await emit(`static/assets/${asset.name}`, asset.bytes);
   const require = createRequire(import.meta.url);
   if (hasMath) {
@@ -97,11 +113,6 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     await emit('assets/katex/LICENSE', await readFile(path.join(root, 'LICENSE')));
     for (const name of await regularFiles(path.join(root, 'dist/fonts')))
       await emit(`assets/katex/fonts/${name}`, await readFile(path.join(root, 'dist/fonts', name)));
-  }
-  if (hasMermaid) {
-    const root = path.dirname(require.resolve('mermaid/package.json'));
-    await emit('assets/mermaid.min.js', await readFile(path.join(root, 'dist/mermaid.min.js')));
-    await emit('assets/mermaid-LICENSE', await readFile(path.join(root, 'LICENSE')));
   }
   return { documents: records.length, assets: vault.assets.size, diagnostics };
 }

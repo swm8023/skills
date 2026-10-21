@@ -4,6 +4,8 @@ import { mkdtemp, mkdir, readFile, writeFile, rm, readdir, symlink } from 'node:
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runInNewContext } from 'node:vm';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 
 const engineURL = new URL('../assets/dochub/exporter.mjs', import.meta.url);
 async function engine() {
@@ -38,6 +40,89 @@ async function files(root, prefix = '') {
   return result;
 }
 
+function readerModule(html, name) {
+  const imports = JSON.parse(/<script type="importmap">([\s\S]*?)<\/script>/.exec(html)[1]).imports;
+  return imports[`pubwiki-reader/${name}`].slice('/wiki/'.length);
+}
+
+test('exports content-addressed presentation modules and lazy Mermaid import maps', async t => {
+  const exportVault = await engine(), f = await fixture(t);
+  await writeFile(f.note, '# Start\n\n```mermaid\nflowchart LR\n A-->B\n```');
+  await exportVault({ input: f.input, output: f.output });
+  const article = await readFile(path.join(f.output, 'Project/Guides/start.html'), 'utf8');
+  const home = await readFile(path.join(f.output, 'index.html'), 'utf8');
+  const mapping = /<script type="importmap">([\s\S]*?)<\/script>/.exec(article);
+  assert.ok(mapping, 'browser dependencies must resolve to immutable content-addressed files');
+  const imports = JSON.parse(mapping[1]).imports;
+  const { init, parse } = createRequire(engineURL)('es-module-lexer');
+  await init;
+  assert.ok(Object.keys(imports).some(name => name.startsWith('pubwiki-reader/')));
+  assert.ok(Object.keys(imports).some(name => name.startsWith('pubwiki-mermaid/')));
+  assert.match(article, /data-mermaid-entry="\/wiki\/static\/wm-assets\/[^"/]+\.[a-f0-9]{64}\.js"/);
+  assert.doesNotMatch(home, /pubwiki-mermaid\/|data-mermaid-entry/);
+  const urls = new Set([...Object.values(imports), ...[...article.matchAll(/(?:href|src)="(\/wiki\/static\/wm-assets\/[^"?]+)"/g)].map(match => match[1])]);
+  for (const url of urls) {
+    const match = /\/static\/wm-assets\/[^/]+\.([a-f0-9]{64})\.(?:js|css)$/.exec(url);
+    assert.ok(match, `invalid immutable asset URL: ${url}`);
+    const bytes = await readFile(path.join(f.output, url.slice('/wiki/'.length)));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), match[1]);
+    assert.ok(bytes.length <= 8 * 1024 * 1024, 'existing Registry asset retention limit must hold');
+    if (url.endsWith('.js')) {
+      const [dependencies] = parse(bytes.toString());
+      for (const dependency of dependencies) if (dependency.n)
+        assert.ok(imports[dependency.n], `module dependency must resolve locally: ${dependency.n}`);
+    }
+  }
+  assert.ok(!(await files(f.output)).includes('assets/mermaid.min.js'), 'the all-diagram UMD bundle must not be shipped');
+});
+
+test('exports a lightweight catalog without full article text', async t => {
+  const exportVault = await engine(), f = await fixture(t);
+  await writeFile(f.note, '---\ntitle: Start\n---\n# Start\n\n' + 'searchable-body-marker '.repeat(2000));
+  await exportVault({ input: f.input, output: f.output });
+  const index = await readFile(path.join(f.output, 'static/search.json'), 'utf8');
+  const catalog = await readFile(path.join(f.output, 'static/catalog.json'), 'utf8').catch(() => '');
+  assert.ok(catalog, 'directory browsing must not depend on the full-text index');
+  assert.ok(catalog.length < index.length / 10);
+  assert.equal(JSON.parse(catalog).documents.length, 2);
+  assert.ok(JSON.parse(catalog).documents.every(document => !Object.hasOwn(document, 'text')));
+  const html = await readFile(path.join(f.output, 'index.html'), 'utf8');
+  assert.match(html, /data-static-catalog="\/wiki\/static\/catalog.json"/);
+  assert.match(html, /href="\/wiki\/Project\/Guides\/index.html"/);
+});
+
+test('initial static library preserves its exported rows without fetching a search index', async t => {
+  const previous = { document: globalThis.document, location: globalThis.location, fetch: globalThis.fetch };
+  t.after(() => Object.assign(globalThis, previous));
+  const root = { dataset: { page: 'library', basePath: '/wiki', staticIndex: '/wiki/static/search.json', staticCatalog: '/wiki/static/catalog.json', staticDirectory: '', directory: '' } };
+  const locationElement = { dataset: { directory: '' } };
+  globalThis.document = { documentElement: root, querySelector: selector => selector === '.document-location' ? locationElement : null };
+  globalThis.location = new URL('https://wiki.example/wiki/');
+  let fetches = 0;
+  globalThis.fetch = async () => { fetches++; throw new Error('Unexpected initial index request'); };
+  const { prepareStaticLibrary } = await import('../assets/dochub/public/library.mjs');
+  await prepareStaticLibrary();
+  assert.equal(fetches, 0, 'already-rendered lists must not download or rebuild the full index');
+});
+
+test('browsing uses metadata while full-text search downloads and reuses the body index', async t => {
+  const previous = { document: globalThis.document, fetch: globalThis.fetch };
+  t.after(() => Object.assign(globalThis, previous));
+  globalThis.document = { documentElement: { dataset: { staticCatalog: '/index-test/catalog.json', staticIndex: '/index-test/search.json' } } };
+  const metadata = { title: 'Start', description: 'Guide', directory: 'Project', tags: [], url: '/wiki/start.html' };
+  const requests = [];
+  globalThis.fetch = async url => {
+    requests.push(url);
+    return { ok: true, json: async () => ({ documents: [url.endsWith('search.json') ? { ...metadata, text: 'body-only-needle' } : metadata] }) };
+  };
+  const { staticSearch } = await import('../assets/dochub/public/library.mjs');
+  assert.equal((await staticSearch({ directory: 'Project' })).total, 1);
+  assert.deepEqual(requests, ['/index-test/catalog.json']);
+  assert.equal((await staticSearch({ q: 'body-only-needle' })).total, 1);
+  assert.equal((await staticSearch({ q: 'body-only-needle' })).total, 1);
+  assert.deepEqual(requests, ['/index-test/catalog.json', '/index-test/search.json']);
+});
+
 test('exports adaptive Shiki colors, language aliases and safe plain-text fallback before browser scripts', async t => {
   const exportVault = await engine(), f = await fixture(t);
   await writeFile(f.note, '---\ntitle: Code\n---\n# Code\n\n```ts\nconst answer: number = 42;\nconsole.log("<script>alert(1)</script>");\n```\n\n```unknown-lang\na < b && c > d\n```\n\n```cpp\nint main() { return 0; }\n```');
@@ -55,7 +140,7 @@ test('exports adaptive Shiki colors, language aliases and safe plain-text fallba
   assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
   assert.doesNotMatch(html, /src="https?:\/\//);
   for (const name of ['reader-code.mjs', 'reader-diagrams.mjs', 'reader-controls.mjs', 'mermaid-viewport.mjs'])
-    assert.ok((await readFile(path.join(f.output, 'assets', name))).length, `${name} must be available without the host app`);
+    assert.ok((await readFile(path.join(f.output, readerModule(html, name)))).length, `${name} must be available without the host app`);
 });
 
 test('exports unchanged nested Vault notes, reader pages, links, referenced assets and private-free search', async t => {
@@ -74,7 +159,7 @@ test('exports unchanged nested Vault notes, reader pages, links, referenced asse
   assert.equal((article.match(/<h1\b/g) || []).length, 2, 'the toolbar and article header each show the title, without repeating the source heading');
   assert.match(article, /<h1 class="toolbar-title">Start<\/h1>/);
   assert.match(article, /<h1 class="article-title">Start<\/h1>/);
-  assert.match(await readFile(path.join(f.output, 'assets/theme.mjs'), 'utf8'), /export function initializeTheme/);
+  assert.match(await readFile(path.join(f.output, readerModule(article, 'theme.mjs')), 'utf8'), /export function initializeTheme/);
   assert.match(await readFile(path.join(f.output, 'Project/Guides/index.html'), 'utf8'), /data-directory="Project\/Guides"/);
   const directory = await readFile(path.join(f.output, 'Project/Guides/index.html'), 'utf8');
   const location = /<div class="document-location"[^>]*>([\s\S]*?)<\/div>/.exec(directory)?.[1];

@@ -71,8 +71,9 @@ test('exports unchanged nested Vault notes, reader pages, links, referenced asse
   assert.match(article, /Next guide<\/a>/);
   assert.match(article, /reading-progress/);
   assert.match(article, /section-setup/);
-  assert.equal((article.match(/<h1\b/g) || []).length, 1, 'the fixed toolbar owns the article title');
+  assert.equal((article.match(/<h1\b/g) || []).length, 2, 'the toolbar and article header each show the title, without repeating the source heading');
   assert.match(article, /<h1 class="toolbar-title">Start<\/h1>/);
+  assert.match(article, /<h1 class="article-title">Start<\/h1>/);
   assert.match(await readFile(path.join(f.output, 'assets/theme.mjs'), 'utf8'), /export function initializeTheme/);
   assert.match(await readFile(path.join(f.output, 'Project/Guides/index.html'), 'utf8'), /data-directory="Project\/Guides"/);
   const directory = await readFile(path.join(f.output, 'Project/Guides/index.html'), 'utf8');
@@ -102,6 +103,14 @@ test('filters, ranks and paginates the public browser index', async () => {
   assert.equal(result.total, 2);
   assert.equal(result.results[0].document_id, 'a');
   assert.equal(searchDocuments(docs, { directory: 'UE', offset: 1, limit: 1 }).results.length, 1);
+});
+
+test('article header displays an escaped title even when Markdown has no title heading', async t => {
+  const exportVault = await engine(), f = await fixture(t);
+  await writeFile(f.note, '---\ntitle: Guide & <example>\n---\n## Setup\n\nArticle content.');
+  await exportVault({ input: f.input, output: f.output });
+  const html = await readFile(path.join(f.output, 'Project/Guides/start.html'), 'utf8');
+  assert.match(html, /<h1 class="article-title">Guide &amp; &lt;example&gt;<\/h1>/);
 });
 
 test('query-driven locations escape directory and article labels', async () => {

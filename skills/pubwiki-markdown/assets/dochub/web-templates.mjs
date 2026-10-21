@@ -104,7 +104,7 @@ export function documentPage(document, { html, outline = [], indexStatus = 'read
   const adjacent = [peers[position - 1], peers[position + 1]];
   const neighbors = adjacent.some(Boolean) ? `<nav class="adjacent-documents" aria-label="相邻文档">${adjacent.map((entry, i) => entry ? `<a href="${documentUrl(prefix, entry.document_id)}"><small>${i ? '下一篇 →' : '← 上一篇'}</small><span>${escapeText(entry.title)}</span></a>` : '<span></span>').join('')}</nav>` : '';
   const related = navigation.documents.filter(entry => entry.document_id !== document.document_id && !adjacent.includes(entry) && entry.tags.some(tag => (metadata.tags ?? []).some(current => current.toLocaleLowerCase('en-US') === tag.toLocaleLowerCase('en-US')))).slice(0, 3);
-  const content = `<div class="reading-layout"><div class="reading-column"><header class="article-header">${metadata.description ? `<p class="article-description">${escapeText(metadata.description)}</p>` : ''}
+  const content = `<div class="reading-layout"><div class="reading-column"><header class="article-header"><h1 class="article-title">${escapeText(metadata.title || '文档')}</h1>${metadata.description ? `<p class="article-description">${escapeText(metadata.description)}</p>` : ''}
     <div class="article-meta">${metadata.author ? `<span><span class="author-avatar" aria-hidden="true">${escapeText(Array.from(metadata.author)[0])}</span>${escapeText(metadata.author)}</span>` : ''}${metadata.date ? `<time>${icon('calendar')}${dateText(metadata.date)}</time>` : ''}<span>${icon('clock')}约 ${minutes} 分钟</span></div>${tagHtml(metadata.tags, { prefix, directory })}
   </header>
   <article class="article-body" id="article-body">${html ?? ''}</article>

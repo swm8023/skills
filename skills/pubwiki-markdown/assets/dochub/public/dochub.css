@@ -1,29 +1,29 @@
 :root {
   color-scheme: light dark;
-  /* Dark values follow WheelMaker's workspace tokens; links use its reading blue. */
-  --paper: light-dark(#fffefa, #1e1e1e);
-  --canvas: light-dark(#fffefa, #1b1b1b);
-  --sidebar: light-dark(#f5f6f0, #202020);
-  --panel: light-dark(#f5f6f0, #242424);
-  --raised: light-dark(#fffefa, #292929);
-  --ink: light-dark(#28392e, #dedede);
-  --muted: light-dark(#657267, #a3a3a3);
-  --line: light-dark(#e1e6dc, #363636);
-  --accent: light-dark(#3e7154, #82b6df);
-  --accent-primary: light-dark(#3e7154, #2784c7);
-  --action: light-dark(#3e7154, #1f71aa);
+  /* Surfaces and controls follow WheelMaker's workspace tokens in both themes. */
+  --paper: light-dark(#ffffff, #1e1e1e);
+  --canvas: light-dark(#f3f3f3, #1b1b1b);
+  --sidebar: light-dark(#f7f7f7, #202020);
+  --panel: light-dark(#fafafa, #242424);
+  --overlay: light-dark(#ffffff, #292929);
+  --ink: light-dark(#242424, #dedede);
+  --muted: light-dark(#6f6f6f, #a3a3a3);
+  --line: light-dark(#dedede, #363636);
+  --accent: light-dark(#1478ba, #82b6df);
+  --accent-primary: light-dark(#1478ba, #2784c7);
+  --action: light-dark(#1478ba, #1f71aa);
   --on-accent: #fff;
-  --soft: light-dark(#e7eee3, #242f38);
-  --hover: light-dark(#e7eee3, #292929);
-  --code: light-dark(#f0f3eb, #242424);
-  --inline-code: light-dark(#f0f3eb, #303030);
-  --inline-code-ink: light-dark(#3e7154, #ddd);
+  --soft: light-dark(color-mix(in srgb, #1478ba 14%, transparent), #242f38);
+  --hover: light-dark(rgb(21 31 43 / 6%), #292929);
+  --code: light-dark(#fafafa, #242424);
+  --inline-code: light-dark(#ececec, #303030);
+  --inline-code-ink: light-dark(#303030, #ddd);
   --warning: light-dark(#fff4d5, #342d21);
-  --warning-ink: light-dark(#715b12, #d0a24f);
-  --danger: light-dark(#8e3f35, #e2767f);
-  --focus: light-dark(#3e7154, #8abfe1);
-  --scrim: light-dark(#14231d70, #0009);
-  --floating-shadow: light-dark(#10201640, #0006);
+  --warning-ink: light-dark(#9b6a13, #d0a24f);
+  --danger: light-dark(#c93c48, #e2767f);
+  --focus: light-dark(color-mix(in srgb, #1478ba 78%, black), #8abfe1);
+  --scrim: light-dark(rgb(0 0 0 / 24%), #0009);
+  --floating-shadow: light-dark(rgb(0 0 0 / 12%), #0006);
   font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.65;
@@ -232,7 +232,7 @@ html[data-theme="dark"] .article-body pre.shiki, html[data-theme="dark"] .articl
 .outline-menu summary { display: flex; padding: 0; list-style: none; font-size: 12px; user-select: none; }
 .outline-menu summary::-webkit-details-marker { display: none; }
 .outline-menu[open] summary, .outline-menu summary.is-active { background: var(--soft); color: var(--accent); }
-.outline-popover { position: absolute; top: calc(100% + 12px); right: 0; width: 304px; max-height: calc(100dvh - 88px); overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 17px 14px 13px; background: var(--raised); box-shadow: 0 12px 32px var(--floating-shadow); }
+.outline-popover { position: absolute; top: calc(100% + 12px); right: 0; width: 304px; max-height: calc(100dvh - 88px); overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 17px 14px 13px; background: var(--overlay); box-shadow: 0 12px 32px var(--floating-shadow); }
 .outline-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 7px 12px; }
 .outline-heading strong { font-size: 12px; font-weight: 600; }
 .outline-heading > span { font-size: 11px; color: var(--muted); }
@@ -270,7 +270,7 @@ html[data-theme="dark"] .article-body pre.shiki, html[data-theme="dark"] .articl
 .adjacent-documents > :last-child { text-align: right; }
 .adjacent-documents small { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
 .adjacent-documents span { font-size: 13px; }
-.search-dialog { padding: 0; width: min(650px, calc(100% - 28px)); max-height: min(750px, calc(100dvh - 60px)); margin: 8dvh auto auto; overflow-y: auto; color: var(--ink); background: var(--raised); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 16px 40px var(--floating-shadow); }
+.search-dialog { padding: 0; width: min(650px, calc(100% - 28px)); max-height: min(750px, calc(100dvh - 60px)); margin: 8dvh auto auto; overflow-y: auto; color: var(--ink); background: var(--overlay); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 16px 40px var(--floating-shadow); }
 .search-dialog::backdrop { background: var(--scrim); backdrop-filter: blur(3px); }
 .dialog-search-form { display: flex; align-items: center; gap: 9px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
 .dialog-input { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; color: var(--muted); }

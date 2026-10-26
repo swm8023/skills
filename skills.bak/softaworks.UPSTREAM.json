@@ -1,0 +1,163 @@
+{
+  "repository": "https://github.com/softaworks/agent-toolkit",
+  "branch": "main",
+  "commit": "3027f20f3181758385a1bb8c022d4041dfb4de84",
+  "commitDate": "2026-03-05T16:46:24Z",
+  "verifiedOn": "2026-10-26",
+  "scope": "Selected skill packages and root LICENSE; not a complete repository snapshot.",
+  "selectedSkills": [
+    "skill-judge",
+    "writing-clearly-and-concisely",
+    "lesson-learned",
+    "mermaid-diagrams"
+  ],
+  "upstreamFiles": 24,
+  "markdownFiles": 23,
+  "localIndex": "README.md is a locally authored selection index, not the upstream root README.",
+  "files": [
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "gitBlob": "fc473440ee9ae27aa3d774bcd3888496ef0fad2d",
+      "sha256": "4b4447da5344f8b2d3a8a19ba8366d1ac7a24d9ab4690bd04576dc772ddf8321"
+    },
+    {
+      "path": "skills/lesson-learned/README.md",
+      "mode": "100644",
+      "gitBlob": "984b2c45669be126e8fd77b3db25c241947a3088",
+      "sha256": "9eaeeec3614edc49e68103606f8e40be44b4d7fb0de963b2376019288c0b3d8d"
+    },
+    {
+      "path": "skills/lesson-learned/references/anti-patterns.md",
+      "mode": "100644",
+      "gitBlob": "f552bb14ec392415b0bc2aa022b9d108f2b6d581",
+      "sha256": "731aeb398dba7a46d81da3cb3db7fccbd47e117e3f1f7fd9445afc2050ab52a5"
+    },
+    {
+      "path": "skills/lesson-learned/references/se-principles.md",
+      "mode": "100644",
+      "gitBlob": "6d6cee99fc5169988ad0c0b1c4501715fb90e08b",
+      "sha256": "cb2946dd6c2fc3efd69cf75b9860e97031bd2f17cdc4e2b18462be6661a27d91"
+    },
+    {
+      "path": "skills/lesson-learned/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "e358582cc398ba0c02b9a2cc2ae13b29d3e6ba59",
+      "sha256": "f2ee51f30ea8c2f15f961eac7d403945c0db5af042c1dc56c0d3b6a6561b9894"
+    },
+    {
+      "path": "skills/mermaid-diagrams/README.md",
+      "mode": "100644",
+      "gitBlob": "5bccc2802e30398a26580869919112dbfb526a1e",
+      "sha256": "e2f7f6e8d4415c57368cf0492eb98b12be18526f963383a9e64dcb741eb602de"
+    },
+    {
+      "path": "skills/mermaid-diagrams/references/advanced-features.md",
+      "mode": "100644",
+      "gitBlob": "0c7bfca5c2df922f6989d2de77ff15e9d4567ff6",
+      "sha256": "5b816a153915de49ccae229a70103e724f68c3fc8b7a5b38f67a59f973af37bc"
+    },
+    {
+      "path": "skills/mermaid-diagrams/references/architecture-diagrams.md",
+      "mode": "100644",
+      "gitBlob": "f4e2ec844eb08b7fd89260e6def0e2737cac8564",
+      "sha256": "117bc72208e20dacb355d007b444dce7433f174a0ba9b76ab0a3361b8d580706"
+    },
+    {
+      "path": "skills/mermaid-diagrams/references/c4-diagrams.md",
+      "mode": "100644",
+      "gitBlob": "bc4d6982c13a5b540b42ef3162c881a5125e261b",
+      "sha256": "28e73813c730721995aab4084b913459687a8065f28e2a5e8ef7a94cd8116fd9"
+    },
+    {
+      "path": "skills/mermaid-diagrams/references/class-diagrams.md",
+      "mode": "100644",
+      "gitBlob": "514dac04f6a1e424e2d8a76f4309f31796687a32",
+      "sha256": "5eba3606f37be8409843826901f0c846a1bd4796e2e9145c787d4e5ba1646ce3"
+    },
+    {
+      "path": "skills/mermaid-diagrams/references/erd-diagrams.md",
+      "mode": "100644",
+      "gitBlob": "ba577ea9d1b81eeb935f2ba6d777f8eccaa54306",
+      "sha256": "639ee58f4925e0721fc3a2c70fd083ec256fe861baa62a56d039c01315fc58ff"
+    },
+    {
+      "path": "skills/mermaid-diagrams/references/flowcharts.md",
+      "mode": "100644",
+      "gitBlob": "1a43c5827457b23152d3de6ba9a0774d7da83a2e",
+      "sha256": "73b599797659ced9211ab947e3d4aee4f3ef2bfb4c1aefcfd6537276d2a21f96"
+    },
+    {
+      "path": "skills/mermaid-diagrams/references/sequence-diagrams.md",
+      "mode": "100644",
+      "gitBlob": "027b5b5d046272151923da3d29254746774458df",
+      "sha256": "11900f082d21c7e3fc0addcd2bf50689a1c36a5af806207942a2f772cb5e2b3b"
+    },
+    {
+      "path": "skills/mermaid-diagrams/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "6ecbbaf9854ada56cc8e01cde47915e3c34277b7",
+      "sha256": "79bca3c767a821a28aa7d83a9673010b2066afa4889923ea5946153c8967e824"
+    },
+    {
+      "path": "skills/skill-judge/README.md",
+      "mode": "100644",
+      "gitBlob": "9e66a6e204b46837a01ca81646b22a5fa46742c4",
+      "sha256": "dd45fb16a973cc2bcb4b4869fe0e19562a8e655488c3da56d38b709ebcb2051a"
+    },
+    {
+      "path": "skills/skill-judge/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "6d183975ba7369622a635184f1f8bfbaa9075bc0",
+      "sha256": "737ef3628f0e11353114c3bd05a1c9d0c448dbfec1ae85db839253cbe93198b6"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/elements-of-style/01-introductory.md",
+      "mode": "100644",
+      "gitBlob": "6896b3a026148dffaf828394a4a03596a7e42f91",
+      "sha256": "248b18596fa18cf63605182688565d25d115c859f602068185f6014c26addbfe"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/elements-of-style/02-elementary-rules-of-usage.md",
+      "mode": "100644",
+      "gitBlob": "7d8448491956b6bbb023ca0d44bbed3a67b5226d",
+      "sha256": "8cead3fc56b54ab5fc22e52c14423182fdce2d9535d4c1dda1f8319cac542027"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/elements-of-style/03-elementary-principles-of-composition.md",
+      "mode": "100644",
+      "gitBlob": "42dd60017601232d457b451a5823a234601b9614",
+      "sha256": "3867f33512ff2f0e965386dbb558579aab43ca10f070bd48d732584b9b5119e0"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/elements-of-style/04-a-few-matters-of-form.md",
+      "mode": "100644",
+      "gitBlob": "bad4a9c7c48d3786446b474868b2b5b63331b5e9",
+      "sha256": "150feae0c201def056a96dd25fa5d23e015f53632b21f3bcd7b7266f8197c563"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/elements-of-style/05-words-and-expressions-commonly-misused.md",
+      "mode": "100644",
+      "gitBlob": "fa4e2dc4e63a2209f30bdb86dd1758a864b32a7c",
+      "sha256": "60db286f5166b1b6f4d85a0cc39471b375fbd62d6057d3844533551fb09f2c2d"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/README.md",
+      "mode": "100644",
+      "gitBlob": "c0cc968ebfe0b5387ba71fec2af2374bfc90d3ef",
+      "sha256": "cd8241146abf3e7514fdb07a6db2e06c8535a4f78dd1ab471901b2e7fe4db089"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/signs-of-ai-writing.md",
+      "mode": "100644",
+      "gitBlob": "54b387cef8630f8aff9f445a438b1dfcd207ced3",
+      "sha256": "06d135c200e1bbfdbe90f433dfbdffeb9c4ea07f028a9a880f4026622e5c10fd"
+    },
+    {
+      "path": "skills/writing-clearly-and-concisely/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "215c9b290db4bccb1cf2f247f8e16ae2c5838f97",
+      "sha256": "c5f4ecc8bfa7984d0df70d30cea3bfeb824f7b24d31db111d5a1a9a959880575"
+    }
+  ]
+}

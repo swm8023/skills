@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/JuliusBrussee/caveman",
+  "commit": null,
+  "provenance": "Existing local archive first backed up in local commit 656e3ecd93b5a729a2c09fd3bf7e6308b0b8cff3; exact upstream commit was not recorded. Repository attribution follows the recognizable skill family/content.",
+  "localBaselineCommit": "c7173e54cd1bb100d1c3ab9960bc343a676b0110",
+  "reorganizedOn": "2026-10-26",
+  "scope": "Preserve existing local packages; directory reorganization only, not an upstream refresh or complete repository snapshot.",
+  "skills": {
+    "total": 1
+  },
+  "archivedFiles": 1,
+  "translationScope": "Existing translations preserved byte-for-byte. No translation refresh is claimed.",
+  "files": [
+    {
+      "path": "skills/caveman/SKILL.md",
+      "originalPath": "caveman/SKILL.md",
+      "mode": "100644",
+      "sourceSha256": "b4bb6fe3bf3da222993ca0aee5e7c6f5368b182dd30ce1172e8f8e3280eb7052",
+      "translatedSha256": "5c638e3e727211cd36e68b9e970ab6e97bbccf421785c539a228062f44ba38d4",
+      "translation": "preserved-existing-translation"
+    }
+  ]
+}

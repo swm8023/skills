@@ -1,0 +1,329 @@
+{
+  "repository": "https://github.com/obra/superpowers",
+  "commit": null,
+  "provenance": "Existing local archive first backed up in local commit 656e3ecd93b5a729a2c09fd3bf7e6308b0b8cff3; exact upstream commit was not recorded. Repository attribution follows the recognizable skill family/content.",
+  "localBaselineCommit": "c7173e54cd1bb100d1c3ab9960bc343a676b0110",
+  "reorganizedOn": "2026-10-26",
+  "scope": "Preserve existing local packages; directory reorganization only, not an upstream refresh or complete repository snapshot.",
+  "skills": {
+    "total": 13
+  },
+  "archivedFiles": 45,
+  "files": [
+    {
+      "path": "skills/brainstorming/SKILL.md",
+      "originalPath": "brainstorming/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "06cd0a21ee771f6bb7aaba9341a77ca09a8c7d04",
+      "sha256": "bba47904a7f6bbee3bf8a107ebbe84e65d392be683bbb898ded736b29e415f90"
+    },
+    {
+      "path": "skills/brainstorming/spec-document-reviewer-prompt.md",
+      "originalPath": "brainstorming/spec-document-reviewer-prompt.md",
+      "mode": "100644",
+      "gitBlob": "35acbb611c054f59f8cba0e551e7f04d3ce489e7",
+      "sha256": "12cb5ed58aef41b8da6fbb505547c71ca3f5658c83b66ca6e556c936308b3189"
+    },
+    {
+      "path": "skills/brainstorming/visual-companion.md",
+      "originalPath": "brainstorming/visual-companion.md",
+      "mode": "100644",
+      "gitBlob": "2113863d1e3d48dca1efb42f31aa70ec9613290a",
+      "sha256": "a2bc6fc47d0df1df981d02f707a16225b147f462e7059175ad2bc5e6dd29fcae"
+    },
+    {
+      "path": "skills/brainstorming/scripts/frame-template.html",
+      "originalPath": "brainstorming/scripts/frame-template.html",
+      "mode": "100644",
+      "gitBlob": "dcfe01817e81c0a77396089e65ecbd5d353ab3a1",
+      "sha256": "fb22ba9d47f3b83b56e0a95d52a3c2727db03b0d4365078d92c850293a62457b"
+    },
+    {
+      "path": "skills/brainstorming/scripts/helper.js",
+      "originalPath": "brainstorming/scripts/helper.js",
+      "mode": "100644",
+      "gitBlob": "111f97f597e95d5357b33e39c1da4a8d36f7ce82",
+      "sha256": "e763d82f32b4ebb320be2f0d08449d3e5a0585778edf5c407c1fdab3f39976a5"
+    },
+    {
+      "path": "skills/brainstorming/scripts/server.cjs",
+      "originalPath": "brainstorming/scripts/server.cjs",
+      "mode": "100644",
+      "gitBlob": "562c17f8933a39e1973737617bad8637529fe018",
+      "sha256": "ea81185f581897c67d4b417eeb9bc7a158c50e0932c73047054fe53efc2683ef"
+    },
+    {
+      "path": "skills/brainstorming/scripts/start-server.sh",
+      "originalPath": "brainstorming/scripts/start-server.sh",
+      "mode": "100644",
+      "gitBlob": "9ef6dcb991547a28e2b555d6fd08e97b8ea27400",
+      "sha256": "3442a54b5ee5511637d27bf696e092b72f94c2324f40b5ba4410da4dd0c23bc8"
+    },
+    {
+      "path": "skills/brainstorming/scripts/stop-server.sh",
+      "originalPath": "brainstorming/scripts/stop-server.sh",
+      "mode": "100644",
+      "gitBlob": "a6b94e6532b7006c7cb05898475e9f71c53c173e",
+      "sha256": "f65b7634a27343eab2086bdb6c59ba78695685f471b5a577b08a8817f7c50600"
+    },
+    {
+      "path": "skills/dispatching-parallel-agents/SKILL.md",
+      "originalPath": "dispatching-parallel-agents/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "a6a3f5a0798318edb6ccef716cfecce92a50d914",
+      "sha256": "76806091c7f923ba2596546b19cccd98a08e57a68745df77c3a7b998fe838e2b"
+    },
+    {
+      "path": "skills/executing-plans/SKILL.md",
+      "originalPath": "executing-plans/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "a591862734d39d188a6741874b2678702617f038",
+      "sha256": "e2102f11631433939f162d383d769f8257d859d6639e0e14969cda3ef0a95eca"
+    },
+    {
+      "path": "skills/finishing-a-development-branch/SKILL.md",
+      "originalPath": "finishing-a-development-branch/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "43da0ae169d3e7ee0f4586cf720430829ad2f426",
+      "sha256": "5c8d4b59aedb14c94e2f5d787a3265e858e8f53d4ceffe7ff1c15878a52b0e91"
+    },
+    {
+      "path": "skills/receiving-code-review/SKILL.md",
+      "originalPath": "receiving-code-review/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "4ea72cdf014d6b18223e4248ed9444bd3953445a",
+      "sha256": "c9382e92b8f32363566068ecfed19d3b2651eaf40d3942b24840f839dedfc406"
+    },
+    {
+      "path": "skills/requesting-code-review/code-reviewer.md",
+      "originalPath": "requesting-code-review/code-reviewer.md",
+      "mode": "100644",
+      "gitBlob": "525e4b471dd56a657d4c601755f40548c8e4fac5",
+      "sha256": "595d91d05d5ecba530bd52e1e53c5173d820ab5d4bc223eb7820d69a9ab1c403"
+    },
+    {
+      "path": "skills/requesting-code-review/SKILL.md",
+      "originalPath": "requesting-code-review/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "34b8340486d06fcfd5d25a08fa1435b15b234eea",
+      "sha256": "5a3a44a3667800e2dc836829c6b92fada51e6dc58ac144ec05fe59f47d6bcd84"
+    },
+    {
+      "path": "skills/subagent-driven-development/code-quality-reviewer-prompt.md",
+      "originalPath": "subagent-driven-development/code-quality-reviewer-prompt.md",
+      "mode": "100644",
+      "gitBlob": "51f901a5ed3ff4a118e3ba8b4110737ae87622c7",
+      "sha256": "2eeb3bf63fccfbee042812dc94e7032048603f0f8c3827b4b53af9e4cef19b30"
+    },
+    {
+      "path": "skills/subagent-driven-development/implementer-prompt.md",
+      "originalPath": "subagent-driven-development/implementer-prompt.md",
+      "mode": "100644",
+      "gitBlob": "400c1034792d9931a4507f58fa05a1a2d9b38e51",
+      "sha256": "a416193f881e5a712c988fffabfe1d5a97bffcd091eb95577c84fe2136588617"
+    },
+    {
+      "path": "skills/subagent-driven-development/SKILL.md",
+      "originalPath": "subagent-driven-development/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "ea7ac8fd8bca19812115831e665a620099e076ce",
+      "sha256": "905a2b9be59b734dbe166525ad31dcaaf712a75926135adee1f554557aba5744"
+    },
+    {
+      "path": "skills/subagent-driven-development/spec-reviewer-prompt.md",
+      "originalPath": "subagent-driven-development/spec-reviewer-prompt.md",
+      "mode": "100644",
+      "gitBlob": "ab5ddb8a5594d0655ff2e7e6aa1ec097eaf16b48",
+      "sha256": "631980e472eec5394de8b89b69d432e54fd3f7f523ecf9afa7eb4cda0c9b2baf"
+    },
+    {
+      "path": "skills/systematic-debugging/condition-based-waiting-example.ts",
+      "originalPath": "systematic-debugging/condition-based-waiting-example.ts",
+      "mode": "100644",
+      "gitBlob": "703a06b653160d060bbf46ab5c6e0cd7446bd592",
+      "sha256": "40ae5ebe497fdf310200e43fe986552546d0a22837c0d39e855db1cfd33eb88e"
+    },
+    {
+      "path": "skills/systematic-debugging/condition-based-waiting.md",
+      "originalPath": "systematic-debugging/condition-based-waiting.md",
+      "mode": "100644",
+      "gitBlob": "70994f777c586f7d4c43033aac34c7cf0da6688b",
+      "sha256": "e89fec8400d6cd50f43407cec9fab50976ba4d55d0ec2eb51c0bd68036b54c26"
+    },
+    {
+      "path": "skills/systematic-debugging/CREATION-LOG.md",
+      "originalPath": "systematic-debugging/CREATION-LOG.md",
+      "mode": "100644",
+      "gitBlob": "9aa03092809feaf93c9bfa985252f6f1c9624692",
+      "sha256": "c24733a5b1821bd6bed1fc950261f0b9f4e90097e0bbb96459d8179713730789"
+    },
+    {
+      "path": "skills/systematic-debugging/defense-in-depth.md",
+      "originalPath": "systematic-debugging/defense-in-depth.md",
+      "mode": "100644",
+      "gitBlob": "e2483354dc2b62478a2624e34ca18bc0efe887b2",
+      "sha256": "1e175fb86fc357e58c6aebf5441e481e1b7868b4380c0456b63a17eefbd18ba7"
+    },
+    {
+      "path": "skills/systematic-debugging/find-polluter.sh",
+      "originalPath": "systematic-debugging/find-polluter.sh",
+      "mode": "100644",
+      "gitBlob": "1d71c56077dd819f0966cdae353fb142201611c6",
+      "sha256": "6462747eae9b175ac145b78bcfaeab755654a75e32637f08eb633f065a9e1d7c"
+    },
+    {
+      "path": "skills/systematic-debugging/root-cause-tracing.md",
+      "originalPath": "systematic-debugging/root-cause-tracing.md",
+      "mode": "100644",
+      "gitBlob": "12ef5222e24e19ab92172b82b69ef1b0c30d9bfa",
+      "sha256": "6b0622269e098ca1399e123e553fd385f0b6412d88ef0e9c4f5a8ea9cf1cec7b"
+    },
+    {
+      "path": "skills/systematic-debugging/SKILL.md",
+      "originalPath": "systematic-debugging/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "111d2a98c2698b5a202ddae8906f75f16ecfcffd",
+      "sha256": "4999cb851360485eca5074e727bbdd62ef20549c5d5b01216fcbf5831badb473"
+    },
+    {
+      "path": "skills/systematic-debugging/test-academic.md",
+      "originalPath": "systematic-debugging/test-academic.md",
+      "mode": "100644",
+      "gitBlob": "23a6ed7a2044e0c44d74c3101406140f4851aa41",
+      "sha256": "fe2ba480d78ac0d686dc025f41c2a32a43d642bf533f91b0c6053a04d35d6486"
+    },
+    {
+      "path": "skills/systematic-debugging/test-pressure-1.md",
+      "originalPath": "systematic-debugging/test-pressure-1.md",
+      "mode": "100644",
+      "gitBlob": "8d13b467e4a98abfffd12161cbc3c418021d6023",
+      "sha256": "0b6a915db0054577819834c79be9eb614e97bddba10d73768e1fbe91cfed048a"
+    },
+    {
+      "path": "skills/systematic-debugging/test-pressure-2.md",
+      "originalPath": "systematic-debugging/test-pressure-2.md",
+      "mode": "100644",
+      "gitBlob": "2d2315ec8a24ca872bc80d2f4056468ba051462a",
+      "sha256": "b2030aeffba07050e8ad573ddf87486457c4a016a786bb326235bebd856f2016"
+    },
+    {
+      "path": "skills/systematic-debugging/test-pressure-3.md",
+      "originalPath": "systematic-debugging/test-pressure-3.md",
+      "mode": "100644",
+      "gitBlob": "89734b86fdc756488df315d53e5c3ac2d3752cd8",
+      "sha256": "96b50a52e2c7989c9cf20fb752c47c1e9a3a70dc362f8f7989f8f5b64dac7708"
+    },
+    {
+      "path": "skills/test-driven-development/SKILL.md",
+      "originalPath": "test-driven-development/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "7a751fa946b7fd801feb504cb1af6b5b62adcf43",
+      "sha256": "7dee67b4af6bdccc7a914ca34533184d64592d0f5b23aeae631538168db14994"
+    },
+    {
+      "path": "skills/test-driven-development/testing-anti-patterns.md",
+      "originalPath": "test-driven-development/testing-anti-patterns.md",
+      "mode": "100644",
+      "gitBlob": "e77ab6b6d65ecfb0d8212a32186bf68d18b5eade",
+      "sha256": "bde453bc258f06543987477c837939afaa774ea2acbd9f308d702fc452bc4283"
+    },
+    {
+      "path": "skills/using-superpowers/SKILL.md",
+      "originalPath": "using-superpowers/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "c8a857024b80bd3a3553cdfac9a92bec3bd0175e",
+      "sha256": "316e29381219adf0cac62190c67aeabf427d6e6e5f2735541d502b3d339be7aa"
+    },
+    {
+      "path": "skills/using-superpowers/references/codex-tools.md",
+      "originalPath": "using-superpowers/references/codex-tools.md",
+      "mode": "100644",
+      "gitBlob": "f50d40d4e2e53cde4b266494f32f2d6d993883b4",
+      "sha256": "37e06103a352516dcec2eb326f990d50c6728b571135cc7b54cbbb8902c451e0"
+    },
+    {
+      "path": "skills/using-superpowers/references/copilot-tools.md",
+      "originalPath": "using-superpowers/references/copilot-tools.md",
+      "mode": "100644",
+      "gitBlob": "ae3cf5a6d14b5846afb3b85a8c020eafbc53845d",
+      "sha256": "9fb400a432d31494c6d764506f04227c4b8d89e27a09f84da9cc2b75998f2db6"
+    },
+    {
+      "path": "skills/using-superpowers/references/gemini-tools.md",
+      "originalPath": "using-superpowers/references/gemini-tools.md",
+      "mode": "100644",
+      "gitBlob": "91ef4049465d5c571f5ec0244395769d4e7ff9ba",
+      "sha256": "a66092fb2dd2c69b6b6d1098feaf456614521fd7b887cf7cb4160c8040ed1d62"
+    },
+    {
+      "path": "skills/verification-before-completion/SKILL.md",
+      "originalPath": "verification-before-completion/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "2f14076e59e6ce5cd6f88007421a85f0bd772520",
+      "sha256": "ea52d15aabaf72bc6b558efe2c126f161b53961090ddcd712000273bfe8c7b6c"
+    },
+    {
+      "path": "skills/writing-plans/plan-document-reviewer-prompt.md",
+      "originalPath": "writing-plans/plan-document-reviewer-prompt.md",
+      "mode": "100644",
+      "gitBlob": "2db2806783ece718ef32491bad45c1d650404e71",
+      "sha256": "6fce2aa83c63715697e9dd86050c820716100b91efbd9f12bab8477ecc060256"
+    },
+    {
+      "path": "skills/writing-plans/SKILL.md",
+      "originalPath": "writing-plans/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "847412ece1ee0c3582f7c04d1f2f7db2988dba1c",
+      "sha256": "4fd4627d2c02367879c0307d7249270bed633317ff9be82e926a6d57bf5d331b"
+    },
+    {
+      "path": "skills/writing-skills/anthropic-best-practices.md",
+      "originalPath": "writing-skills/anthropic-best-practices.md",
+      "mode": "100644",
+      "gitBlob": "9f3f6ecfd9a9bf81eb66be47d5f3e4cf37469e67",
+      "sha256": "20914c2fda31670c75fe91710e18a53d413ce0d00b5102acfa251d75c9226e3f"
+    },
+    {
+      "path": "skills/writing-skills/graphviz-conventions.dot",
+      "originalPath": "writing-skills/graphviz-conventions.dot",
+      "mode": "100644",
+      "gitBlob": "3509e2f028cacaa8118cbc8c80025efb089ec28e",
+      "sha256": "e2890a593c91370e384b42f2f67b1a6232c9e69dddea7891a0c1c46d7b20b694"
+    },
+    {
+      "path": "skills/writing-skills/persuasion-principles.md",
+      "originalPath": "writing-skills/persuasion-principles.md",
+      "mode": "100644",
+      "gitBlob": "9818a5f951b66d02d288c56fd1941b6b5f5478f1",
+      "sha256": "c3c84f572a51dd8b6d4fc6e5cbdc2bc3b9e07ba381a45bdabfce7ad2894dd828"
+    },
+    {
+      "path": "skills/writing-skills/render-graphs.js",
+      "originalPath": "writing-skills/render-graphs.js",
+      "mode": "100644",
+      "gitBlob": "1d670fbb356553f898b9f8273f8b314f35ef1a59",
+      "sha256": "ccda971a87bb185f8febf81c56b556a20d026fa980c17b35fa3e8824fbb37852"
+    },
+    {
+      "path": "skills/writing-skills/SKILL.md",
+      "originalPath": "writing-skills/SKILL.md",
+      "mode": "100644",
+      "gitBlob": "c3b73d8b10ba2539da543f069aabf1d156071176",
+      "sha256": "38ba648975ae6ba512d6695676f146163db61a496b867f716f4bdfb0ee3aca3e"
+    },
+    {
+      "path": "skills/writing-skills/testing-skills-with-subagents.md",
+      "originalPath": "writing-skills/testing-skills-with-subagents.md",
+      "mode": "100644",
+      "gitBlob": "a5acfeac86f34c7bc625d064e10c8a2f8180b696",
+      "sha256": "c711346852c911b24a84aa161e0cff06a4cd7f4e2fa9e9c0a266cead5afcbade"
+    },
+    {
+      "path": "skills/writing-skills/examples/CLAUDE_MD_TESTING.md",
+      "originalPath": "writing-skills/examples/CLAUDE_MD_TESTING.md",
+      "mode": "100644",
+      "gitBlob": "47881fc85bd6c01b32b84d52ed9a0c73c8d6a089",
+      "sha256": "0b379a3415e185d3c434b3ad283d8aa132f3022c2a4f210f168865b5986bcef0"
+    }
+  ]
+}

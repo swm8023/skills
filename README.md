@@ -6,6 +6,34 @@ Add skills under `skills/<skill-name>/SKILL.md`, then push the repo.
 
 WheelMaker tracks this folder as a Project at `D:\Code\skills`. If the GitHub repository is public, or the local `skills` CLI can access it with Git credentials, it can also be used as a remote Skill Source with `swm8023/skills`.
 
+## Reference archive organization
+
+Original references live in `skills.bak/<source>/`; Chinese references mirror
+them in `skills-zh/<source>/`. Each source keeps its skill packages under the
+upstream-style `skills/` hierarchy, with a source or translation manifest beside
+the source folder. These archives are separate from active project `skills/`.
+
+| Source | Original reference | Chinese reference | Scope |
+| --- | --- | --- | --- |
+| Matt Pocock | [mattpocock](skills.bak/mattpocock/README.md) | [mattpocock](skills-zh/mattpocock/README.md) | Existing complete repository snapshot; 38 skills |
+| Superpowers | [superpowers](skills.bak/superpowers/README.md) | [superpowers](skills-zh/superpowers/README.md) | Existing 13 skill packages, reorganized without refreshing their contents |
+| Caveman | [caveman](skills.bak/caveman/README.md) | [caveman](skills-zh/caveman/README.md) | Existing historical skill, reorganized without content changes |
+| Softaworks Agent Toolkit | [softaworks](skills.bak/softaworks/README.md) | [softaworks](skills-zh/softaworks/README.md) | Four selected packages: skill-judge, writing-clearly-and-concisely, lesson-learned, mermaid-diagrams |
+
+Softaworks is pinned to `3027f20f3181758385a1bb8c022d4041dfb4de84`
+(verified 2026-10-26). Its four packages contain all 23 upstream Markdown files,
+including supporting references, with Chinese explanations and preserved English
+grammar/style examples. Source manifests record original hashes and file modes;
+translation manifests also record translated hashes and preservation rules.
+
+Historical documents may refer to the former flat paths. Superpowers packages
+formerly at `skills.bak/<skill>/` or `skills-zh/<skill>/` now live under
+`<archive-root>/superpowers/skills/<skill>/`. Caveman now lives under
+`<archive-root>/caveman/skills/caveman/`. All 92 relocated original/translated
+files retain their previous bytes. The exact historical upstream commits for
+these two sources were not recorded; their manifests explicitly retain the
+known local baseline instead of claiming a current upstream version.
+
 ## Matt Pocock reference archives
 
 The complete [mattpocock/skills](https://github.com/mattpocock/skills) repository
@@ -42,8 +70,8 @@ repository maintenance file.
 
 The outdated English Matt Pocock backup from June was removed from `skills.bak/`;
 its previous contents remain available in Git history. Older Chinese translations
-remain under `skills-zh/legacy-mattpocock-2026-06/`. Other sources in those mixed
-archives are unchanged. Use the `mattpocock/` snapshots for current upstream material.
+remain under `skills-zh/legacy-mattpocock-2026-06/`. Other sources are now grouped
+as documented above. Use the `mattpocock/` snapshots for the verified Matt Pocock material.
 
 These are reference archives. The repository's own `skills/` workflows,
 including `scope`, `implement`, `debug`, and `handoff`, keep their existing names

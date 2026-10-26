@@ -1,23 +1,37 @@
 # Skill 中文参考库
 
-这里保存翻译和历史参考。项目运行时 skill 位于 `../skills/`。
+按来源保存中文参考资料，与 `../skills.bak/` 的来源目录对应。
+项目运行时 skill 位于 `../skills/`。
 
-- [Matt Pocock 最新中文 skill 库](mattpocock/README.md)：对应上游
-  `49dd158d1076134a641b33efb035946536778336`，2026-10-14 核对。
-  全部 38 个 skill：27 个稳定、7 个实验、4 个冻结。
-- [翻译记录](mattpocock.TRANSLATION.json)：源提交、逐文件原文/译文哈希及翻译状态。
-- [完整英文副本](../skills.bak/mattpocock/README.md)：190 个上游文件原样保留。
-- `legacy-mattpocock-2026-06/`：以前平铺的 13 个旧 skill 中文版本，仅作历史参考。
+| 来源 | 中文资料 | 翻译记录 | 范围 |
+| --- | --- | --- | --- |
+| Matt Pocock | [mattpocock/](mattpocock/README.md) | [记录](mattpocock.TRANSLATION.json) | 现有完整副本中的全部 38 个 skill |
+| Superpowers | [superpowers/](superpowers/README.md) | [记录](superpowers.TRANSLATION.json) | 原有 13 个 skill 包的译文，仅移动目录 |
+| Caveman | [caveman/](caveman/README.md) | [记录](caveman.TRANSLATION.json) | 原有历史译文，仅移动目录 |
+| Softaworks Agent Toolkit | [softaworks/](softaworks/README.md) | [记录](softaworks.TRANSLATION.json) | 四个完整 skill 包，23 份 Markdown |
+
+## 目录和历史资料
+
+各来源采用 `<source>/skills/<skill-name>/` 层次，保留配套资料及内部相对路径。
+Superpowers 原有平铺目录现统一放在 `superpowers/skills/`；Caveman 放在
+`caveman/skills/caveman/`。原文件逐字节保留，未更新版本或重译。
+这两组历史资料的上游提交未记录，清单明确保存已知本地基线和旧路径。
+
+`legacy-mattpocock-2026-06/` 保留以前平铺的 13 个旧 skill 中文版本，仅作历史参考。
+新版 Matt Pocock 材料及其清单没有变动，仍对应上游
+`49dd158d1076134a641b33efb035946536778336`，2026-10-14 核对。
 
 ## 翻译范围
 
-上游 `skills/` 内全部 66 份 Markdown（38 个 skill 的正文、全部配套参考文件和
-分类索引），以及根目录 `README.md`、`GLOSSARY.md`、`SCOPE.md` 均逐行翻译。
-不省略步骤、不以摘要代替正文。技术术语、英文标题及 anchor 保留，以维持链接和
-共享词汇；代码块、内联代码、路径和标识符保持原文。
+Matt Pocock 的 `skills/` 内全部 66 份 Markdown，以及根目录 `README.md`、
+`GLOSSARY.md`、`SCOPE.md` 已按原有约定逐行翻译。英文标题、anchor、代码、路径、
+调用策略和其余上游维护文件的保留规则，以其现有翻译记录为准。
 
-全部 `agents/openai.yaml` 及 frontmatter 的调用策略保持原样。其余上游网站介绍页、
-发布记录、仓库维护指令、配置和脚本保留原文。因此这是完整的中文 skill 库，
-不是对上游每份仓库维护文档的全文翻译。翻译记录逐文件区分两者。
+Softaworks 对应上游 `3027f20f3181758385a1bb8c022d4041dfb4de84`，2026-10-26 核对。
+选取 `skill-judge`、`writing-clearly-and-concisely`、`lesson-learned`、
+`mermaid-diagrams`，包含正文、README 和全部配套参考文件，共 23 份 Markdown。
+解释、操作指引及自然语言 description 译为中文，保持原行结构；英文标题与 anchor、
+代码块、行内代码、链接目标和调用策略保留。英语语法与文体的对照例句、AI 写作证据
+引文及参考文献条目保留原文，避免失去所讨论的语言特征。LICENSE 原样保留。
 
-其余来源的现有译文没有改动。新版 Matt Pocock 内容统一查看 `mattpocock/`。
+这些文件均为参考资料；本地正在使用的定制 `skills/mermaid-diagrams/` 独立保留。

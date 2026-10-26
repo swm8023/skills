@@ -27,6 +27,13 @@ how the syntax is selected during knowledge generation, including confirmed
 Wikilinks, derived backlinks, feature prompts, and preview diagnostics; it is a
 local workflow extension, not upstream syntax material.
 
+Writing guidance in that reference also selects prose, lists, tables, callouts,
+and diagrams according to the reader's needs. Mermaid creation and editing route
+to the sibling [mermaid-diagrams skill](../../mermaid-diagrams/SKILL.md), which
+maintains its own pinned upstream provenance and mind-map reference. Diagram
+output returns to the existing note preview and publication flow; this routing
+does not grant access to private Wiki source or alter publication boundaries.
+
 ## Independent reader
 
 The reader in assets/dochub was copied from DocHub and is maintained independently.

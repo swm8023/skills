@@ -1,0 +1,7 @@
+interface:
+  display_name: "Mermaid Diagrams"
+  short_description: "按内容选择并编写思维导图、流程图、时序图和架构图，优先本地验证"
+  default_prompt: "使用 $mermaid-diagrams 为这些概念和关系选择合适的图形，生成可嵌入 Markdown 的 Mermaid 代码。"
+
+policy:
+  allow_implicit_invocation: true

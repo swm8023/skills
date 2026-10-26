@@ -1,10 +1,10 @@
 # Advanced Mermaid Features
 
-用于创建专业图表的高级配置、样式、主题及其他功能。
+用于创建专业 diagrams 的高级 configuration、styling、theming，以及其他强大 features。
 
 ## Frontmatter Configuration
 
-在图表顶部添加 YAML 配置：
+在 diagrams 顶部添加 YAML configuration：
 
 ```mermaid
 ---
@@ -33,16 +33,16 @@ config:
 ---
 ```
 
-**可用主题：**
-- `default` -- 标准蓝色主题
-- `forest` -- 绿色大地色调
-- `dark` -- 适合深色模式
-- `neutral` -- 专业灰度风格
-- `base` -- 用于自定义的最小基础主题
+**可用 themes：**
+- `default` - 标准蓝色 theme
+- `forest` - 绿色 earth tones
+- `dark` - 适合 dark mode
+- `neutral` - 专业的 grayscale 风格
+- `base` - 用于自定义的极简 base theme
 
 ### Theme Examples
 
-**默认主题：**
+**默认 Theme：**
 ```mermaid
 ---
 config:
@@ -55,7 +55,7 @@ flowchart LR
     C -->|No| E[Action 2]
 ```
 
-**深色主题：**
+**Dark Theme：**
 ```mermaid
 ---
 config:
@@ -66,7 +66,7 @@ flowchart LR
     B --> C{Decision}
 ```
 
-**森林主题：**
+**Forest Theme：**
 ```mermaid
 ---
 config:
@@ -117,7 +117,7 @@ flowchart TD
 
 ### ELK Layout (Advanced)
 
-为复杂图表提供更好的自动布局：
+为复杂 diagrams 提供更好的 automatic layout：
 
 ```mermaid
 ---
@@ -131,17 +131,17 @@ flowchart TD
     A --> B
 ```
 
-**ELK 节点放置策略：**
-- `SIMPLE` -- 基础放置
-- `NETWORK_SIMPLEX` -- 网络优化
-- `LINEAR_SEGMENTS` -- 线性排列
-- `BRANDES_KOEPF` -- 均衡（默认）
+**ELK node placement strategies：**
+- `SIMPLE` - 基础 placement
+- `NETWORK_SIMPLEX` - Network optimization
+- `LINEAR_SEGMENTS` - Linear arrangement
+- `BRANDES_KOEPF` - 均衡（默认）
 
 ## Look Options
 
 ### Classic Look
 
-传统 Mermaid 外观：
+传统的 Mermaid 外观：
 
 ```mermaid
 ---
@@ -154,7 +154,7 @@ flowchart LR
 
 ### Hand-Drawn Look
 
-草图式、非正式风格：
+类似草图的非正式 style：
 
 ```mermaid
 ---
@@ -195,7 +195,7 @@ flowchart TD
 
 ### Flowchart Styling
 
-**基于类的样式：**
+**基于 class 的 styling：**
 ```mermaid
 flowchart TD
     A[Normal]:::success
@@ -209,7 +209,7 @@ flowchart TD
     A --> B --> C
 ```
 
-**特定节点样式：**
+**特定 node 的 styling：**
 ```mermaid
 flowchart LR
     A[Node A]
@@ -223,7 +223,7 @@ flowchart LR
     A --> B --> C
 ```
 
-**连线样式：**
+**Link styling：**
 ```mermaid
 flowchart LR
     A --> B
@@ -271,7 +271,7 @@ classDiagram
 
 ## Directional Hints
 
-控制特定节点的布局方向：
+控制特定 nodes 的 layout direction：
 
 ```mermaid
 flowchart TB
@@ -286,7 +286,7 @@ flowchart TB
 
 ## Click Events and Links
 
-添加交互元素：
+添加 interactive elements：
 
 ```mermaid
 flowchart LR
@@ -303,7 +303,7 @@ flowchart LR
 
 ## Tooltips
 
-添加悬停信息：
+添加 hover information：
 
 ```mermaid
 flowchart LR
@@ -407,7 +407,7 @@ flowchart TB
 
 ## Responsive Sizing
 
-通过 CSS 让图表响应式适配：
+使用 CSS 使 diagrams 具有 responsive 特性：
 
 ```html
 <div style="max-width: 100%; overflow: auto;">
@@ -435,14 +435,14 @@ mmdc -i diagram.mmd -o output.svg -b "transparent"
 
 ## Best Practices for Advanced Features
 
-1. **统一使用主题** -- 相关图表选择同一主题
-2. **不要过度美化** -- 颜色太多会降低清晰度
-3. **测试手绘外观** -- 有些图表更适合经典外观
-4. **复杂布局使用 ELK** -- 尤其 dagre 出现交叉线时
-5. **注释复杂配置** -- 解释不明显的样式选择
-6. **保持无障碍** -- 确保颜色对比充足
-7. **测试导出** -- 验证目标格式中渲染正确
-8. **配置纳入版本控制** -- 在仓库中跟踪主题变更
+1. **一致地使用 themes** - 为相关 diagrams 选择同一个 theme
+2. **不要过度设置 style** - 过多 colors 可能降低清晰度
+3. **测试 hand-drawn look** - 有些 diagrams 使用 classic look 效果更好
+4. **对复杂 layouts 使用 ELK** - 当 dagre 产生 crossed lines 时
+5. **为复杂 configurations 编写 comments** - 解释不明显的 styling choices
+6. **保持 accessible** - 确保足够的 color contrast
+7. **测试 exports** - 验证 diagrams 在目标格式中正确渲染
+8. **对 configs 进行 version control** - 在 repository 中跟踪 theme changes
 
 ## Accessibility Considerations
 
@@ -463,12 +463,12 @@ flowchart TD
     B --> C[Meaningful Colors]
 ```
 
-**无障碍提示：**
-- 使用高对比度配色
-- 不要只靠颜色传达含义
-- 加入说明性文字标签
-- 用色盲模拟器测试
-- 考虑深色模式替代方案
+**Accessibility 提示：**
+- 使用 high contrast 配色
+- 不要仅靠 color 传达含义
+- 包含描述性 text labels
+- 使用 color blindness simulators 测试
+- 考虑 dark mode 替代方案
 
 ## Performance Considerations
 
@@ -486,12 +486,12 @@ flowchart TD
     %% Merge edges reduces visual clutter
 ```
 
-**性能提示：**
-- 超过 20 个节点的图使用 ELK 布局
-- 启用边合并，简化连接
-- 将非常大的图拆成多个聚焦视图
-- 考虑使用子图组织复杂内容
-- 样式只用于必要元素
+**Performance 提示：**
+- 对 nodes 数量大于 20 的 diagrams 使用 ELK layout
+- 启用 edge merging，以简化 connections
+- 将非常大的 diagrams 拆成多个聚焦的 views
+- 考虑使用 subgraphs 组织复杂内容
+- 将 styling 限制在必要的 elements 上
 
 ## Integration Examples
 

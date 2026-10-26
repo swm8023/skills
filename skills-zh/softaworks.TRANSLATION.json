@@ -14,7 +14,7 @@
   "upstreamFiles": 24,
   "markdownFiles": 23,
   "localIndex": "README.md is a locally authored selection index, not the upstream root README.",
-  "translationScope": "All 23 selected skill Markdown files: instructions, READMEs and supporting references. Translate explanatory prose and natural-language descriptions; preserve line structure, English headings/anchors, code fences, inline code, English grammar/style comparison examples, quoted evidence, bibliographic entries, link targets and invocation policy. LICENSE is preserved upstream.",
+  "translationScope": "All 23 selected skill Markdown files reviewed sentence by sentence against the pinned English originals. Preserve English professional/technical terms and the meaning, conditions, quantifiers, modality and sentence correspondence. Translate explanatory prose, ordinary quotations, image alt text, explanatory footnotes, and natural-language Markdown templates, including those in code fences. Preserve original line and blank-line structure, English headings/anchors, paragraph order, list markers/nesting, table rows/columns, code fences, executable code, original inline code, identifiers, link destinations, footnote IDs, invocation policy and bibliographic entries. English grammar/style comparison originals are retained with faithful Chinese on the same source line. LICENSE is preserved upstream.",
   "translatedMarkdownFiles": 23,
   "files": [
     {
@@ -30,184 +30,198 @@
       "mode": "100644",
       "gitBlob": "984b2c45669be126e8fd77b3db25c241947a3088",
       "sourceSha256": "9eaeeec3614edc49e68103606f8e40be44b4d7fb0de963b2376019288c0b3d8d",
-      "translatedSha256": "ecbef2bf2dda9712bc985133cd7ead6f6f4027df988c7602befeb4df61190f2b",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "ccad0bc7f1d4102ac0ba726f17903558b9c0b69b33c0c4459859370a054153b6",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/lesson-learned/references/anti-patterns.md",
       "mode": "100644",
       "gitBlob": "f552bb14ec392415b0bc2aa022b9d108f2b6d581",
       "sourceSha256": "731aeb398dba7a46d81da3cb3db7fccbd47e117e3f1f7fd9445afc2050ab52a5",
-      "translatedSha256": "056fd4d608b0c72b8d490f9b20028255a3ecc98417ebb713d71927b9328358f0",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "4225526d922762621a12a643cc91b8acb251bc8ff018005863a194dbd7efcba1",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/lesson-learned/references/se-principles.md",
       "mode": "100644",
       "gitBlob": "6d6cee99fc5169988ad0c0b1c4501715fb90e08b",
       "sourceSha256": "cb2946dd6c2fc3efd69cf75b9860e97031bd2f17cdc4e2b18462be6661a27d91",
-      "translatedSha256": "400d3c75c005f34844d4764bc30cef80b378f6f3e3d35b31eddf93b55fc7e853",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "446c501046178ed36e302a1420d7370b6424d06934491fdde15997accf0c6cc7",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/lesson-learned/SKILL.md",
       "mode": "100644",
       "gitBlob": "e358582cc398ba0c02b9a2cc2ae13b29d3e6ba59",
       "sourceSha256": "f2ee51f30ea8c2f15f961eac7d403945c0db5af042c1dc56c0d3b6a6561b9894",
-      "translatedSha256": "878a1f8a456c8e96026c2ffbd6444fb0f2601f73e9aa7496a3b5879011306aca",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "35160c0b1815c4a6815d8e6bcc9d87d3319873023298b89d9f880f06a92c7b2e",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/README.md",
       "mode": "100644",
       "gitBlob": "5bccc2802e30398a26580869919112dbfb526a1e",
       "sourceSha256": "e2f7f6e8d4415c57368cf0492eb98b12be18526f963383a9e64dcb741eb602de",
-      "translatedSha256": "5040bd6c598b36872c18d60245e8762038028e19effeb9e19cbae785349f91f6",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "82537a3edceb8568b02feadc445f20f217127b72709598b4af2cea8cb69114e9",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/references/advanced-features.md",
       "mode": "100644",
       "gitBlob": "0c7bfca5c2df922f6989d2de77ff15e9d4567ff6",
       "sourceSha256": "5b816a153915de49ccae229a70103e724f68c3fc8b7a5b38f67a59f973af37bc",
-      "translatedSha256": "440b9aa565fdb52f827da9e4e8d8cb7119f2816690000afdd28e4bcaf4685e11",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "8f960fa28dc0be1891a3e4c54ba8b77fde891d81410c4f3e0fed48e1abbe9d95",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/references/architecture-diagrams.md",
       "mode": "100644",
       "gitBlob": "f4e2ec844eb08b7fd89260e6def0e2737cac8564",
       "sourceSha256": "117bc72208e20dacb355d007b444dce7433f174a0ba9b76ab0a3361b8d580706",
-      "translatedSha256": "3ea0d3f76b07fdf9108b4cb2ddbfd89a39bc7195d9db85ca02b3877eadf8ea63",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "b7db046d40748e773bcedd273d6bb3215f4b934001857c358cfbaa3249cadb5d",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/references/c4-diagrams.md",
       "mode": "100644",
       "gitBlob": "bc4d6982c13a5b540b42ef3162c881a5125e261b",
       "sourceSha256": "28e73813c730721995aab4084b913459687a8065f28e2a5e8ef7a94cd8116fd9",
-      "translatedSha256": "1e5dce601c84be2bb08afd6ccf666e11393fc8e790f0d51435bb2e54c380a8eb",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "60ea8948016763d9d362798be95b8f7ae8821ec85b1603bb88c71ab27f1ecc58",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/references/class-diagrams.md",
       "mode": "100644",
       "gitBlob": "514dac04f6a1e424e2d8a76f4309f31796687a32",
       "sourceSha256": "5eba3606f37be8409843826901f0c846a1bd4796e2e9145c787d4e5ba1646ce3",
-      "translatedSha256": "33a060c2b9622ea1bc301d4707c1d31b2bb288632a40fe25cd43cff636f17a59",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "96b58306db775afe744b15561500b5782bff865297becf817fd393a4dca8ce7d",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/references/erd-diagrams.md",
       "mode": "100644",
       "gitBlob": "ba577ea9d1b81eeb935f2ba6d777f8eccaa54306",
       "sourceSha256": "639ee58f4925e0721fc3a2c70fd083ec256fe861baa62a56d039c01315fc58ff",
-      "translatedSha256": "2e037a959ea9ff1a6ed2c8547c23309c76425f68f06cb8a6e98100816ea93b96",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "ecceaac01320aca6b07beb089e56079e412fbcac3ce47bd575b9f76709a978f4",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/references/flowcharts.md",
       "mode": "100644",
       "gitBlob": "1a43c5827457b23152d3de6ba9a0774d7da83a2e",
       "sourceSha256": "73b599797659ced9211ab947e3d4aee4f3ef2bfb4c1aefcfd6537276d2a21f96",
-      "translatedSha256": "51f1c791c6d36c69c9a52cdde26fa7bbba42efdb78ce48ce466f8535de6ead3e",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "98fd063a7886dd815a123405efb990b69611383e030a4132eed5a54aac28aace",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/references/sequence-diagrams.md",
       "mode": "100644",
       "gitBlob": "027b5b5d046272151923da3d29254746774458df",
       "sourceSha256": "11900f082d21c7e3fc0addcd2bf50689a1c36a5af806207942a2f772cb5e2b3b",
-      "translatedSha256": "665f4d0a9e57b60b51b6474003bf31ef03cf7db449b5813d74f03cf2db3ee977",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "c58b58c9b1111d731e34139fae80e405a6c916796e2475f6ebef382d474942f6",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/mermaid-diagrams/SKILL.md",
       "mode": "100644",
       "gitBlob": "6ecbbaf9854ada56cc8e01cde47915e3c34277b7",
       "sourceSha256": "79bca3c767a821a28aa7d83a9673010b2066afa4889923ea5946153c8967e824",
-      "translatedSha256": "7c076d4d18fd510e60f6632205c66af1cd216b161f4811263fab3cc7f9694e8a",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "35fe7f3de52187978ed600e2a1352949f9304bb4bde2544d4af2a2287af84736",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/skill-judge/README.md",
       "mode": "100644",
       "gitBlob": "9e66a6e204b46837a01ca81646b22a5fa46742c4",
       "sourceSha256": "dd45fb16a973cc2bcb4b4869fe0e19562a8e655488c3da56d38b709ebcb2051a",
-      "translatedSha256": "50cb7908be3dc0580aef7e28d949f28af4144b189acbfc4d006514e7cca7c328",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "dd7416d0e99e13e7936ca558733ef1273c3aa96282e0e62a466a442dae791f13",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/skill-judge/SKILL.md",
       "mode": "100644",
       "gitBlob": "6d183975ba7369622a635184f1f8bfbaa9075bc0",
       "sourceSha256": "737ef3628f0e11353114c3bd05a1c9d0c448dbfec1ae85db839253cbe93198b6",
-      "translatedSha256": "c8484f16bb9ec283c4db2c154336c5c094fe4b1c5739b5416592a95a531d153f",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "5fa250dd08f36fe18d355bc1c75a7393db9b063d269f2c160b8cf40a42adb13c",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/elements-of-style/01-introductory.md",
       "mode": "100644",
       "gitBlob": "6896b3a026148dffaf828394a4a03596a7e42f91",
       "sourceSha256": "248b18596fa18cf63605182688565d25d115c859f602068185f6014c26addbfe",
-      "translatedSha256": "a95d8304414dff50f2d5eeb3cc49237003cd94469d5b284e751ee696653c68ce",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "a6c0797f6d73f1d62cadb127fa207dfcb4036352654eb61816c4a16138f18d52",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/elements-of-style/02-elementary-rules-of-usage.md",
       "mode": "100644",
       "gitBlob": "7d8448491956b6bbb023ca0d44bbed3a67b5226d",
       "sourceSha256": "8cead3fc56b54ab5fc22e52c14423182fdce2d9535d4c1dda1f8319cac542027",
-      "translatedSha256": "409745a7754e02eebec83c53db1484c36aa40029a4050464653763ce23ed238c",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "29462992c13dba5653a985ee50497693221a8ca60166d75e6e88dd86d7b80f5c",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/elements-of-style/03-elementary-principles-of-composition.md",
       "mode": "100644",
       "gitBlob": "42dd60017601232d457b451a5823a234601b9614",
       "sourceSha256": "3867f33512ff2f0e965386dbb558579aab43ca10f070bd48d732584b9b5119e0",
-      "translatedSha256": "a7186554ebbdc7e45a0fbc7ccf9c00d01c65b45e46f378d57e411274363cfb7a",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "e20f19c74f189a4881c073aa6648d91738b0a6fef75816ab65afd99937d513cf",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/elements-of-style/04-a-few-matters-of-form.md",
       "mode": "100644",
       "gitBlob": "bad4a9c7c48d3786446b474868b2b5b63331b5e9",
       "sourceSha256": "150feae0c201def056a96dd25fa5d23e015f53632b21f3bcd7b7266f8197c563",
-      "translatedSha256": "4589237ccdc69c5f7866cd2c964f5fdf48fbfb663ca1790283c0e8fdfea29596",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "f378940e0a70452db7d3b975bb708eefea0d86766f0bd096a5ab6cec1a5b1a39",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/elements-of-style/05-words-and-expressions-commonly-misused.md",
       "mode": "100644",
       "gitBlob": "fa4e2dc4e63a2209f30bdb86dd1758a864b32a7c",
       "sourceSha256": "60db286f5166b1b6f4d85a0cc39471b375fbd62d6057d3844533551fb09f2c2d",
-      "translatedSha256": "2722839fead42aa9c73927d7353c7a4b1e44289591641d1da749433ba59279a4",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "d05140cbf253a9dedcffe7df3a017ab95a54e4b804fdd7e6e8468af4bccd8a11",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/README.md",
       "mode": "100644",
       "gitBlob": "c0cc968ebfe0b5387ba71fec2af2374bfc90d3ef",
       "sourceSha256": "cd8241146abf3e7514fdb07a6db2e06c8535a4f78dd1ab471901b2e7fe4db089",
-      "translatedSha256": "d5c1fd967feb43b80dea58f84f8f6e0b712dd7db40bf227d277abb12049768ee",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "2703680f7db4b383dc8a19736e50bef8016f5952af689c89a9a1f26520a67435",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/signs-of-ai-writing.md",
       "mode": "100644",
       "gitBlob": "54b387cef8630f8aff9f445a438b1dfcd207ced3",
       "sourceSha256": "06d135c200e1bbfdbe90f433dfbdffeb9c4ea07f028a9a880f4026622e5c10fd",
-      "translatedSha256": "1cfd6f9b2625f4fc050a9ea5e5bbdc338558b3e0512fb4c58172d174519d65f3",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "98b170f7786b35280ec055a39538026671d3f4c3b5ecd84da161ac5503be2a0d",
+      "translation": "sentence-reviewed"
     },
     {
       "path": "skills/writing-clearly-and-concisely/SKILL.md",
       "mode": "100644",
       "gitBlob": "215c9b290db4bccb1cf2f247f8e16ae2c5838f97",
       "sourceSha256": "c5f4ecc8bfa7984d0df70d30cea3bfeb824f7b24d31db111d5a1a9a959880575",
-      "translatedSha256": "4021509b43a8b1a888189efff4576b741a9c806d1bd3660bcf2e29b7f284a5fd",
-      "translation": "translated-prose-examples-preserved"
+      "translatedSha256": "77a7780a305903efd2b67a545fe939730fab87adbb6a7506b3a6eea47be18a77",
+      "translation": "sentence-reviewed"
     }
-  ]
+  ],
+  "translationReview": {
+    "reviewedOn": "2026-10-26",
+    "reviewBaseCommit": "0158ad47016c6b45af2e2ba13c769772a406f15f",
+    "method": "One independent subagent assigned to each skill; primary-agent sentence spot checks and structural verification.",
+    "reviewerCount": 4,
+    "markdownFiles": 23,
+    "sourceLines": 6891,
+    "coverageBySkill": {
+      "lesson-learned": 4,
+      "mermaid-diagrams": 9,
+      "skill-judge": 2,
+      "writing-clearly-and-concisely": 8
+    }
+  }
 }

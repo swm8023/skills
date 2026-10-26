@@ -1,12 +1,12 @@
 # Skill Judge
 
-这是一套依据官方规范与最佳实践评估 Agent Skill 质量的框架，为 SKILL.md 文件和 skill 包提供多维评分及可执行的改进建议。
+这是一套全面的评估框架，依据官方规范与 best practices 评估 Agent Skill 的质量。本 skill 为 SKILL.md 文件和 skill 包提供多维评分以及可执行的改进建议。
 
 ## Purpose
 
-Skill Judge 要解决的核心问题是：**许多 skill 将 tokens 浪费在 Claude 已经掌握的知识上**。
+Skill Judge 要解决一个关键问题：**大多数 Skills 将 tokens 浪费在 Claude 已经掌握的知识上**。
 
-它通过衡量“知识增量”来判断 skill 是否增加价值：skill 所提供的内容，与 Claude 已有知识之间有多大差距。好的 skill 应浓缩专家知识，而非重复基础教程。
+本 skill 通过衡量“knowledge delta”，帮助你评估 Skill 是否真正增加价值；它指 Skill 提供的内容与 Claude 已有知识之间的差距。好的 Skill 应当是浓缩的专家头脑，而不是教程。
 
 ### The Core Formula
 
@@ -22,9 +22,9 @@ Skill Judge 要解决的核心问题是：**许多 skill 将 tokens 浪费在 Cl
 需要以下工作时使用 Skill Judge：
 
 - **发布前审查 Skill**：评估质量并找出改进点
-- **审计现有 Skills**：依据最佳实践系统评估
+- **审计现有 Skills**：依据 best practices 系统评估
 - **改进 SKILL.md**：获取具体、可执行的建议
-- **学习 Skill 设计模式**：理解优秀 skill 的特征
+- **学习 Skill design patterns**：理解优秀 skill 的特征
 - **比较 Skills**：用一致标准评估相对质量
 
 **触发短语**：
@@ -39,12 +39,12 @@ Skill Judge 要解决的核心问题是：**许多 skill 将 tokens 浪费在 Cl
 
 ### Evaluation Protocol
 
-1. **第一遍：扫描知识增量**：阅读 SKILL.md，将每节归为：
-   - **[E] Expert**：Claude 确实不知道的专家知识（增加价值）
-   - **[A] Activation**：Claude 知道，但简短提醒有用（可以保留）
+1. **第一遍 - Knowledge Delta Scan**：阅读 SKILL.md，并将每节归类为：
+   - **[E] Expert**：Claude 确实不知道的内容（增加价值）
+   - **[A] Activation**：Claude 知道，但简短提醒有用（可接受）
    - **[R] Redundant**：Claude 明确知道的内容（应删除）
 
-2. **结构分析**：检查 frontmatter 有效性、行数、参考文件、设计模式与加载触发条件
+2. **Structure Analysis**：检查 frontmatter 的有效性、行数、reference files、design pattern 和 loading triggers
 
 3. **逐维评分**：依据具体证据和理由评估 8 个维度
 
@@ -57,11 +57,11 @@ Skill Judge 要解决的核心问题是：**许多 skill 将 tokens 浪费在 Cl
 | 维度 | 满分 | 衡量内容 |
 |-----------|------------|------------------|
 | **D1: Knowledge Delta** | 20 | Skill 是否提供真正的专家知识？（核心维度） |
-| **D2: Mindset + Procedures** | 15 | 是否传递专家思维与领域专属流程？ |
-| **D3: Anti-Pattern Quality** | 15 | 是否明确禁止错误做法，并给出具体原因？ |
+| **D2: Mindset + Procedures** | 15 | 是否传递专家 thinking patterns 和 domain-specific workflows？ |
+| **D3: Anti-Pattern Quality** | 15 | 是否有有效的 NEVER 清单，并附具体原因？ |
 | **D4: Specification Compliance** | 15 | frontmatter 是否有效？description 是否完整？ |
 | **D5: Progressive Disclosure** | 15 | 内容是否分层，以便按需加载？ |
-| **D6: Freedom Calibration** | 15 | 指令精细度是否匹配任务的脆弱程度？ |
+| **D6: Freedom Calibration** | 15 | 具体程度是否适合 task fragility？ |
 | **D7: Pattern Recognition** | 10 | 是否遵循既有官方模式？ |
 | **D8: Practical Usability** | 15 | Agent 能否真正有效使用该 skill？ |
 
@@ -89,13 +89,13 @@ Skill Judge 要解决的核心问题是：**许多 skill 将 tokens 浪费在 Cl
 
 ### Five Official Design Patterns
 
-Skill Judge 识别并评估五种既有模式：
+Skill Judge 识别五种既有 patterns，并据此评估：
 
 | 模式 | 行数 | 适用场景 | 示例 |
 |---------|-------|----------|---------|
 | **Mindset** | ~50 | 需要品味的创作任务 | frontend-design |
-| **Navigation** | ~30 | 多个不同场景 | internal-comms |
-| **Philosophy** | ~150 | 强调原创性的艺术或创作 | canvas-design |
+| **Navigation** | ~30 | 多个不同的场景 | internal-comms |
+| **Philosophy** | ~150 | 需要原创性的艺术或创作 | canvas-design |
 | **Process** | ~200 | 多步骤复杂项目 | mcp-builder |
 | **Tool** | ~300 | 对特定格式进行精确操作 | docx, pdf, xlsx |
 
@@ -105,38 +105,38 @@ Skill Judge 识别并评估五种既有模式：
 
 1. **The Tutorial**：解释 Claude 已经知道的基础知识
 2. **The Dump**：把所有内容塞进一个 800 行以上的文件
-3. **The Orphan References**：参考文件始终未被加载
-4. **The Checkbox Procedure**：只有机械步骤，没有思考框架
+3. **The Orphan References**：从不被加载的 reference files
+4. **The Checkbox Procedure**：机械步骤，没有 thinking frameworks
 5. **The Vague Warning**：只说“注意”，不给具体指导
 6. **The Invisible Skill**：内容优秀，description 却很差
 7. **The Wrong Location**：触发信息写在正文，而非 description
 8. **The Over-Engineered**：存在不必要的辅助文件
-9. **The Freedom Mismatch**：自由度与任务类型不匹配
+9. **The Freedom Mismatch**：freedom 级别与任务类型不匹配
 
 ## Usage Examples
 
 ### Basic Evaluation
 
 ```
-Evaluate the skill at skills/my-new-skill/SKILL.md
+评估 skills/my-new-skill/SKILL.md 中的 skill
 ```
 
 ### Comparative Analysis
 
 ```
-Compare the quality of skills/skill-a and skills/skill-b
+比较 skills/skill-a 与 skills/skill-b 的质量
 ```
 
 ### Targeted Improvement
 
 ```
-How can I improve the knowledge delta in my skill?
+如何改进我的 skill 的 knowledge delta？
 ```
 
 ### Pattern Identification
 
 ```
-What pattern does this skill follow, and is it the right choice?
+这个 skill 遵循哪种 pattern，这个选择是否恰当？
 ```
 
 ## Output
@@ -151,19 +151,19 @@ Skill Judge 输出结构化评估报告：
 - **Grade**: [A/B/C/D/F]
 - **Pattern**: [Mindset/Navigation/Philosophy/Process/Tool]
 - **Knowledge Ratio**: E:A:R = X:Y:Z
-- **Verdict**: [One sentence assessment]
+- **Verdict**: [一句话评估]
 
 ## Dimension Scores
-[Table with scores for all 8 dimensions]
+[包含全部 8 个维度分数的表格]
 
 ## Critical Issues
-[Must-fix problems]
+[必须修复的问题]
 
 ## Top 3 Improvements
-[Prioritized improvement suggestions]
+[按优先级排序的改进建议]
 
 ## Detailed Analysis
-[In-depth analysis for dimensions scoring below 80%]
+[对得分低于 80% 的维度深入分析]
 ```
 
 ## Best Practices
@@ -173,9 +173,9 @@ Skill Judge 输出结构化评估报告：
 **应该：**
 - 始终先检查 description 字段，它最关键
 - 阅读每节时都问：“Claude 已经知道这些吗？”
-- 查找具体反模式及其不明显的原因
-- 验证决策树确实能引向正确选择
-- 检查加载触发条件是否嵌入流程
+- 查找具体的 anti-patterns，以及不明显的原因
+- 验证 decision trees 确实能引向正确选择
+- 检查 loading triggers 是否嵌入 workflows
 
 **绝不：**
 - 因为内容看起来专业就打高分
@@ -195,51 +195,51 @@ Skill Judge 输出结构化评估报告：
 ## Quick Reference Checklist
 
 ```
-SKILL EVALUATION QUICK CHECK
+SKILL 评估速查
 
-KNOWLEDGE DELTA (most important):
-  [ ] No "What is X" explanations for basic concepts
-  [ ] No step-by-step tutorials for standard operations
-  [ ] Has decision trees for non-obvious choices
-  [ ] Has trade-offs only experts would know
-  [ ] Has edge cases from real-world experience
+KNOWLEDGE DELTA（最重要）：
+  [ ] 不解释“什么是 X”等基本概念
+  [ ] 不为标准操作提供逐步教程
+  [ ] 有针对不明显选择的 decision trees
+  [ ] 有只有专家才知道的 trade-offs
+  [ ] 有来自实际经验的 edge cases
 
 MINDSET + PROCEDURES:
-  [ ] Transfers thinking patterns (how to think about problems)
-  [ ] Has "Before doing X, ask yourself..." frameworks
-  [ ] Includes domain-specific procedures Claude wouldn't know
+  [ ] 传递 thinking patterns（如何思考问题）
+  [ ] 有“做 X 之前，先问自己……”的框架
+  [ ] 包含 Claude 不知道的 domain-specific procedures
 
 ANTI-PATTERNS:
-  [ ] Has explicit NEVER list
-  [ ] Anti-patterns are specific, not vague
-  [ ] Includes WHY (non-obvious reasons)
+  [ ] 有明确的 NEVER 清单
+  [ ] Anti-patterns 具体，而非模糊
+  [ ] 包含 WHY（不明显的原因）
 
 SPECIFICATION:
-  [ ] Valid YAML frontmatter
-  [ ] Description answers: WHAT, WHEN, KEYWORDS
-  [ ] Description specific enough for Agent activation
+  [ ] YAML frontmatter 有效
+  [ ] Description 回答 WHAT、WHEN、KEYWORDS
+  [ ] Description 足够具体，能让 Agent 激活
 
 STRUCTURE:
-  [ ] SKILL.md < 500 lines (ideal < 300)
-  [ ] Loading triggers embedded in workflow
-  [ ] Has "Do NOT Load" for preventing over-loading
+  [ ] SKILL.md < 500 行（理想为 < 300）
+  [ ] Loading triggers 嵌入 workflow
+  [ ] 有“不要加载”指导，防止加载过多内容
 
 FREEDOM:
-  [ ] Creative tasks -> High freedom (principles)
-  [ ] Fragile operations -> Low freedom (exact scripts)
+  [ ] 创作任务 -> High freedom（原则）
+  [ ] 易出错的操作 -> Low freedom（精确的 scripts）
 
 USABILITY:
-  [ ] Decision trees for multi-path scenarios
-  [ ] Working code examples
-  [ ] Error handling and fallbacks
+  [ ] 针对多路径场景提供 decision trees
+  [ ] 可运行的代码示例
+  [ ] Error handling 和 fallbacks
 ```
 
 ## Prerequisites
 
-无。Skill Judge 自成体系，不需要外部工具或依赖。
+无。Skill Judge 自成体系，不需要外部 tools 或依赖。
 
 ## Related Concepts
 
-- **Tool vs Skill**：工具定义能力边界（Claude 能做什么）；skill 注入知识（Claude 知道如何做）。
-- **Progressive Disclosure**：三层加载系统（metadata -> SKILL.md 正文 -> resources）。
-- **Freedom Calibration**：让约束程度匹配任务的脆弱程度。
+- **Tool vs Skill**：Tools 定义 capability boundaries（Claude 能做什么）。Skills 注入知识（Claude 知道如何做）。
+- **Progressive Disclosure**：三层加载系统（metadata -> SKILL.md 正文 -> resources）
+- **Freedom Calibration**：让约束程度与 task fragility 匹配

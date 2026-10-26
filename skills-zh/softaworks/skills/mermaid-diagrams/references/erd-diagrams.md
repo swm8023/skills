@@ -1,6 +1,6 @@
 # Entity Relationship Diagrams (ERD)
 
-ERD 用于建模数据库 schema，展示表（实体）、列（属性）以及表之间的关系，是数据库设计与文档的重要工具。
+ERDs 为 database schemas 建模，展示 tables（entities）、各表的 columns（attributes）以及 tables 之间的 relationships。它们对 database design 和 documentation 必不可少。
 
 ## Basic Syntax
 
@@ -20,7 +20,7 @@ erDiagram
 
 ## Entity Attributes
 
-定义列的类型与约束：
+定义 columns 的 type 和 constraints：
 
 ```mermaid
 erDiagram
@@ -33,27 +33,27 @@ erDiagram
     }
 ```
 
-**属性格式：** `type name constraints`
+**Attribute 格式：** `type name constraints`
 
-**常见约束：**
-- `PK` -- 主键
-- `FK` -- 外键
-- `UK` -- 唯一键
-- `NN` -- 非空
+**常见 constraints：**
+- `PK` - Primary Key
+- `FK` - Foreign Key
+- `UK` - Unique Key
+- `NN` - Not Null
 
 ## Relationships
 
 ### Relationship Symbols
 
-**基数标记：**
-- `||` -- 恰好一个
-- `|o` -- 零个或一个
-- `}{` -- 一个或多个
-- `}o` -- 零个或多个
+**Cardinality indicators：**
+- `||` - 恰好一个
+- `|o` - 零个或一个
+- `}{` - 一个或多个
+- `}o` - 零个或多个
 
-**关系连线：**
-- `--` -- 非标识关系
-- `..` -- 标识关系（实际较少使用）
+**Relationship line：**
+- `--` - Non-identifying relationship
+- `..` - Identifying relationship（实践中少见）
 
 ### Common Relationships
 
@@ -85,7 +85,7 @@ erDiagram
 
 ## Data Types
 
-使用标准数据库类型：
+使用标准 database types：
 - `int`, `bigint`, `smallint`
 - `varchar`, `text`, `char`
 - `decimal`, `float`, `double`
@@ -394,16 +394,16 @@ erDiagram
 
 ## Best Practices
 
-1. **实体名使用大写** -- 提高清晰度的命名惯例
-2. **使用单数名** -- `USER` 而非 `USERS`，`ORDER` 而非 `ORDERS`
-3. **定义所有约束** -- 记录 PK、FK、UK、NOT NULL
-4. **准确展示基数** -- 明确区分一对多与多对多
-5. **加入时间戳** -- created_at、updated_at 用于审计
-6. **记录计算列** -- 标记计算或派生值
-7. **添加有意义的注释** -- 用引号标注约束和说明
-8. **考虑关联表** -- 显式建模多对多关系
-9. **使用适当类型** -- 匹配具体数据库的类型
-10. **展示索引** -- 除 PK 外，也记录 UK（唯一键）
+1. **Entities 名称使用 UPPERCASE** - 使表达清晰的惯例
+2. **使用 singular names** - `USER` 而非 `USERS`，`ORDER` 而非 `ORDERS`
+3. **定义所有 constraints** - 记录 PKs、FKs、UKs、NOT NULL
+4. **准确展示 cardinality** - 精确区分 one-to-many 和 many-to-many
+5. **包含 timestamps** - created_at、updated_at 用于 auditing
+6. **记录 computed columns** - 标记 calculated/derived values
+7. **添加有意义的 comments** - 为 constraints 和 descriptions 使用引号
+8. **考虑 junction tables** - 显式建模 many-to-many relationships
+9. **使用适当的 types** - 匹配 database-specific types
+10. **展示 indexes** - 除 PKs 外，也记录 UK（unique keys）
 
 ## Common Patterns
 
@@ -500,11 +500,11 @@ erDiagram
 
 ## Tips for Database Design
 
-1. **适度规范化** -- 平衡规范化与查询性能
-2. **使用代理键** -- UUID 或自增整数作为 PK
-3. **为外键建索引** -- 对连接查询性能很重要
-4. **规划软删除** -- 增加 deleted_at 列，替代物理删除
-5. **关键数据保留版本** -- 为重要实体维护历史
-6. **设置适当默认值** -- created_at、status、布尔标记
-7. **考虑反规范化** -- 为性能保存计数或缓存值
-8. **使用 enum/check 约束** -- 在数据库层保证取值有效
+1. **适度 normalize** - 平衡 normalization 与 query performance
+2. **使用 surrogate keys** - 将 UUID 或 auto-increment integers 作为 PKs
+3. **为 foreign keys 建立 index** - 对 join performance 至关重要
+4. **规划 soft deletes** - 添加 deleted_at columns，而不是进行 hard deletes
+5. **为关键 data 保留 version** - 维护重要 entities 的 history
+6. **设置适当的 defaults** - created_at、status、boolean flags
+7. **考虑 denormalization** - 为提高 performance 保存 counts 和 cached values
+8. **使用 enum/check constraints** - 在 database 层确保 values 有效

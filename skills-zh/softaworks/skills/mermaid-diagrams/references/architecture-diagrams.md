@@ -1,6 +1,6 @@
 # Architecture Diagrams Reference
 
-架构图可视化云服务、CI/CD 部署和基础设施关系。该类型于 Mermaid v11.1.0 引入。
+Architecture diagrams 可视化 cloud services、CI/CD deployments 和 infrastructure relationships。在 Mermaid v11.1.0 中引入。
 
 ## Basic Syntax
 
@@ -17,7 +17,7 @@ architecture-beta
 
 ### Groups
 
-将相关服务归组：
+将相关 services 归在一起：
 
 ```
 group {groupId}({icon})[{title}] (in {parentId})?
@@ -31,7 +31,7 @@ architecture-beta
 
 ### Services
 
-声明服务（节点）：
+声明 services（nodes）：
 
 ```
 service {serviceId}({icon})[{title}] (in {parentId})?
@@ -46,7 +46,7 @@ architecture-beta
 
 ### Edges
 
-用边连接服务：
+使用 edges 连接 services：
 
 ```
 {serviceId}{{group}}?:{T|B|L|R} {<}?--{>}? {T|B|L|R}:{serviceId}{{group}}?
@@ -54,7 +54,7 @@ architecture-beta
 
 **方向：** `T`（上）、`B`（下）、`L`（左）、`R`（右）
 
-**箭头：** `<` 表示入向，`>` 表示出向
+**Arrows：** `<` 表示 incoming，`>` 表示 outgoing
 
 ```mermaid
 architecture-beta
@@ -68,7 +68,7 @@ architecture-beta
 
 ### Junctions
 
-创建四向分支：
+创建 4-way splits：
 
 ```
 junction {junctionId} (in {parentId})?
@@ -89,9 +89,9 @@ architecture-beta
 
 ## Icons
 
-**默认图标：** `cloud`、`database`、`disk`、`internet`、`server`
+**默认 icons：** `cloud`、`database`、`disk`、`internet`、`server`
 
-**自定义图标：** 可使用 iconify.design 的 200,000 多个图标：
+**自定义 icons：** 从 iconify.design 提供的 200,000 多个 icons 中任意选用：
 
 ```mermaid
 architecture-beta
@@ -101,14 +101,14 @@ architecture-beta
 
 ### Using @iconify-json Icon Packs
 
-配合 Mermaid CLI 使用 npm 图标包，获得各种技术标志：
+将 npm icon packs 与 Mermaid CLI 配合使用，获得种类丰富的 technology logos：
 
 ```bash
 npm install @iconify-json/logos @mermaid-js/mermaid-cli
 mmdc --iconPacks @iconify-json/logos -i ./diagram.mmd -o ./output.svg
 ```
 
-使用 `logos:` 前缀引用图标：
+使用带 `logos:` prefix 的 icons：
 
 ```mermaid
 architecture-beta
@@ -122,14 +122,14 @@ architecture-beta
     web:R --> L:github
 ```
 
-**常用图标包：**
+**流行的 icon packs：**
 
-| 图标包 | 说明 | 安装 |
+| Icon Pack                    | 说明                                   | 安装                            |
 | ---------------------------- | --------------------------------------------- | ---------------------------------- |
-| `@iconify-json/logos` | 技术品牌（Docker、AWS、GitHub 等） | `npm i @iconify-json/logos` |
-| `@iconify-json/bi` | Bootstrap 图标 | `npm i @iconify-json/bi` |
-| `@iconify-json/mdi` | Material Design 图标 | `npm i @iconify-json/mdi` |
-| `@iconify-json/simple-icons` | Simple Icons 图标 | `npm i @iconify-json/simple-icons` |
+| `@iconify-json/logos`        | 技术品牌（Docker、AWS、GitHub 等） | `npm i @iconify-json/logos`        |
+| `@iconify-json/bi`           | Bootstrap icons                               | `npm i @iconify-json/bi`           |
+| `@iconify-json/mdi`          | Material Design icons                         | `npm i @iconify-json/mdi`          |
+| `@iconify-json/simple-icons` | Simple icons                                  | `npm i @iconify-json/simple-icons` |
 
 用法：`pack:icon-name`（例如 `logos:docker`、`mdi:database`）
 
@@ -155,17 +155,17 @@ architecture-beta
 
 ## Edge Patterns
 
-| 模式 | 说明 |
+| Pattern              | 说明               |
 | -------------------- | ------------------------- |
-| `A:R -- L:B` | 水平边 |
-| `A:T -- B:B` | 垂直边（90 度） |
-| `A:R --> L:B` | 带箭头的边 |
-| `A:R <--> L:B` | 双向边 |
-| `A{group}:R --> L:B` | 从分组边界出发的边 |
+| `A:R -- L:B`         | Horizontal edge           |
+| `A:T -- B:B`         | Vertical edge（90 度） |
+| `A:R --> L:B`        | 带 arrow 的 edge           |
+| `A:R <--> L:B`       | Bidirectional edge        |
+| `A{group}:R --> L:B` | 从 group boundary 出发的 edge  |
 
 ## Group Edges
 
-使用 `{group}` 修饰符连接分组：
+使用 `{group}` modifier 连接 groups：
 
 ```mermaid
 architecture-beta
@@ -180,13 +180,13 @@ architecture-beta
 
 ## Best Practices
 
-1. 按环境（公开/私有）或层（前端/后端）归组服务
-2. 同类服务使用一致的图标
-3. 在边上标注协议（HTTPS、TCP 等）
-4. 使用 junction 表达扇出模式
-5. 保持聚焦，将复杂架构拆成多个视图
+1. 按 environment（public/private）或 layer（frontend/backend）将 services 分组
+2. 为 service types 使用一致的 icons
+3. 为 edges 标注 protocols（HTTPS、TCP 等）
+4. 使用 junctions 表达 fan-out patterns
+5. 保持 diagrams 聚焦；将复杂 architectures 拆成多个 views
 
 ## Reference
 
 - [官方文档](https://mermaid.js.org/syntax/architecture.html)
-- [Iconify 图标](https://iconify.design)
+- [Iconify Icons](https://iconify.design)

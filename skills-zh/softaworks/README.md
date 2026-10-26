@@ -13,8 +13,10 @@
 
 ## 翻译约定
 
-正文解释、操作指引、表格说明及 frontmatter 的自然语言 description 均译为中文；保持原行结构，不用摘要替代正文。英文标题与 anchor、代码块、行内代码、路径、标识符、调用策略和链接目标保持原样。
+正文解释、操作指引、表格说明、frontmatter 的自然语言 description 及 Markdown 模板逐句译为中文。专业术语保留 English；每句完整保留原文的含义、条件、量词和语气，不概括、不删减，也不补充原文没有的解释。
 
-用于说明英语语法或文体的对照例句、AI 写作证据引文，以及参考文献条目保留英文，避免翻译后丢失被讨论的语言特征。写作参考资料原有归因与链接保留：*The Elements of Style* 为 1918 年文本，`signs-of-ai-writing.md` 为 Wikipedia 实用指南。
+保留原文件行数、空行、英文标题与 anchor、段落顺序、列表标记与层级、表格行列、code fence、链接目标和 footnote ID。真实代码、命令、行内代码、路径、标识符、YAML key、调用策略与参考文献条目保持原样；code fence 中的纯自然语言说明和模板仍需翻译。
+
+普通证据引文也逐句译为中文，其中涉及辨析的 English words/phrases 保留。英语语法和文体对照例句若必须展示原文，则保留原句并在同一行提供忠实中文，不新增段落、列表项或表格行。写作参考资料原有归因与链接保留：*The Elements of Style* 为 1918 年文本，`signs-of-ai-writing.md` 为 Wikipedia 实用指南。
 
 这里仅作参考归档；当前定制并使用的 `../../skills/mermaid-diagrams/` 独立保留。

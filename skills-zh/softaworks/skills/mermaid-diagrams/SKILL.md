@@ -1,11 +1,11 @@
 ---
 name: mermaid-diagrams
-description: 使用 Mermaid 语法创建软件图表的完整指南。用户需要通过图表创建、可视化或记录软件时使用，包括类图（领域建模、面向对象设计）、时序图（应用流程、API 交互、代码执行）、流程图（过程、算法、用户旅程）、实体关系图（数据库 schema）、C4 架构图（系统上下文、容器、组件）、状态图、Git 图、饼图、甘特图等。触发请求包括 "diagram"、"visualize"、"model"、"map out"、"show the flow"，以及解释系统架构、数据库设计、代码结构或用户/应用流程。
+description: 使用 Mermaid syntax 创建 software diagrams 的完整指南。用户需要通过图表创建、可视化或记录软件时使用，包括 class diagrams（domain modeling、object-oriented design）、sequence diagrams（application flows、API interactions、code execution）、flowcharts（过程、algorithms、user journeys）、entity relationship diagrams（database schemas）、C4 architecture diagrams（system context、containers、components）、state diagrams、git graphs、pie charts、gantt charts，或任何其他图表类型。触发条件包括请求 "diagram"、"visualize"、"model"、"map out"、"show the flow"，以及解释 system architecture、database design、code structure 或 user/application flows 时。
 ---
 
 # Mermaid Diagramming
 
-使用 Mermaid 的文本语法创建专业软件图表。Mermaid 从简单文本定义渲染图表，因此可以进行版本控制，易于更新，也能与代码一起维护。
+使用 Mermaid 的 text-based syntax 创建专业的 software diagrams。Mermaid 从简单的文本定义渲染图表，使图表能够进行 version control、易于更新，并可与 code 一起维护。
 
 ## Core Syntax Structure
 
@@ -17,47 +17,47 @@ diagramType
 ```
 
 **关键原则：**
-- 首行声明图表类型（例如 `classDiagram`、`sequenceDiagram`、`flowchart`）
-- 使用 `%%` 添加注释
-- 换行和缩进提升可读性，但并非必需
-- 无法识别的单词会导致图表出错；参数错误可能静默失败
+- 首行声明 diagram type（例如 `classDiagram`、`sequenceDiagram`、`flowchart`）
+- 使用 `%%` 编写 comments
+- Line breaks 和 indentation 提高可读性，但不是必需的
+- 无法识别的词会导致图表出错；parameters 会静默失败
 
 ## Diagram Type Selection Guide
 
-**选择合适的图表类型：**
+**选择合适的 diagram type：**
 
-1. **Class Diagrams（类图）** -- 领域建模、OOP 设计、实体关系
-   - 领域驱动设计文档
-   - 面向对象类结构
-   - 实体关系与依赖
+1. **Class Diagrams** - Domain modeling, OOP design, entity relationships
+   - Domain-driven design 文档
+   - Object-oriented class structures
+   - Entity relationships 和 dependencies
 
-2. **Sequence Diagrams（时序图）** -- 随时间发生的交互、消息流
-   - API 请求与响应流程
-   - 用户认证流程
-   - 系统组件交互
-   - 方法调用顺序
+2. **Sequence Diagrams** - 随时间发生的 interactions、message flows
+   - API request/response flows
+   - User authentication flows
+   - System component interactions
+   - Method call sequences
 
-3. **Flowcharts（流程图）** -- 过程、算法、决策树
-   - 用户旅程与工作流
-   - 业务流程
-   - 算法逻辑
-   - 部署流水线
+3. **Flowcharts** - 过程、algorithms、decision trees
+   - User journeys 和 workflows
+   - Business processes
+   - Algorithm logic
+   - Deployment pipelines
 
-4. **Entity Relationship Diagrams（ERD，实体关系图）** -- 数据库 schema
-   - 表关系
-   - 数据建模
-   - Schema 设计
+4. **Entity Relationship Diagrams (ERD)** - Database schemas
+   - Table relationships
+   - Data modeling
+   - Schema design
 
-5. **C4 Diagrams（C4 图）** -- 多层次软件架构
-   - System Context（系统和用户）
-   - Container（应用、数据库、服务）
+5. **C4 Diagrams** - 多个层级的 software architecture
+   - System Context（systems 和 users）
+   - Container（applications、databases、services）
    - Component（内部结构）
-   - Code（类与接口层）
+   - Code（class/interface 层级）
 
-6. **State Diagrams（状态图）** -- 状态机、生命周期状态
-7. **Git Graphs（Git 图）** -- 版本控制分支策略
-8. **Gantt Charts（甘特图）** -- 项目时间线、排期
-9. **Pie/Bar Charts（饼图与柱状图）** -- 数据可视化
+6. **State Diagrams** - State machines, lifecycle states
+7. **Git Graphs** - Version control branching strategies
+8. **Gantt Charts** - Project timelines、排期
+9. **Pie/Bar Charts** - Data visualization
 
 ## Quick Start Examples
 
@@ -137,23 +137,23 @@ erDiagram
 
 各图表类型的深入指导见：
 
-- **[references/class-diagrams.md](references/class-diagrams.md)** -- 领域建模、关联/组合/聚合/继承、多重性、方法与属性
-- **[references/sequence-diagrams.md](references/sequence-diagrams.md)** -- 角色、参与者、同步/异步消息、激活、循环、alt/opt/par 块、注释
-- **[references/flowcharts.md](references/flowcharts.md)** -- 节点形状、连接、决策逻辑、子图、样式
-- **[references/erd-diagrams.md](references/erd-diagrams.md)** -- 实体、关系、基数、键、属性
-- **[references/c4-diagrams.md](references/c4-diagrams.md)** -- 系统上下文、容器、组件图、边界
-- **[references/architecture-diagrams.md](references/architecture-diagrams.md)** -- 云服务、基础设施、CI/CD 部署
-- **[references/advanced-features.md](references/advanced-features.md)** -- 主题、样式、配置、布局选项
+- **[references/class-diagrams.md](references/class-diagrams.md)** - Domain modeling, relationships (association, composition, aggregation, inheritance), multiplicity, methods/properties
+- **[references/sequence-diagrams.md](references/sequence-diagrams.md)** - Actors, participants, messages (sync/async), activations, loops, alt/opt/par blocks, notes
+- **[references/flowcharts.md](references/flowcharts.md)** - Node shapes, connections, decision logic, subgraphs, styling
+- **[references/erd-diagrams.md](references/erd-diagrams.md)** - Entities, relationships, cardinality, keys, attributes
+- **[references/c4-diagrams.md](references/c4-diagrams.md)** - System context, container, component diagrams, boundaries
+- **[references/architecture-diagrams.md](references/architecture-diagrams.md)** - Cloud services, infrastructure, CI/CD deployments
+- **[references/advanced-features.md](references/advanced-features.md)** - Themes, styling, configuration, layout options
 
 ## Best Practices
 
-1. **从简单开始** -- 先画核心实体或组件，再逐步增加细节
-2. **使用有意义的名称** -- 清楚的标签让图表自行说明含义
-3. **充分注释** -- 用 `%%` 解释复杂关系
-4. **保持聚焦** -- 每张图讲一个概念；将大图拆成多个聚焦视图
-5. **版本控制** -- 将 `.mmd` 文件与代码放在一起，便于更新
-6. **补充上下文** -- 用标题和注释说明图表目的
-7. **持续迭代** -- 随理解加深，不断完善图表
+1. **从简单开始** - 从核心 entities/components 开始，逐步添加细节
+2. **使用有意义的名称** - 清晰的 labels 使图表 self-documenting
+3. **充分编写 comments** - 使用 `%%` comments 解释复杂的 relationships
+4. **保持聚焦** - 每个概念使用一张 diagram；将大型 diagrams 拆成多个聚焦的 views
+5. **Version Control** - 将 `.mmd` 文件与 code 放在一起，便于更新
+6. **添加上下文** - 包含 titles 和 notes，说明图表目的
+7. **迭代** - 随着理解加深，不断完善图表
 
 ## Configuration and Theming
 
@@ -170,48 +170,48 @@ flowchart LR
     A --> B
 ```
 
-**可用主题：** default、forest、dark、neutral、base
+**可用 themes：** default、forest、dark、neutral、base
 
-**布局选项：**
-- `layout: dagre`（默认）-- 经典均衡布局
-- `layout: elk` -- 用于复杂图表的高级布局（需要集成）
+**Layout 选项：**
+- `layout: dagre`（默认）- 经典的均衡 layout
+- `layout: elk` - 用于复杂图表的高级 layout（需要集成）
 
-**外观选项：**
-- `look: classic` -- 传统 Mermaid 风格
-- `look: handDrawn` -- 草图外观
+**Look 选项：**
+- `look: classic` - 传统 Mermaid style
+- `look: handDrawn` - 草图般的外观
 
 ## Exporting and Rendering
 
 **原生支持：**
-- GitHub/GitLab -- 在 Markdown 中自动渲染
-- VS Code -- 使用 Markdown Mermaid 扩展
-- Notion、Obsidian、Confluence -- 内置支持
+- GitHub/GitLab - 在 Markdown 中自动渲染
+- VS Code - 通过 Markdown Mermaid extension 支持
+- Notion、Obsidian、Confluence - 内置支持
 
 **导出选项：**
-- [Mermaid Live Editor](https://mermaid.live) -- 支持导出 PNG/SVG 的在线编辑器
-- Mermaid CLI -- 先 `npm install -g @mermaid-js/mermaid-cli`，再 `mmdc -i input.mmd -o output.png`
-- Docker -- `docker run --rm -v $(pwd):/data minlag/mermaid-cli -i /data/input.mmd -o /data/output.png`
+- [Mermaid Live Editor](https://mermaid.live) - 支持 PNG/SVG 导出的在线 editor
+- Mermaid CLI - 先 `npm install -g @mermaid-js/mermaid-cli`，再 `mmdc -i input.mmd -o output.png`
+- Docker - `docker run --rm -v $(pwd):/data minlag/mermaid-cli -i /data/input.mmd -o /data/output.png`
 
 ## Common Pitfalls
 
-- **易出问题的字符** -- 注释中避免 `{}`，特殊字符使用正确转义
-- **语法错误** -- 拼写错误会导致图表失败；用 Mermaid Live 验证语法
-- **过度复杂** -- 将复杂图表拆成多个聚焦视图
-- **缺少关系** -- 记录实体之间所有重要连接
+- **会导致出错的字符** - 在 comments 中避免 `{}`，对特殊字符使用正确的 escape sequences
+- **Syntax errors** - 拼写错误会导致图表出错；在 Mermaid Live 中验证 syntax
+- **过度复杂** - 将复杂图表拆成多个聚焦的 views
+- **缺少 relationships** - 记录 entities 之间所有重要的 connections
 
 ## When to Create Diagrams
 
 **以下情形始终画图：**
 - 启动新项目或功能
 - 记录复杂系统
-- 解释架构决策
-- 设计数据库 schema
-- 规划重构
-- 帮助新成员熟悉系统
+- 解释 architecture decisions
+- 设计 database schemas
+- 规划 refactoring 工作
+- 为新团队成员开展 onboarding
 
 **使用图表来：**
-- 让相关方就技术决策达成一致
-- 协作记录领域模型
-- 展示数据流与系统交互
+- 让 stakeholders 就 technical decisions 达成一致
+- 协作记录 domain models
+- 可视化 data flows 和 system interactions
 - 编码前规划
-- 创建随代码演进的活文档
+- 创建随 code 演进的 living documentation

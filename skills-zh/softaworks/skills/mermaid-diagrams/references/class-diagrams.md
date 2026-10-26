@@ -1,6 +1,6 @@
 # Class Diagrams
 
-类图用于表示面向对象设计与领域模型，展示实体（类）、属性与方法，以及彼此关系。
+Class diagrams 为 object-oriented designs 和 domain models 建模。它们展示 entities（classes）、它们的 attributes/methods 以及 relationships。
 
 ## Basic Syntax
 
@@ -23,20 +23,20 @@ classDiagram
     }
 ```
 
-**可见性修饰符：**
-- `+` 公开
-- `-` 私有
-- `#` 受保护
-- `~` 包级或内部
+**Visibility modifiers:**
+- `+` Public
+- `-` Private
+- `#` Protected
+- `~` Package/Internal
 
-**成员语法：**
-- `+type attribute` -- 带类型的属性
-- `+method(params) ReturnType` -- 带参数和返回类型的方法
+**Member syntax:**
+- `+type attribute` - 带 type 的 attribute
+- `+method(params) ReturnType` - 带 parameters 和 return type 的 method
 
 ## Relationships
 
 ### Association (`--`)
-松散关系：实体相互使用，但独立存在。
+一种松散的 relationship，其中 entities 相互使用，但独立存在。
 
 ```mermaid
 classDiagram
@@ -44,7 +44,7 @@ classDiagram
 ```
 
 ### Composition (`*--`)
-强所有权：子对象不能脱离父对象存在；删除父对象时，也删除子对象。
+强 ownership - child 不能脱离 parent 存在。删除 parent 时，children 也会被删除。
 
 ```mermaid
 classDiagram
@@ -53,7 +53,7 @@ classDiagram
 ```
 
 ### Aggregation (`o--`)
-较弱的所有权：子对象可以独立存在，表示“has-a”关系。
+较弱的 ownership - child 可以独立存在。表示 "has-a" relationship。
 
 ```mermaid
 classDiagram
@@ -62,7 +62,7 @@ classDiagram
 ```
 
 ### Inheritance (`<|--`)
-“Is-a”关系：子类继承父类。
+"Is-a" relationship。Child class 继承自 parent class。
 
 ```mermaid
 classDiagram
@@ -80,7 +80,7 @@ classDiagram
 ```
 
 ### Dependency (`<..`)
-一个类依赖另一个类，常通过参数或局部变量体现。
+一个 class 依赖另一个 class，通常体现为 parameter 或 local variable。
 
 ```mermaid
 classDiagram
@@ -88,7 +88,7 @@ classDiagram
 ```
 
 ### Realization/Implementation (`<|..`)
-类实现某个接口。
+Class 实现一个 interface。
 
 ```mermaid
 classDiagram
@@ -102,7 +102,7 @@ classDiagram
 
 ## Multiplicity
 
-表示参与关系的实例数量：
+展示参与某个 relationship 的 instances 数量：
 
 ```mermaid
 classDiagram
@@ -111,12 +111,12 @@ classDiagram
     Author "1..*" -- "1..*" Book : writes
 ```
 
-**常见多重性：**
-- `1` -- 恰好一个
-- `0..1` -- 零个或一个
-- `0..*` 或 `*` -- 零个或多个
-- `1..*` -- 一个或多个
-- `m..n` -- m 到 n 个
+**常见 multiplicities：**
+- `1` - 恰好一个
+- `0..1` - 零个或一个
+- `0..*` 或 `*` - 零个或多个
+- `1..*` - 一个或多个
+- `m..n` - m 到 n 个
 
 ## Relationship Labels
 
@@ -129,7 +129,7 @@ classDiagram
 
 ## Class Stereotypes
 
-标记特殊的类类型：
+标记特殊的 class types：
 
 ```mermaid
 classDiagram
@@ -298,12 +298,12 @@ classDiagram
 
 ## Tips for Effective Class Diagrams
 
-1. **从核心实体开始** -- 逐步添加属性和方法
-2. **只展示相关细节** -- 非必要时省略显而易见的 getter/setter
-3. **选择适当关系** -- 仔细区分关联、聚合与组合
-4. **添加多重性** -- 明确参与关系的实例数量
-5. **归组相关类** -- 使用注释或视觉上的接近关系
-6. **记录不变量** -- 用注释解释业务规则
+1. **从核心 entities 开始** - 逐步添加 attributes 和 methods
+2. **只展示相关细节** - 除非重要，否则省略显而易见的 getters/setters
+3. **使用适当的 relationships** - 谨慎选择 association、aggregation 和 composition
+4. **添加 multiplicity** - 明确有多少 instances 参与
+5. **为相关 classes 分组** - 使用 notes 或视觉上的邻近关系
+6. **记录 invariants** - 使用 notes 解释 business rules
 
 ## Common Patterns
 

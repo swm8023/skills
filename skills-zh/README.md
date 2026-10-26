@@ -30,8 +30,11 @@ Matt Pocock 的 `skills/` 内全部 66 份 Markdown，以及根目录 `README.md
 Softaworks 对应上游 `3027f20f3181758385a1bb8c022d4041dfb4de84`，2026-10-26 核对。
 选取 `skill-judge`、`writing-clearly-and-concisely`、`lesson-learned`、
 `mermaid-diagrams`，包含正文、README 和全部配套参考文件，共 23 份 Markdown。
-解释、操作指引及自然语言 description 译为中文，保持原行结构；英文标题与 anchor、
-代码块、行内代码、链接目标和调用策略保留。英语语法与文体的对照例句、AI 写作证据
-引文及参考文献条目保留原文，避免失去所讨论的语言特征。LICENSE 原样保留。
+解释、操作指引、自然语言 description 和 Markdown 模板逐句译为中文，
+专业术语保留 English，完整保留原句含义、条件、量词与语气。保持原行、空行、
+标题与 anchor、段落、列表和表格结构，不概括、删减或添加原文没有的说明。
+真实代码、命令、行内代码、链接目标、footnote ID、调用策略及参考文献条目保留。
+普通证据引文也逐句翻译；用于英语语法与文体辨析的英文原句保留，并在同一行提供
+对应中文，不增加段落、列表项或表格行。LICENSE 原样保留。
 
 这些文件均为参考资料；本地正在使用的定制 `skills/mermaid-diagrams/` 独立保留。

@@ -1,6 +1,6 @@
 # Flowcharts
 
-流程图可视化过程、算法、决策树和用户旅程，展示系统或工作流中逐步推进的过程。
+Flowcharts 可视化过程、algorithms、decision trees 和 user journeys。它们展示在 system 或 workflow 中逐步推进的过程。
 
 ## Basic Syntax
 
@@ -10,10 +10,10 @@ flowchart TD
 ```
 
 **方向：**
-- `TD` 或 `TB` -- 从上到下（默认）
-- `BT` -- 从下到上
-- `LR` -- 从左到右
-- `RL` -- 从右到左
+- `TD` 或 `TB` - 从上到下（默认）
+- `BT` - 从下到上
+- `LR` - 从左到右
+- `RL` - 从右到左
 
 ## Node Shapes
 
@@ -138,7 +138,7 @@ flowchart LR
 
 ## Subgraphs
 
-归组相关节点：
+将相关 nodes 分组：
 
 ```mermaid
 flowchart TB
@@ -401,15 +401,15 @@ flowchart TD
 
 ## Best Practices
 
-1. **使用有意义的标签** -- 节点文字应清楚，并以行动为导向
-2. **保持节点形状一致** -- 同类动作使用相同形状
-3. **决策节点使用菱形** -- 是非判断的标准惯例
-4. **从上到下或从左到右** -- 符合自然阅读方向
-5. **起止节点** -- 用跑道形或胶囊形标记入口和出口
-6. **归组相关步骤** -- 用子图表达逻辑分组
-7. **颜色编码** -- 用颜色突出不同动作类型
-8. **尽量减少交叉线** -- 调整组织以提高清晰度
-9. **保持聚焦** -- 每张图只讲一个过程
+1. **使用有意义的 labels** - Node text 应清晰且以行动为导向
+2. **保持 node shapes 一致** - 对相同 action types 使用相同 shapes
+3. **Decision nodes 使用 diamonds** - yes/no decisions 的标准惯例
+4. **从上到下或从左到右 flow** - 自然的阅读方向
+5. **Start 和 end nodes** - 使用 stadium/pill shapes 标记 entry/exit
+6. **将相关步骤分组** - 使用 subgraphs 进行 logical groupings
+7. **Color code** - 使用 colors 突出不同的 action types
+8. **尽量减少 crossing lines** - 重新组织，使表达清晰
+9. **保持聚焦** - 每张 diagram 表达一个过程
 
 ## Common Patterns
 

@@ -1,6 +1,6 @@
 # Sequence Diagrams
 
-时序图展示参与者随时间发生的交互，适合 API 流程、认证时序和系统组件交互。
+Sequence diagrams 展示 participants 随时间发生的 interactions。它们非常适合 API flows、authentication sequences 和 system component interactions。
 
 ## Basic Syntax
 
@@ -25,8 +25,8 @@ sequenceDiagram
 ```
 
 **区别：**
-- `participant` -- 系统组件（服务、类、数据库）
-- `actor` -- 外部实体（用户、外部系统）
+- `participant` - System components（services、classes、databases）
+- `actor` - External entities（users、external systems）
 
 ## Message Types
 
@@ -37,8 +37,8 @@ sequenceDiagram
     Server-->>Client: Response
 ```
 
-- `->>`  实线箭头（请求）
-- `-->>`  虚线箭头（响应或返回）
+- `->>`  Solid arrow（request）
+- `-->>`  Dotted arrow（response/return）
 
 ### Open Arrow (Asynchronous)
 ```mermaid
@@ -47,8 +47,8 @@ sequenceDiagram
     Server--)Client: Async response
 ```
 
-- `-)` 实线开放箭头
-- `--)` 虚线开放箭头
+- `-)` Solid open arrow
+- `--)` Dotted open arrow
 
 ### Cross/X (Delete)
 ```mermaid
@@ -58,7 +58,7 @@ sequenceDiagram
 
 ## Activations
 
-展示参与者何时正在处理工作：
+展示 participant 何时正在处理工作：
 
 ```mermaid
 sequenceDiagram
@@ -68,8 +68,8 @@ sequenceDiagram
     Server-->>-Client: Response
 ```
 
-- 箭头后的 `+` 表示激活
-- 箭头前的 `-` 表示取消激活
+- arrow 后的 `+` 会激活
+- arrow 前的 `-` 会取消激活
 
 ## Alt/Else (Conditional Logic)
 
@@ -104,7 +104,7 @@ sequenceDiagram
 
 ## Par (Parallel)
 
-展示并发操作：
+展示 concurrent operations：
 
 ```mermaid
 sequenceDiagram
@@ -135,7 +135,7 @@ sequenceDiagram
     Server-->>Client: All results
 ```
 
-**带条件的循环：**
+**带条件的 Loop：**
 ```mermaid
 sequenceDiagram
     loop Every 5 seconds
@@ -189,7 +189,7 @@ sequenceDiagram
 
 ## Sequence Numbers
 
-自动为消息编号：
+自动为 messages 编号：
 
 ```mermaid
 sequenceDiagram
@@ -358,37 +358,37 @@ sequenceDiagram
 
 ## Best Practices
 
-1. **合理排列参与者** -- 通常为用户 → 前端 → 后端 → 数据库
-2. **使用激活条** -- 显示组件何时正在处理工作
-3. **归组相关逻辑** -- 使用 alt/opt/par 组织条件流程
-4. **添加说明性注释** -- 解释复杂逻辑或重要细节
-5. **保持聚焦** -- 每张图只展示一个场景
-6. **为消息编号** -- 复杂流程使用 autonumber
-7. **展示错误路径** -- 使用 alt/else 记录失败场景
-8. **标记异步操作** -- 对发送后无需等待的消息使用开放箭头
+1. **合乎逻辑地排列 participants** - 通常为：User → Frontend → Backend → Database
+2. **使用 activations** - 展示 components 何时正在处理工作
+3. **为相关 logic 分组** - 使用 alt/opt/par 组织 conditional flows
+4. **添加描述性 notes** - 解释复杂 logic 或重要细节
+5. **保持 diagrams 聚焦** - 每张 diagram 展示一个 scenario
+6. **为 messages 编号** - 对复杂 flows 使用 autonumber
+7. **展示 error paths** - 使用 alt/else 记录 failure scenarios
+8. **标记 async operations** - 对 fire-and-forget messages 使用 open arrows
 
 ## Common Use Cases
 
 ### Authentication
-- 登录流程
-- OAuth/SSO 流程
-- Token 刷新
-- 密码重置
+- Login flows
+- OAuth/SSO flows
+- Token refresh
+- Password reset
 
 ### API Operations
-- CRUD 操作
-- 搜索与筛选
-- 批处理
-- Webhook 处理
+- CRUD operations
+- 搜索和筛选
+- Batch processing
+- Webhook handling
 
 ### System Integration
-- 微服务通信
-- 第三方 API 调用
-- 消息队列处理
-- 事件驱动架构
+- Microservice communication
+- Third-party API calls
+- Message queue processing
+- Event-driven architecture
 
 ### Business Processes
-- 订单履约
-- 支付处理
-- 审批工作流
-- 通知链
+- Order fulfillment
+- Payment processing
+- Approval workflows
+- Notification chains

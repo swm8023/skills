@@ -22,8 +22,8 @@ the source folder. These archives are separate from active project `skills/`.
 
 Softaworks is pinned to `3027f20f3181758385a1bb8c022d4041dfb4de84`
 (verified 2026-10-26). Its four packages contain all 23 upstream Markdown files,
-including supporting references, with Chinese explanations and preserved English
-grammar/style examples. Source manifests record original hashes and file modes;
+including supporting references, with sentence-aligned Chinese translations and
+English technical terms retained. Source manifests record original hashes and file modes;
 translation manifests also record translated hashes and preservation rules.
 
 Historical documents may refer to the former flat paths. Superpowers packages

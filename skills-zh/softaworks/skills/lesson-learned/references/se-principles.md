@@ -1,109 +1,109 @@
 ---
-description: 精选的软件工程原则目录。分析代码变更前加载，以便将观察结果对应到具体原则。
+description: 精选的 software engineering principles 目录。分析代码变更前加载，以便将观察结果对应到有名称的 principles。
 ---
 
 # Software Engineering Principles
 
-将本文件作为查询表。在 diff 中发现某种模式时，在这里查找对应原则。每一项都包含**代码信号**，说明实际变更中应关注什么。
+将本文件作为 lookup table。在 diff 中发现 pattern 时，在这里查找对应的 principle。每一项都包含**代码信号**，说明实际变更中要留意什么。
 
 ## Design Principles (SOLID)
 
-**Single Responsibility Principle（SRP，单一职责原则）**
-一个模块应当只有一个变化的理由。
-代码信号：一个类或文件拆成两个；提取出一个函数；组件不再同时处理 UI 和数据获取。
+**Single Responsibility Principle (SRP)**
+一个 module 应当只有一个变化的理由。
+代码信号：一个 class/file 被拆成两个。一个 function 被提取出来。一个 component 不再同时处理 UI 和 data fetching。
 
-**Open/Closed Principle（OCP，开闭原则）**
-对扩展开放，对修改关闭。
-代码信号：不修改既有代码就增加了新行为；引入 plugin、hook 或 callback 系统；使用策略模式或配置替代条件分支。
+**Open/Closed Principle (OCP)**
+对 extension 开放，对 modification 关闭。
+代码信号：不修改既有代码就增加了新行为。引入了 plugin/hook/callback 系统。使用 Strategy pattern 或 configuration 替代 conditionals。
 
-**Liskov Substitution Principle（LSP，里氏替换原则）**
-子类型必须能够替代其基类型。
-代码信号：引入接口统一实现；子类覆写改变行为并破坏调用方（违反原则）；增加类型收窄或守卫。
+**Liskov Substitution Principle (LSP)**
+subtypes 必须能够替代其 base types。
+代码信号：引入一个 interface 来统一 implementations。subclass override 改变了行为，导致 callers 无法正常工作（违反原则）。增加了 type narrowing 或 guards。
 
-**Interface Segregation Principle（ISP，接口隔离原则）**
-调用方不应依赖自己不使用的方法。
-代码信号：大接口拆成小接口；删除接口中的可选方法；庞大的 props 对象拆成职责集中的多个对象。
+**Interface Segregation Principle (ISP)**
+任何 client 都不应依赖自己不使用的 methods。
+代码信号：一个大 interface 被拆成多个较小的 interface。从 interface 中移除 optional methods。一个庞大的 props object 被拆成多个聚焦的 object。
 
-**Dependency Inversion Principle（DIP，依赖倒置原则）**
-依赖抽象，而非具体实现。
-代码信号：用接口或注入替代具体依赖；引入工厂或 provider 模式；导入路径从具体实现转向抽象层。
+**Dependency Inversion Principle (DIP)**
+依赖 abstractions，而非 concretions。
+代码信号：一个 concrete dependency 被 interface/injection 替代。引入了 factory 或 provider pattern。import paths 从具体 implementations 转向 abstract layers。
 
-**Composition over Inheritance（组合优于继承）**
-优先使用对象组合，而非类继承。
-代码信号：用委托替代继承层级；用 hook 或组合替代 mixin、HOC；移除基类。
+**Composition over Inheritance**
+优先使用 object composition，而非 class inheritance。
+代码信号：以 delegation 替代 inheritance hierarchy。以 hooks 或 composition 替代 Mixins 或 HOCs。移除了一个 base class。
 
 ## Simplicity Principles
 
-**DRY（Don't Repeat Yourself，不要重复自己）**
-每项知识都应有唯一的表达。
-代码信号：重复代码提取为共享函数；用常量替代反复出现的字面量；用模板或生成器替代复制粘贴的样板代码。
+**DRY (Don't Repeat Yourself)**
+每项知识都应有单一的 representation。
+代码信号：重复代码提取为 shared function。以 constant 替代重复的 literals。以 template/generator 替代复制粘贴的 boilerplate。
 
-**KISS（Keep It Simple, Stupid，保持简单）**
+**KISS (Keep It Simple, Stupid)**
 能够奏效的最简单方案就是最好的方案。
-代码信号：用直接实现替代复杂抽象；移除不必要的间接层；用可读代码替代炫技的一行写法。
+代码信号：以直接的 implementation 替代复杂的 abstraction。移除了不必要的 indirection。以可读代码替代巧妙的 one-liner。
 
-**YAGNI（You Aren't Gonna Need It，不做尚不需要的功能）**
-真正需要之前，不要先构建。
-代码信号：移除猜测未来需求而添加的功能；删除未使用的配置项；简化过度设计，使其匹配实际需求。
+**YAGNI (You Aren't Gonna Need It)**
+实际需要之前，不要构建。
+代码信号：移除了猜测未来需求而添加的 features。删除了未使用的 configuration options。将过度设计的方案简化，使其符合 actual requirements。
 
-**Rule of Three（三次法则）**
-等到第三次重复时再抽象。
-代码信号：两处相似代码暂不处理（良好做法）；仅使用一次就引入抽象（违反原则）；第三次出现时才提取（典型应用）。
+**Rule of Three**
+等到第三次 duplication 时再进行 abstraction。
+代码信号：两处存在类似代码，未作处理（良好做法）。仅使用一次就引入了 premature abstraction（违反原则）。第三次出现时触发了 extraction（典型应用）。
 
-**Principle of Least Surprise（最小惊讶原则）**
+**Principle of Least Surprise**
 代码的行为应符合大多数用户的预期。
-代码信号：重命名函数以更准确地说明功能；统一返回类型；明确或消除副作用。
+代码信号：重命名 function，使其更好地说明自己的功能。使 return types 一致。使 side effects 明确，或移除它们。
 
 ## Structural Principles
 
-**Separation of Concerns（关注点分离）**
-不同职责应放在不同模块中。
-代码信号：从 UI 组件中提取业务逻辑；将数据访问与领域逻辑分开；将配置与行为分开；把“上帝文件”拆成职责集中的模块。
+**Separation of Concerns**
+不同职责应放在不同的 modules 中。
+代码信号：从 UI components 中提取 business logic。将 data access 与 domain logic 分开。将 configuration 与 behavior 分开。将一个 god file 拆成聚焦的 modules。
 
-**High Cohesion（高内聚）**
+**High Cohesion**
 相关功能应放在一起。
-代码信号：将分散的相关函数集中到一个模块；拆分工具文件，让各部分靠近其使用方；建立功能目录。
+代码信号：将分散的相关 functions 集中到一个 module 中。将 utility file 拆分，让每一部分靠近其 consumers。创建了 feature folder。
 
-**Loose Coupling（低耦合）**
-模块之间应尽量少地相互依赖。
-代码信号：用事件或 callback 替代直接导入；移除共享依赖；通过定义清楚的接口通信，而非深入访问内部实现。
+**Loose Coupling**
+modules 之间应尽可能少地相互依赖。
+代码信号：以 events/callbacks 替代 direct imports。移除了一个 shared dependency。modules 通过定义清楚的 interfaces 通信，而非访问彼此的 internals。
 
-**Encapsulation（封装）**
+**Encapsulation**
 隐藏内部细节，只暴露必要内容。
-代码信号：减少公开方法；将内部辅助函数设为私有；缩小模块的 API 面；用门面隐藏实现细节。
+代码信号：减少 public methods。将 internal helpers 设为 private。缩小某个 module 的 API surface。通过 facade 隐藏 implementation details。
 
-**Information Hiding（信息隐藏）**
-模块不应暴露内部数据结构。
-代码信号：用访问方法包装原始数据结构；将内部状态设为私有；把数据转换移入拥有该数据的模块。
+**Information Hiding**
+modules 不应暴露自己的 internal data structures。
+代码信号：以 accessor methods 包装 raw data structures。将 internal state 设为 private。将 data transformation 移入拥有该数据的 module 内。
 
 ## Pragmatic Principles
 
-**Boy Scout Rule（童子军法则）**
+**Boy Scout Rule**
 让代码在你离开时比接手时更好。
-代码信号：实现功能时顺手做小清理；为清晰起见重命名变量；删除死代码路径；更新过时注释。
+代码信号：在 feature 变更的同时做小清理。为清晰起见重命名一个 variable。移除了一个 dead code path。更新了过时的 comment。
 
-**Fail Fast（快速失败）**
+**Fail Fast**
 尽早检测并报告错误。
-代码信号：在入口处增加输入校验；为不变量增加断言；用提前返回替代深层嵌套；将错误处理移到源头附近。
+代码信号：在 entry points 增加 input validation。为 invariants 增加 assertions。以 early returns 替代 deep nesting。将 error handling 移到更靠近源头的位置。
 
-**Defensive Programming（防御式编程）**
+**Defensive Programming**
 预判意外输入，并妥善处理。
-代码信号：增加空值检查；提供默认值；处理边界情况；引入错误边界。
+代码信号：增加 null checks。提供 default values。处理 edge cases。引入 error boundaries。
 
-**Premature Optimization（避免过早优化）**
-测量之前不要优化。
-代码信号：选择简单实现，而不是复杂却“更快”的实现；将可读性置于微小性能收益之前；优化前先增加性能分析步骤。
+**Premature Optimization (avoiding it)**
+测量之前，不要进行 optimization。
+代码信号：选择简单 implementation，而不是“更快”但复杂的 implementation。优先考虑 readability，而非 micro-performance。在 optimization 工作之前，增加 profiling 步骤。
 
 ## Refactoring Patterns
 
-**Extract Method/Function（提取方法或函数）**
-代码信号：将长函数拆成具名子函数；用命名清楚的调用替代内联逻辑。
+**Extract Method/Function**
+代码信号：将 long function 拆成 named sub-functions。以命名良好的 call 替代 inline logic。
 
-**Extract Class/Module（提取类或模块）**
-代码信号：将一个文件拆成多个文件；将一个类拆成职责明确的两个类。
+**Extract Class/Module**
+代码信号：将一个文件拆成多个文件。将一个 class 拆成职责不同的两个 class。
 
-**Replace Conditional with Polymorphism（以多态替代条件分支）**
-代码信号：用策略模式或子类分派替代 switch/if-else 链；引入类型映射表。
+**Replace Conditional with Polymorphism**
+代码信号：以 Strategy pattern 或 subclass dispatch 替代 switch/if-else chain。引入 type map。
 
-**Introduce Parameter Object（引入参数对象）**
-代码信号：将多个相关参数归入一个 options/config 对象；简化函数签名。
+**Introduce Parameter Object**
+代码信号：将多个相关 parameters 归入单个 options/config object。简化 function signatures。

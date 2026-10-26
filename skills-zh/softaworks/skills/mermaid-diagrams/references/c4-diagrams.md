@@ -1,17 +1,17 @@
 # C4 Model Diagrams
 
-C4 模型按不同抽象层级可视化软件架构：Context、Containers、Components、Code。
+C4 model 提供一种按层级可视化 software architecture 的方式，其 abstraction levels 分别为：Context、Containers、Components 和 Code。
 
 ## C4 Model Levels
 
-1. **System Context（系统上下文）** -- 展示系统、用户与外部系统
-2. **Container（容器）** -- 展示系统内的应用、数据库与服务
-3. **Component（组件）** -- 展示容器内部结构
-4. **Code（代码）** -- 用类图展示实现细节（使用普通类图）
+1. **System Context** - 展示 system 及其 users/external systems
+2. **Container** - 展示 system 内的 applications、databases 和 services
+3. **Component** - 展示 containers 的内部结构
+4. **Code** - 展示 implementation details 的 class diagrams（使用常规 class diagrams）
 
 ## C4 Context Diagram
 
-展示全局：系统，以及它与用户、外部系统的关系。
+展示全貌：你的 system，以及它与 users 和 external systems 的 relationships。
 
 ### Basic Syntax
 
@@ -29,14 +29,14 @@ C4Context
 
 ### Elements
 
-**人员：**
+**People：**
 ```mermaid
 C4Context
     Person(user, "User", "Description")
     Person_Ext(external, "External User", "Outside organization")
 ```
 
-**系统：**
+**Systems：**
 ```mermaid
 C4Context
     System(internal, "Internal System", "Description")
@@ -47,7 +47,7 @@ C4Context
     SystemQueue_Ext(external_queue, "External Queue", "Description")
 ```
 
-**关系：**
+**Relationships：**
 ```mermaid
 C4Context
     Rel(from, to, "Label")
@@ -89,7 +89,7 @@ C4Context
 
 ## C4 Container Diagram
 
-深入系统，展示容器（应用、数据库、服务）。
+深入 system，展示 containers（applications、databases、services）。
 
 ### Basic Syntax
 
@@ -187,7 +187,7 @@ C4Container
 
 ## C4 Component Diagram
 
-深入某个容器，展示内部组件。
+深入某个 container，展示其内部 components。
 
 ### Basic Syntax
 
@@ -327,16 +327,16 @@ C4Container
 
 ## Best Practices
 
-1. **选择合适层级** -- Context 面向相关方，Container 面向架构师，Component 面向开发者
-2. **保持聚焦** -- 每张 Context 图只画一个系统，每张 Component 图只画一个容器
-3. **展示关键关系** -- 不要堆满所有可能连接
-4. **统一命名** -- 所有层级使用相同名称
-5. **添加技术细节** -- 在 Container/Component 层说明框架、语言和协议
-6. **定期更新** -- 让图表与架构保持同步
-7. **使用边界** -- 合理归组相关容器或组件
-8. **记录协议** -- 展示通信方式（REST、gRPC、消息）
-9. **突出外部系统** -- 使用 *_Ext 变体，提高清晰度
-10. **从简单开始** -- 先画 Context，再按需深入
+1. **使用适当的 level** - Context 面向 stakeholders，Container 面向 architects，Component 面向 developers
+2. **保持聚焦** - 每张 Context diagram 展示一个 system，每张 Component diagram 展示一个 container
+3. **展示关键 relationships** - 不要用所有可能的 connections 使图表变得杂乱
+4. **保持 naming 一致** - 所有 diagram levels 使用相同 names
+5. **添加技术细节** - 在 Container/Component level 指明 frameworks、languages、protocols
+6. **定期更新** - 保持 diagrams 与 architecture 同步
+7. **使用 boundaries** - 合乎逻辑地将相关 containers/components 分组
+8. **记录 protocols** - 展示 communication methods（REST、gRPC、messaging）
+9. **突出 external systems** - 使用 *_Ext variants，使表达清晰
+10. **从简单开始** - 从 Context 开始，按需深入
 
 ## Common Architecture Patterns
 

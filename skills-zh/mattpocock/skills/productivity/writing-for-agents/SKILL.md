@@ -1,81 +1,81 @@
 ---
 name: writing-for-agents
-description: 为 agent 编写文档。在创建或编辑 skill、修改 AGENTS.md 或 CLAUDE.md 时使用。
+description: 为 agent 编写文档。在创建或编辑 skill，或修改 AGENTS.md、CLAUDE.md 时使用。
 ---
 
-编写任何 agent 消费文档的参考：skill、`AGENTS.md` / `CLAUDE.md`、通过 pointer 读取的文档。包装不同，写作相同：同样的手段让它们可预测，使 agent 每次采用相同_过程_，而非产生相同输出。
+这是编写任何供 agent 使用的文档的参考：skill、`AGENTS.md` / `CLAUDE.md`，或通过 pointer 读取的文档。文档的组织形式不同，写作方法却相同：同样的手段能让它们具有可预测性，因为 agent 每次遵循的是相同的_过程_，而不是产生相同的输出。
 
-正在写 skill 时，阅读 [`SKILL-MECHANICS.md`](SKILL-MECHANICS.md)，了解 frontmatter、调用方式和 router skill。
+如果正在编写的文档是 skill，请阅读 [`SKILL-MECHANICS.md`](SKILL-MECHANICS.md)，了解 frontmatter、调用方式的选择和 router skill。
 
 ## Context pointers
 
-**context pointer** 是保存在 agent context 中的引用，命名 context 外的材料，并编码读取它的条件。skill description 是一种；`AGENTS.md` 中命名文档的一行也是。pointer 的_措辞_，而非目标，决定 agent 何时读取及其可靠程度。必要材料被弱措辞 pointer 隐藏，是行为方差 bug：先明确措辞，仍失败才内联材料。
+**context pointer** 是保留在 agent context 中的一条引用，它指明 context 之外的某份材料，并说明在什么条件下应去读取它。skill 的 description 就是一种；`AGENTS.md` 中指向某份文档的一行文字也是同样的东西。决定 agent 何时读取材料、以及能否可靠读到它的，是 pointer 的_措辞_，而不是它指向的目标。如果必须读取的材料只通过一个措辞含糊的 pointer 引出，就会使执行行为变得不稳定：先把措辞写清楚，只有这样仍无效时，才将材料放回正文。
 
-pointer 有两个作用：说明材料是什么，列出触发读取的 **branch**（文档处理的不同情形，使不同运行走不同路径）。始终加载的 pointer 每个词每轮都耗费成本，因此比正文更需要删减：
+pointer 做两件事：说明材料是什么，以及列出应触发读取的 **branch**（branch 是文档处理的一种独立情形，不同运行会因此走不同路径）。一个始终加载的 pointer，其每个词都会在每一轮产生开销，因此比正文更需要严格删减：
 
-- **把 leading word 放前面**：pointer 是它发挥触发作用的位置。
-- **每个 branch 一个触发条件。** 对同一 branch 换同义词，只是重复写了同一个分支；合并，只保留真正不同的 branch。
-- **删除正文已经表达的身份说明。**
+- **把 leading word 放在前面**：pointer 就是它发挥触发作用的地方。
+- **每个 branch 只保留一个触发条件。** 用同义词给同一个 branch 换个名字，相当于把同一分支写了两遍；将它们合并，只保留真正不同的 branch。
+- **删去正文已经交代过的定位说明。**
 
 ## The two loads
 
-添加的每份文档和 pointer 都会消耗两种预算之一：
+每增加一份文档或一个 pointer，都会消耗以下两种预算之一：
 
-- **Context load** 是始终加载材料对 agent window 的成本：`AGENTS.md` 一行、skill description，以及每轮都在 context 中、无论是否触发都消耗 token 和注意力的内容。
-- **Cognitive load** 是人的成本：记住哪些文档存在、何时查哪份。人就是索引。这不是应一概最小化的成本，而是人类自主权的代价；人的判断有价值时投入，否则移除。
+- **Context load** 是始终加载的材料给 agent 的 context window 带来的成本：`AGENTS.md` 中的一行文字、skill 的 description，以及任何每轮都留在 context 中、无论是否触发都会消耗 token 和注意力的内容。
+- **Cognitive load** 是人需要承担的成本：记住有哪些文档、何时该查哪一份。人就是索引。这不是一种需要一味降低的成本，而是保留人的自主决策权的代价；需要人作判断的地方就付出这项成本，不需要的地方则消除它。
 
-仅通过 pointer 读取的材料，用 pointer 自身一行的代价避免 context load；完全没有 pointer 的材料全靠 cognitive load。
+仅通过 pointer 读取的材料，只需付出 pointer 自身那一行的成本，就能避免材料本身成为 context load；完全没有 pointer 的材料，其成本则完全体现为 cognitive load。
 
 ## Information hierarchy
 
-文档由两类内容构成：**step**（agent 按顺序执行的动作）与 **reference**（按需查阅的定义、规则、事实）。可任意混合：全是 step（操作配方）、全是 reference（review 规则、本 skill），或两者兼有。核心是每份内容在 **information hierarchy** 中的位置，即按 agent 需要的即时程度排列的阶梯：
+文档由两类内容构成：**steps**（agent 按顺序执行的动作）和 **reference**（按需查阅的定义、规则、事实）。两者可以自由组合：全部是 steps（操作指南）、全部是 reference（审查规则、本 skill），或两者兼有。核心决策是每项内容在 **information hierarchy** 中的位置；这是一架按 agent 需要材料的即时程度排列的阶梯：
 
-1. **文件内 step** 是主要层级：做什么、按什么顺序。
-2. **文件内 reference** 按需查阅。常是平等的同级集合（review 各规则同一层），这是合理结构，不是 smell。
-3. **Disclosed reference** 移到单独文件，经 context pointer 读取，只在触发时加载。包括同文件夹兄弟文件，以及任何文档都能指向的完全外部材料。
+1. **文件内的 step** 是主要层级：agent 按顺序做什么。
+2. **文件内的 reference** 按需查阅。它通常可以是一组平铺的同级条目（例如审查的每条规则都在同一层），这是一种合理的组织方式，本身不是 smell。
+3. **Disclosed reference** 被移到独立文件中，通过 context pointer 读取，只在 pointer 触发时加载。它可以是同一文件夹中的相邻文件，也可以是位于任何地方、任何文档都能指向的完全外部的 reference。
 
-下放太少，顶层膨胀；下放太多，隐藏 agent 真正需要的材料。整个决策就是这项张力。
+下放得太少，顶层就会膨胀；下放得太多，又会藏起 agent 真正需要的材料。整个决策就是在这两者之间权衡。
 
-**Progressive disclosure** 是向下移动材料（从主文件移到 pointer 后），让顶层清晰。不主要是 token 优化，而是保护层级。按 branch 判断最有效：所有 branch 都需要的内联，部分 branch 才需的置于 pointer 后。文档有 step 时，应下放却留在正文的 reference 会埋掉 step，使 agent 是否关注它们变成碰运气；这是方差问题，不只关乎可读性。
+**Progressive disclosure** 就是沿着阶梯下移材料（从主文件移到 pointer 后面），让顶层保持清晰。它主要不是为了优化 token，而是为了保护 information hierarchy。按 branch 判断最直接：所有 branch 都需要的内容留在正文中，只有部分 branch 才需要的内容放到 pointer 后面。如果文档包含 steps，本该移出去的 reference 却留在文件内，就会埋没这些 steps，让 agent 能否注意到它们变成碰运气；这不仅影响可读性，也会影响执行的稳定性。
 
-**Co-location** 是文件内的对应原则：阶梯决定*放多低*，co-location 决定*旁边放什么*。概念的定义、规则、例外放同一标题下，不四处散落，让读到一部分就带出邻近内容。标准是文档读起来像写给 agent 的说明；分组材料有这种效果，散落材料没有。（不同于 duplication：后者是同一意思出现在两处；散落则把一个意思拆到多处。）
+**Co-location** 是同一文件内部与之配套的原则：阶梯决定一项内容_放在哪一层_，co-location 决定_哪些内容放在一起_。把一个概念的定义、规则和注意事项放在同一标题下，而不是分散各处，让读到其中一部分时也能一起读到相关内容。判断标准是：文档读起来应该像专门写给 agent 的说明。组织在一起的材料能做到，散落的材料则不能。（这与 duplication 不同：duplication 是同一含义在两处重复；散落则是把一个含义拆散到多处。）
 
-这里的失败模式是 **sprawl**：即使每行有效且独特，文档仍过长。注意力随多余内容变薄，每行也多一份维持相关性的负担。解决方式是阶梯：用 pointer 下放 reference，按 branch 或 sequence 拆分，让每条路径只带所需内容。
+这里的失败模式是 **sprawl**：即使每一行都有效且没有重复，文档仍然过长。内容过多会分散注意力，每多一行，也就多了一行需要持续保持相关的内容。解决办法是利用这架阶梯：把 reference 放到 pointer 后面，按 branch 或顺序拆分，让每条路径只携带它需要的内容。
 
 ## Steps and completion criteria
 
-每个 step 以 **completion criterion** 结束，即 agent 判断工作完成的条件。两个性质使它成为有效手段：
+每个 step 都以一个 **completion criterion** 结束，即 agent 用来判断工作是否完成的条件。它的两个性质决定了它是否有效：
 
-- **Clarity**：能区分完成与未完成吗？模糊标准（“达成理解”）会诱发 **premature completion**：step 未真正完成就结束，注意力滑向_完成这件事_。可见的后续 step（**post-completion step**）提供拉力，标准的清晰度提供阻力。防御顺序：**先明确边界**（局部、低成本）；仅在边界确实模糊且_观察到_赶进度时，通过拆分 sequence 隐藏后续步骤。隐藏只在真实 context 边界（handoff 或 subagent 派遣）有效；内联调用让后续 step 仍在 context 中，无法清除。
-- **Demand**：要求做多少。“每个修改 model 都被核对”迫使彻底工作，“产出改动清单”没有。Demand 驱动 **legwork**（工作内部的调查，由措辞引发，而非单独列成步骤），且不限于 step：“每条规则都应用”约束 reference，正如“每步都完成”约束序列，所以纯 reference 文档也能有完整性标准。
+- **Clarity**：agent 能否区分完成与未完成？模糊的完成界限（“已经达成理解”）容易造成 **premature completion**：step 尚未真正完成就结束，注意力转向_结束这件事_。仍然可见的后续步骤（**post-completion steps**）会把它向前拉，而完成条件的清晰度则抵抗这股拉力。应按以下顺序处理：**先把完成条件写清楚**（局部且成本低）；只有当条件确实难以明确，_并且_已经观察到赶进度的行为时，才通过拆开步骤序列来隐藏后续步骤。只有跨越真正的 context 边界（handoff 或派出 subagent），隐藏才有效；inline call 会让后续步骤继续留在 context 中，并不会清除任何内容。
+- **Demand**：要求完成多少内容。“每个修改过的 model 都得到核对”会促使 agent 做足工作，而“产出改动清单”不会。Demand 会驱动 **legwork**（agent 在具体工作中进行的深入调查，由措辞隐含推动，而不是单独列成一个 step），而且它不只适用于 step：“每条规则都已应用”约束一组 reference，就像“每个 step 都完成”约束一个步骤序列；因此，全是 reference 的文档也能有全面覆盖的要求。
 
-最强标准既可检查，又全面。
+最有力的完成条件既可以检查，也要求全面覆盖。
 
 ## When to split
 
-将一份文档拆成两份，会增加某一种 load，只有拆分收益足够时才做：
+把一份文档拆成两份，会增加两种 load 中的一种，因此只有拆分带来的收益值得这份成本时才做：
 
-- **按 sequence**：当后续 step 诱惑 agent 草草完成当前步骤时，拆开。隐藏后续内容促进当前步骤内部的 legwork。反过来合并 sequence 会暴露后续 step，诱发 premature completion。
-- **按 invocation**，仅适用于 skill：参见 [`SKILL-MECHANICS.md`](SKILL-MECHANICS.md)。
+- **按顺序拆分**：如果后续步骤会诱使 agent 草草结束当前步骤，就拆开这段步骤序列。让后续步骤暂不可见，可以促使 agent 在当前任务中做更多 legwork。也要警惕反过来的操作：合并步骤序列会让每一步都看见后续步骤，从而诱发 premature completion。
+- **按调用方式拆分**，这是 skill 特有的情况：参见 [`SKILL-MECHANICS.md`](SKILL-MECHANICS.md)。
 
 ## Leading words
 
-**leading word** 是模型预训练已有、运行文档时能用来思考的紧凑概念（_lesson_、_fog of war_、_tracer bullets_）。反复使用词，而不重复句子，让分布式定义逐渐形成，用最少 token 锚定整片行为，调动模型已有先验。自造词定义清楚也能用，但没有先验，需要额外定义 token；优先寻找已有词。
+**leading word** 是模型在预训练中已经学到的一个精炼概念，agent 执行文档时会借助它来思考（_lesson_、_fog of war_、_tracer bullets_）。反复使用这个词而不重复整句话，各处的用法就会逐渐共同构成它的定义，并借助模型已有的先验，用最少的 token 锚定一整类行为。只要定义清楚，自行造词也可以，但新造词无法调动已有的先验：预训练词现成提供的信息，你需要用额外的定义 token 来补齐；因此先找一个现成的词。
 
-它两次形成锚定。正文中锚定_执行_：每次词出现，agent 都使用同种行为；纯 reference 中它聚焦一类待找问题。pointer 中锚定_调用_：用户 prompt、文档和代码库共同使用该词，使 agent 更可靠地连接并读取材料。
+它会形成两种锚定。在正文中，它锚定_执行_：每次这个词出现，agent 都会采用相同的行为；在纯 reference 中，它会将注意力集中到某类需要寻找的事物上。在 pointer 中，它锚定_调用_：当你的 prompt、文档和代码库都使用同一个词时，agent 就会把这套共享语言与材料联系起来，并更可靠地读取它。
 
-寻找用 leading word 重构的机会。在三处展开的三元描述、pointer 花一整句暗示同一意思，都是应缩为一个 token 的段落：
+寻找使用 leading word 重构文档的机会。同一组三项描述在三处被完整写出，或一个 pointer 用一整句话来暗示一个想法。这样的段落都值得压缩成单个 token：
 
-- “快、确定、低开销” → _tight_（一个 _tight_ loop）。
-- “你相信的循环” → _red_，将模糊关卡变成二值可观察状态（循环在 bug 上变 _red_，或不变）。
+- “快速、确定、低开销” → _tight_（一个 _tight_ loop）。
+- “你相信的循环” → _red_，把模糊的关卡转为可以观察的二值状态（循环在 bug 上变为 _red_，或者没有变为 red）。
 
-获得双重收益：token 更少，agent 思考的钩子更精准。假定每份文档都含 leading word 能取代的复述，去找出来。
+你会得到双重收益：token 更少，agent 也有一个更明确的概念来组织思考。假定每份文档都有可以用 leading word 取代的重复表述。把它们找出来。
 
-旁边的失败模式是 **negation**：用禁止引导，会把被禁行为带进 context，使它_更_可用。_不要想大象_，脑中却只剩大象；否定是弱修饰，被强激活概念压过，禁令半像执行指令。用**正向**目标（“写一行注释”），避免提起被禁行为。只有无法正向表达的硬 guardrail 才值得禁止；即便如此，也搭配正向目标，让注意力落在该做什么。
+与此相伴的失败模式是 **Negation**：用禁止来引导，会把被禁止的行为带进 context，让它_更容易_被想到，而不是更难。_不要想大象_，脑中却只剩下大象；否定只是较弱的修饰，而被强烈激活的概念会压过它，于是禁令有一部分反而会被读成执行那个行为的指令。给出**正向**要求：说明目标行为（“写一行注释”），这样就根本不必提起被禁止的行为。只有无法用正向要求表达的硬性 guardrail，才值得用禁止来说明；即便如此，也应搭配正向目标，让注意力落在应该做什么上。
 
 ## Pruning
 
-- 每个意思只留一个 **single source of truth**，行为变化只需改一个地方。**Duplication**（同一意思多处出现）增加维护与 token 成本，还把它的显著度抬到超过真实层级的位置。（它是 leading word 的意外反面：后者有意重复词，从不重复整个意思。）
-- **Environment** 也是真实来源（`package.json` 脚本、配置、目录布局、`--help` 输出）。文档复述环境事实就是 **cache**，复制查询结果；只有查询昂贵才值得占用 context。缓存 agent 查不到的东西：未写明的约定、选择背后的原因、配置未揭示的陷阱。一次读文件或跑命令就能得知的事实，留在环境里，避免过时。
-- 检查每行的 **relevance**：是否仍与文档任务有关？无关介绍或本应下放的 branch，从一开始就不相关；行为或世界变化也会让内容过时。短文档更易保持相关。没有删减纪律，默认结局是 **sediment**：添加看似安全，删除看似冒险，陈旧层不断沉积，直到必须钻穿它们才能找到仍有效的内容。
-- 逐句寻找 **no-op**：模型默认已经遵循的指令，只付 load、不改行为。测试“相对默认行为是否有改变”取决于模型，而非读者；两个人争论是否 no-op，其实在争默认行为，应运行文档验证，而不是辩论。句子不通过就整句删除，不只是删词。测试也适用于 leading word：弱到无法改变默认行为的词（agent 已较认真时说 _be thorough_）是 no-op，解法是更强词（_relentless_），而非换技术。
+- 每项含义只保留一个 **single source of truth**：一个权威位置，这样改变行为时也只需修改一处。**Duplication**（同一含义出现在多个地方）会增加维护和 token 成本，还会让这项含义在信息层级中显得比其实际地位更重要。（它恰好是 leading word 的反面：leading word 有意重复的是一个词，从来不是整个含义。）
+- **Environment** 本身也是事实来源（`package.json` 脚本、配置文件、目录结构、`--help` 输出），文档对它的复述就是 **cache**：一份查询结果的副本，只有查询成本较高时才值得占用这些空间。缓存 agent 无法通过查询得知的内容：没有写明的约定、作出选择的原因、配置本身不会告诉你的陷阱。只需查一个文件或运行一个命令就能得到的事实，应留给环境本身提供，避免产生会过时的副本。
+- 检查每一行的 **relevance**：它是否仍与文档所做的事情有关？有些内容从一开始就与任务无关（纯背景介绍，或本应放到独立参考中的 branch）；另一些内容则会随着它所描述的行为或外部情况变化而过时。文档越短，越容易保持相关。没有持续删减，默认的结局就是 **sediment**：因为添加看起来安全、删除看起来冒险，陈旧内容不断沉积，直到你必须穿过这些旧层才能找到仍然有效的部分。
+- 逐句寻找 **no-op**：如果一条指令只是模型默认就会遵循的行为，它就只增加 load，却不产生作用。这项测试（与默认行为相比，它是否改变了行为？）取决于模型，而不是读者：两个人对某句话是否为 no-op 有分歧，其实是对模型的默认行为有分歧，应通过运行文档来判断，而不是争论。如果一句话未通过测试，就删除整句，而不是只删掉几个词。这项测试也适用于 leading word：如果一个词太弱，无法改变默认行为（例如 agent 本来就比较认真时，再说 _be thorough_），它就是 no-op；应该换用更强的词（_relentless_），而不是另一种技巧。

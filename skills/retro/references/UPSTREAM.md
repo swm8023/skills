@@ -5,8 +5,11 @@
 - 上游核对提交：`5beb35b040e3de97e54fa9e386d7e42d15c295c2`。
 - 中文正文取自本仓库 `skills-zh/mattpocock/` 的 `retro` 和
   `writing-for-agents`；这两项在归档提交 `49dd158` 与核对提交间没有变化。
+- 2026-10-26 依据英文正文逐句重译上述两项及 `SKILL-MECHANICS.md`，
+  保留原文句序、段落、标题、列表和专业术语；对应中文目录与正式版同步更新。
 - `retro/SKILL.md` 保留原有复盘步骤和手动触发策略。两处对
-  `writing-for-agents` skill 的引用改为随附中文参考，支持独立使用。
+  `writing-for-agents` skill 的引用改为随附中文参考，支持独立使用；
+  正文与中文归档仅有这两处引用形式的差异。
 - 写作参考移除 skill frontmatter；其机制参考的内部链接指向新的文件名。
   `agents/openai.yaml` 的界面文字改为中文，原有调用策略保持不变。
 - 完整版权与许可见 [LICENSE](../LICENSE)。

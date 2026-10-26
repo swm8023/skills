@@ -967,8 +967,9 @@
       "mode": "100644",
       "gitBlob": "12149acf2dd23b4514dec57b04a6293eaa1352fa",
       "sourceSha256": "33fbc28568e3146f20fd908b12998bc0ab30aa4f4c87288199a40793efa94696",
-      "translatedSha256": "6ace1ebd66397433a290f00223661deee6203847b6e5d44951ea5a94bf6e73cf",
-      "translation": "translated-prose"
+      "translatedSha256": "0d9411b084f758bc258877c97af9423e4b20193214434cfbe72ef4a2f8de4d53",
+      "translation": "translated-prose",
+      "translationRevision": "sentence-by-sentence-2026-10-26"
     },
     {
       "path": "skills/engineering/retro/agents/openai.yaml",
@@ -1519,16 +1520,18 @@
       "mode": "100644",
       "gitBlob": "9cdbdb22aadc438755392216e75ad9a14cc9832e",
       "sourceSha256": "c768e6307c7c10728c401c213f2c4ba71c542127eeb7ad2956aabd15a0fa0059",
-      "translatedSha256": "5e456aacc52d79d0c960ba50cf4d219f44c24197c314a1a0586d31cf435df79d",
-      "translation": "translated-prose"
+      "translatedSha256": "fea13f72d7b75686c191d11052936199d00e4c0f79ad99b1c1561cff56d1005b",
+      "translation": "translated-prose",
+      "translationRevision": "sentence-by-sentence-2026-10-26"
     },
     {
       "path": "skills/productivity/writing-for-agents/SKILL.md",
       "mode": "100644",
       "gitBlob": "a37608daf6e835e767deecfb498facecaaba82ba",
       "sourceSha256": "551adca942227b44192edba88acd4e8db911f0121ce58ad16944ccf6a896a74a",
-      "translatedSha256": "205a73183d9001ec79fd253f507362049dbc5eefc025ab5775ba8ff8fdec4d9e",
-      "translation": "translated-prose"
+      "translatedSha256": "78f98710ab4554eee863ec6fd4482eca6ab45f6bda8a1644017d27b0890c3038",
+      "translation": "translated-prose",
+      "translationRevision": "sentence-by-sentence-2026-10-26"
     },
     {
       "path": "skills/productivity/writing-for-agents/agents/openai.yaml",

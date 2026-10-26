@@ -18,7 +18,7 @@ description: Scope product or code changes before implementation when requiremen
 
 #### 入口
 
-从当前对话和已知事实出发，识别需求与技术方案中的未决问题，按依赖分轮澄清。需求规模留到阶段 2 判断。
+从当前对话和已知事实出发，识别需求与技术方案中的未决问题，按依赖分轮澄清。
 
 #### 收敛顺序
 

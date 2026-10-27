@@ -15,7 +15,7 @@ function layout(title, body, { prefix = '/docs', page = 'standalone', directory 
 <html lang="zh-CN" data-page="${page}" data-base-path="${escapeText(prefix)}" data-directory="${escapeText(directory)}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <script>window.document.documentElement.classList.add('has-js');(${bootstrapTheme.toString()})(window);</script>
-<style>:root{color-scheme:light dark;background:light-dark(#ffffff,#1e1e1e)}html[data-theme="light"]{color-scheme:light}html[data-theme="dark"]{color-scheme:dark}html[data-embedded="true"] [data-toggle-theme]{display:none}</style>
+<style>:root{color-scheme:light dark;background:light-dark(#ffffff,#1e1e1e)}html[data-theme="light"]{color-scheme:light}html[data-theme="dark"]{color-scheme:dark}html[data-embedded="true"] [data-toggle-theme],html[data-embedded="true"] [data-wiki-theme-actions]{display:none}</style>
 <meta name="color-scheme" content="light dark"><title>${escapeText(title)} · WheelMaker Wiki</title>
 <link rel="stylesheet" href="${asset('dochub.css')}"><script src="${asset('dochub.js')}" defer></script></head>
 <body>${body}<div class="toast" role="status" aria-live="polite" hidden></div></body></html>`;
@@ -26,12 +26,28 @@ function directoryButton() {
 }
 
 function header(prefix, { standalone = false, page = '', directory = '', title = '', outline = [] } = {}) {
-  const tools = page === 'document' ? `<button class="icon-button secondary-tool" type="button" data-copy-link aria-label="复制当前章节链接" title="复制当前章节链接">${icon('link')}</button><button class="icon-button reading-width-toggle secondary-tool" type="button" data-toggle-width aria-label="切换宽屏阅读" aria-pressed="false" title="宽屏阅读">${icon('width')}</button>${directoryButton()}<details class="outline-menu"><summary class="icon-button panel-toggle" aria-label="展开本页大纲" title="展开本页大纲" aria-expanded="false" aria-controls="article-outline"><span data-panel-expanded>${icon('outline-close')}</span><span data-panel-collapsed>${icon('outline-open')}</span></summary><section class="outline-popover" id="article-outline" aria-label="本页大纲"><div class="outline-heading"><strong>本页大纲</strong><span>${outline.length} 个章节</span></div>${outline.length ? `<nav aria-label="章节导航">${outlineLinks(outline)}</nav>` : '<p class="outline-empty">本文没有章节标题</p>'}<div class="outline-foot"><span data-reading-progress>阅读进度 0%</span><div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div></div></section></details>` : '';
+  const tools = page === 'document' ? `<details class="outline-menu"><summary class="icon-button panel-toggle" aria-label="展开本页大纲" title="展开本页大纲" aria-expanded="false" aria-controls="article-outline"><span data-panel-expanded>${icon('outline-close')}</span><span data-panel-collapsed>${icon('outline-open')}</span></summary><section class="outline-popover" id="article-outline" aria-label="本页大纲"><div class="outline-heading"><strong>本页大纲</strong><span>${outline.length} 个章节</span></div>${outline.length ? `<nav aria-label="章节导航">${outlineLinks(outline)}</nav>` : '<p class="outline-empty">本文没有章节标题</p>'}<div class="outline-foot"><span data-reading-progress>阅读进度 0%</span><div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div></div></section></details>` : '';
   return `<header class="topbar"><div class="topbar-start">${standalone ? brand(prefix) : `<span class="reader-mark" aria-hidden="true"><span class="brand-mark"><span></span><span></span><span></span></span></span><div class="document-location" data-directory="${escapeText(directory)}" title="${escapeText([directory, title].filter(Boolean).join(' / '))}">${renderLocation(prefix, directory, page === 'document' ? title : '')}</div>`}</div><div class="topbar-actions">
     ${standalone ? '' : `<button type="button" class="search-trigger" data-open-search aria-label="搜索文档">${icon('search')}<span>搜索文档、内容、标签…</span><kbd>Ctrl K</kbd></button>`}
-    ${tools}${!standalone && page !== 'document' ? directoryButton() : ''}<button type="button" class="icon-button" data-toggle-theme aria-label="切换明暗主题" title="切换明暗主题">${icon('theme')}</button>
-    ${standalone ? '' : `<form method="post" action="${escapeText(route(prefix, '/logout'))}"><button class="icon-button logout-button" type="submit" aria-label="退出登录" title="退出登录">${icon('logout')}</button></form>`}
+    ${standalone ? `<button type="button" class="icon-button" data-toggle-theme aria-label="切换明暗主题" title="切换明暗主题">${icon('theme')}</button>` : `${directoryButton()}${tools}${moreMenu(prefix, page)}`}
   </div></header>${page === 'library' ? `<script>(${bootstrapLocation.toString()})(window, (${renderLocation.toString()}));</script>` : ''}`;
+}
+
+function moreMenu(prefix, page) {
+  return `<button type="button" class="icon-button more-trigger" data-open-more popovertarget="wiki-more-menu" aria-controls="wiki-more-menu" aria-label="更多" title="更多" aria-expanded="false">${icon('more')}</button>
+  <div class="wiki-more-menu" id="wiki-more-menu" popover="auto" aria-label="更多操作">
+    ${page === 'document' ? `<section class="wiki-menu-group" role="group" aria-label="阅读操作">
+      <button type="button" class="wiki-menu-action" data-copy-link>${icon('link')}<span>复制当前章节链接</span></button>
+      <button type="button" class="wiki-menu-action reading-width-toggle" data-toggle-width aria-pressed="false">${icon('width')}<span data-width-label>宽屏阅读</span></button>
+    </section>` : ''}
+    <section class="wiki-menu-group" role="group" aria-label="Wiki 操作" data-wiki-host-actions hidden></section>
+    <section class="wiki-menu-group" role="group" aria-label="外观" data-wiki-theme-actions>
+      <button type="button" class="wiki-menu-action" data-toggle-theme>${icon('theme')}<span>切换明暗主题</span></button>
+    </section>
+    <section class="wiki-menu-group" role="group" aria-label="账号">
+      <form method="post" action="${escapeText(route(prefix, '/logout'))}"><button class="wiki-menu-action" type="submit">${icon('logout')}<span>退出登录</span></button></form>
+    </section>
+  </div>`;
 }
 
 function searchDialog(prefix, directory) {

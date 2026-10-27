@@ -2,6 +2,7 @@ import { staticSearch, prepareStaticLibrary } from './library.mjs';
 import { initializeTheme } from './theme.mjs';
 import { initializeCodeBlocks } from './reader-code.mjs';
 import { initializeDiagrams } from './reader-diagrams.mjs';
+import { initializeMoreMenu } from './more-menu.mjs';
 
 (async () => {
   'use strict';
@@ -17,6 +18,7 @@ import { initializeDiagrams } from './reader-diagrams.mjs';
   const readSetting = key => { try { return localStorage.getItem(`dochub:${key}`); } catch { return null; } };
   const saveSetting = (key, value) => { try { localStorage.setItem(`dochub:${key}`, value); } catch { /* Preferences are optional. */ } };
   const media = matchMedia('(max-width: 650px)');
+  const closeMore = initializeMoreMenu(window, () => { closeDirectory(false); closeOutline(); });
   let toastTimer;
   refreshDiagrams = initializeDiagrams(themeMode);
   refreshDiagrams();
@@ -35,6 +37,8 @@ import { initializeDiagrams } from './reader-diagrams.mjs';
     const button = $('[data-toggle-width]');
     button?.setAttribute('aria-pressed', String(enabled));
     if (button) button.title = enabled ? '恢复标准行宽' : '宽屏阅读';
+    const label = $('[data-width-label]');
+    if (label) label.textContent = enabled ? '恢复标准行宽' : '宽屏阅读';
     requestAnimationFrame(updateReading);
   }
   if (root.dataset.page === 'document') wideMode(readSetting('wide') === 'true');
@@ -326,6 +330,7 @@ import { initializeDiagrams } from './reader-diagrams.mjs';
   }
   function openSearch() {
     if (!dialog || dialog.open) return;
+    closeMore();
     closeDirectory(false);
     closeOutline();
     searchOpener = document.activeElement;

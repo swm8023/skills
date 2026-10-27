@@ -29,7 +29,7 @@ description: Scope product or code changes before implementation when requiremen
 
 #### 分轮推进
 
-把决策组织成 **design tree**，每轮询问前提已确定的问题（**frontier**）。
+**design tree** 表示决策之间的依赖关系；**frontier** 是前置决策已确认、必要事实已查明，且尚待用户决定的问题集合。每轮（**round**）询问当前 frontier 的全部问题，并等待用户回答。
 
 1. 按影响排序，同轮询问 frontier 中互不依赖的问题；依赖本轮答案的问题留到下一轮，不为凑数新增问题。
 2. 按下方模板提问，等待用户回答。

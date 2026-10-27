@@ -10,7 +10,7 @@ description: Scope product or code changes before implementation when requiremen
 
 ## 硬性关口
 
-阶段 2 确认出口前，不调用实施类 skill，不写代码或执行其他实现动作；此前只允许用户点名的元技能 / 审查技能、必要的只读仓库探索（含 wiki 摘要预检）和 scope 所需的澄清。此关口适用于所有 scope 任务。
+阶段 2 确认出口前，不调用实施类 skill 或执行实现动作；仅进行澄清、只读探索，以及用户点名的元技能或审查技能。
 
 ## 流程
 

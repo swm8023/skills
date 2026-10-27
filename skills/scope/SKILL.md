@@ -52,10 +52,12 @@ description: Scope product or code changes before implementation when requiremen
 
 #### 提问模板
 
-普通 Markdown 使用以下单题格式，题号依次递增；仅加粗编号前缀，措辞让“是”表示接受该题推荐。
+普通 Markdown 使用以下单题格式；仅加粗编号前缀，措辞让“是”表示接受该题推荐。
+
+本次 scope 访谈从 Q1 开始编号，每提出一个新决策问题加 1，跨回复连续递增。`<n>` 替换为实际题号。
 
 ```markdown
-**Q1 -** <问题正文，可分多段。>
+**Q<n> -** <问题正文，可分多段。>
 
 A. <选项一>
 

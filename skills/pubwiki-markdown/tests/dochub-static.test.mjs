@@ -95,6 +95,7 @@ test('versions shared KaTeX assets and Mermaid licenses without changing module 
   const mermaid = require('mermaid/package.json').version;
   const article = await readFile(path.join(f.output, 'Project/Guides/start.html'), 'utf8');
   assert.ok(article.includes(`/wiki/assets/katex/${katex}/katex.min.css`), 'formula CSS must use its dependency version');
+  assert.ok(article.includes('data-pubwiki-assets="1"'), 'publication must declare complete public presentation assets');
   assert.ok((await readFile(path.join(f.output, `assets/katex/${katex}/fonts/KaTeX_Main-Regular.woff2`))).length > 0);
   assert.ok((await readFile(path.join(f.output, `assets/katex/${katex}/LICENSE`))).length > 0);
   assert.ok((await readFile(path.join(f.output, `assets/mermaid/${mermaid}/LICENSE`))).length > 0);

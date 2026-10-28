@@ -64,7 +64,7 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     const diagramPage = html.includes('<pre class="mermaid">');
     const renderedDirectory = /<html[^>]*data-directory="([^"]*)"/.exec(html)?.[1] || '';
     const imports = { ...assets.readerImports, ...(diagramPage ? assets.mermaidImports : {}) };
-    let result = html.replace('<html lang="zh-CN"', `<html lang="zh-CN" data-pubwiki-engine="dochub" data-static-directory="${renderedDirectory}" data-static-catalog="${prefix}/static/catalog.json" data-static-index="${prefix}/static/search.json"${diagramPage ? ` data-mermaid-entry="${assets.mermaidEntry}"` : ''}`)
+    let result = html.replace('<html lang="zh-CN"', `<html lang="zh-CN" data-pubwiki-engine="dochub" data-pubwiki-assets="1" data-static-directory="${renderedDirectory}" data-static-catalog="${prefix}/static/catalog.json" data-static-index="${prefix}/static/search.json"${diagramPage ? ` data-mermaid-entry="${assets.mermaidEntry}"` : ''}`)
       .replace(/<form method="post" action="[^"]*\/logout">[\s\S]*?<\/form>/g, '')
       .replace('<script src=', '<script type="module" src=')
       .replace(/href="[^"]*\/assets\/dochub\.css\?v=[^"]*"/, `href="${assets.style}"`)

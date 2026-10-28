@@ -17,7 +17,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 - `source_kind`：`approved-spec`、`confirmed-conversation` 或 `approved-fix`。
 - `source`：已批准或用户明确要求执行的 spec 路径、当前对话已确认的完整实施契约，或已批准的完整修复契约。
-- `wiki_target`：已确认的 wiki 目标或 `none`。
+- `wiki_target`：AI 自行确定的 wiki 目标或 `none`，无需用户单独确认。
 - `git_state`：`prepared` 或 `unprepared`。
 
 不传递单独的 approval 参数。`approved-spec` 的 `source` 指向具体 spec；`> 状态：已批准 <日期>` 是批准记录，不是唯一授权来源。用户明确要求执行这份 spec，或当前对话已有对应批准时，视为已授权，不因状态行缺失或仍为待批准而重问；读取并核对实际内容，首次写入前完成 Git prepare，再据此补记状态。当前用户的明确限制优先于旧状态行，禁止没有授权就自行批准。`confirmed-conversation` 必须来自当前对话；`approved-fix` 必须包含 debug 已证实并获用户批准的根因与完整修复契约。
@@ -194,7 +194,7 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 
 ## 阶段 3：执行
 
-1. `wiki_target` 不是 `none` 时先调用 `wiki`，只同步该目标；为 `none` 时跳过。
+1. `wiki_target` 不是 `none` 时先调用 `wiki` 同步目标；为 `none` 时跳过。目标变化时按 `scope` 的「wiki 落地判断」自行调整，无需用户单独确认。
 2. 把 plan 或 `source` 转成 Todo；只允许一个任务处于 `in_progress`。
 3. 每个任务开始前读取相关文件和测试，确认计划仍匹配当前代码。
 4. 执行上面的验证契约。实施前确定对应方法、必要基线和判断标准；使用替代验证时记录原因，不伪造 RED/GREEN，也不跳过 source 的必要验收。
@@ -216,7 +216,7 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 ## 阶段 4：完成
 
 1. 确认 Plan/Todo 必须覆盖 `source`，实施结果没有违反其中的硬约束或修复边界。
-2. 回顾实施过程：如果产生了已确认 wiki 目标范围内的新知识（实施中沉淀的决策背景、约定修订、架构事实），调用 `wiki` 补充同步；只写入用户已确认的目标，要新增目标文件先向用户确认。
+2. 回顾实施过程：如果产生了值得沉淀的新知识（实施中形成的决策背景、约定修订、架构事实），按 `scope` 的「wiki 落地判断」自行确定或调整目标，调用 `wiki` 补充同步，无需用户单独确认 wiki 更新。
 3. 执行 `source` 要求的验证，为每项验收记录实际结果与证据；使用 RED/GREEN 时保留对应证据，其他方式保留基线、观察结果和必要回归。存在必需验收或验证失败、未执行时，不得以 `complete` 结束。
 4. 检查 `git status -sb` 和实际 diff，区分任务修改与 prepare 前已有修改。
 5. 调用 `git-workflow` 的 `finalize` 阶段，传入 `complete`、`blocked`、`verification_failed` 或 `awaiting_review` 中的真实结果。

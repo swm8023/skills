@@ -138,7 +138,7 @@ diagnostic_artifacts: 已写入仓库的诊断文件或临时埋点
 
 ### 8. 交给 implement 实施
 
-用户批准后调用 `implement`，传入 `source_kind: approved-fix`、`source: <完整修复契约>`（含 `diagnostic_artifacts`）、`wiki_target: <已确认目标或 none>`，以及与诊断阶段一致的 `git_state: prepared | unprepared`。不要在 debug 内重复实现、checkpoint 或最终汇报。
+用户批准后调用 `implement`，传入 `source_kind: approved-fix`、`source: <完整修复契约>`（含 `diagnostic_artifacts`）、`wiki_target: <AI 自行确定的目标或 none>`，以及与诊断阶段一致的 `git_state: prepared | unprepared`。不要在 debug 内重复实现、checkpoint 或最终汇报。
 
 从此由 `implement` 独占：
 

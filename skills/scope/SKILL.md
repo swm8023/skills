@@ -84,10 +84,10 @@ description: Scope product or code changes before implementation when requiremen
 - **小需求**：预估代码改动量足够小，通常只涉及一个局部行为和少量文件，不引入或改变架构、跨模块接口、数据结构、部署或迁移。
 - **中大需求**：预估代码改动量较大，涉及多个行为或模块，或包含架构、接口、数据、部署、迁移等重大决策；必要探索后仍无法界定改动规模时按中大需求处理，不因尚未探索就直接升级。
 
-按「wiki 落地判断」生成建议，并在同一条消息中按以下格式确认出口和 wiki 目标：
+按「wiki 落地判断」自行确定 wiki 目标，并在同一条消息中说明安排、确认执行路径：
 
 ```markdown
-**wiki 更新建议：** <更新 path / 新建 path / 不更新 wiki>
+**wiki 更新：** <更新 path / 新建 path / 不更新 wiki>
 
 **A. 落 spec** —— 写入 `docs/scope/<日期>-<slug>.md`，批准后执行。
 
@@ -95,14 +95,14 @@ description: Scope product or code changes before implementation when requiremen
 
 **推荐路径：** <A / B>，<简短理由>
 
-走 A 还是 B？请同时确认或调整 wiki 目标。
+走 A 还是 B？
 ```
 
-默认依据此时的规模判断推荐路径：中大需求推荐 A，小需求推荐 B；有明确理由时可以偏离并说明原因。用户选择优先于推荐；路径与 wiki 目标均确认后，才能进入出口执行。
+默认依据此时的规模判断推荐路径：中大需求推荐 A，小需求推荐 B；有明确理由时可以偏离并说明原因。用户选择优先于推荐；用户确认路径后进入出口执行，wiki 目标无需单独确认。
 
 #### 出口执行
 
-正式契约只在用户选择路径并确认 wiki 目标后生成。以当前对话中的已确认结论和代码事实为依据，不把设计呈现当作完整契约来源。
+正式契约只在用户选择路径后生成。以当前对话中的已确认结论和代码事实为依据，不把设计呈现当作完整契约来源。
 
 验收由 AI 根据需求边界、技术决策和代码事实推导，不要求用户提供；如果推导过程中发现需要用户决定的实质需求或技术歧义，返回阶段 1。
 
@@ -111,16 +111,16 @@ description: Scope product or code changes before implementation when requiremen
 1. 写 spec 文件前调用 `git-workflow` 的 `prepare` 阶段。
 2. 写 `docs/scope/<YYYY-MM-DD>-<slug>.md`，按下文模板组织；`slug` 是根据主题生成的 kebab-case 英文短标题。
 3. 按下文清单执行完整自我审查并就地修复。
-4. 请用户审阅；审阅与修改期间沿用第 1 步建立的 Git 上下文。用户要求修改时，修改后重新完整自审；如果修改导致 wiki 更新目标变化，先向用户确认新的 wiki 文件。
+4. 请用户审阅；审阅与修改期间沿用第 1 步建立的 Git 上下文。用户要求修改时，修改后重新完整自审；如果修改导致 wiki 更新目标变化，按「wiki 落地判断」自行调整。
 5. 用户批准后，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再调用 `checkpoint` 只处理当前 spec。
-6. 调用 `implement`，传入 `source_kind: approved-spec`、`source: <spec 路径>`、已确认的 wiki 目标和 `git_state: prepared`；implement 生成 plan 后直接执行，不再二次确认计划。
+6. 调用 `implement`，传入 `source_kind: approved-spec`、`source: <spec 路径>`、AI 确定的 wiki 目标和 `git_state: prepared`；implement 生成 plan 后直接执行，不再二次确认计划。
 
 **B. 不落 spec**
 
 1. 不写 spec 文件；参考下方 spec 模板及通用规则，在对话中生成其精简版，包含目标、决策基线、设计视图（功能设计、技术设计）、预估改动面和验收；只展开本次实施所需内容，关键结构或实现流程按需补充。
 2. 按下文清单执行完整自我审查并就地修复。
 3. 请用户确认实施契约。
-4. 用户确认后调用 `implement`，传入 `source_kind: confirmed-conversation`、`source: <完整对话契约>`、已确认的 wiki 目标和 `git_state: unprepared`；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 implement 直接规划并执行。
+4. 用户确认后调用 `implement`，传入 `source_kind: confirmed-conversation`、`source: <完整对话契约>`、AI 确定的 wiki 目标和 `git_state: unprepared`；不生成 `docs/scope/` 或 `docs/plans/` 文档，由 implement 直接规划并执行。
 
 #### 完成条件
 
@@ -130,15 +130,15 @@ description: Scope product or code changes before implementation when requiremen
 
 离开 scope、进入 implement 前，必须完成 wiki 落地判断；这个判断不以是否落 spec 为前提。
 
-- **扫描方式**：先读 `docs/wiki/` 路径和每个 `.md` 第一行摘要，再按需读取少量候选正文，形成具体且有事实依据的目标建议；不全库读取正文。
-- **确认时机**：阶段 2 询问是否落 spec 时，同时让用户确认 wiki 目标；把结果作为 implement 输入，后续只同步用户确认过的文件。
-- **建议类型**：`更新 <path>`、`新建 <path>`、`不更新 wiki`。
-- **落 spec**：大任务默认建议同步 wiki。可更新已有页面；也可在用户确认后新建最小必要目录或页面。
-- **不落 spec**：小任务只建议更新已有 wiki；没有匹配页面时不新建，除非用户明确要求沉淀。
+- **扫描方式**：先读 `docs/wiki/` 路径和每个 `.md` 第一行摘要，再按需读取少量候选正文，确定具体且有事实依据的目标；不全库读取正文。
+- **确定时机**：阶段 2 选择执行路径时，由 AI 自行确定 wiki 目标并作为 implement 输入；实施中可按本规则调整，无需用户单独确认。
+- **处理类型**：`更新 <path>`、`新建 <path>`、`不更新 wiki`。
+- **落 spec**：大任务默认同步 wiki，可更新已有页面或新建最小必要目录、页面。
+- **不落 spec**：小任务只更新已有 wiki；没有匹配页面时不新建，除非用户明确要求沉淀。
 - **可写入内容**：已确认的架构、约定、术语、稳定流程、模块背景、决策背景。
 - **不可写入内容**：未确认猜测、一次性任务步骤、执行 checklist、对话过程。
 
-阶段 2 生成建议前必须已有上述摘要扫描和必要候选正文的判断结果；阶段 1 已获取则复用，否则此时补做。没有匹配页面时，小任务默认“不更新 wiki”，中大任务才可建议在用户确认后新建最小必要页面。不要把“建议更新”当成用户已经授权。
+阶段 2 确定目标前必须已有上述摘要扫描和必要候选正文的判断结果；阶段 1 已获取则复用，否则此时补做。没有匹配页面时，小任务默认“不更新 wiki”，中大任务可自行新建最小必要页面。
 
 wiki 同步是 implement 的第一个实施工作单元，不改变 scope 出口。
 
@@ -183,7 +183,7 @@ spec 是 scope 与 implement 之间的设计基线，只保留约束实现或决
 <从入口到结果写清主要调用、状态变化、异步处理、失败收敛和清理，形成全局实施指导而不是任务清单>
 
 ### 预估改动面
-<按模块或目录说明预计变化、测试范围和已确认的 wiki 目标；作为 implement 的探索起点，不是硬边界>
+<按模块或目录说明预计变化、测试范围和 AI 确定的 wiki 目标；作为 implement 的探索起点，不是硬边界>
 
 ## 验收
 <覆盖正常行为、重要失败场景和兼容性；逐项使用以下格式>

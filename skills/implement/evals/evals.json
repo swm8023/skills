@@ -37,11 +37,12 @@
     },
     {
       "id": 4,
-      "prompt": "调用 implement 执行一份已批准的新模板 spec：source_kind 为 approved-spec，source 为该 spec 路径，wiki_target 已确认，git_state 为 unprepared。spec 包含目标、决策基线、功能设计、技术设计（整体方案、关键结构、实现流程）、预估改动面和带验证证据的验收项。",
-      "expected_output": "implement 把决策基线作为硬约束、设计视图作为可按代码事实细化的基线、预估改动面作为探索起点；无需二次确认 plan，完成后逐项报告验收证据。",
+      "prompt": "调用 implement 执行一份已批准的新模板 spec：source_kind 为 approved-spec，source 为该 spec 路径，wiki_target 已由 AI 确定，用户未单独确认 wiki 文件，git_state 为 unprepared。spec 包含目标、决策基线、功能设计、技术设计（整体方案、关键结构、实现流程）、预估改动面和带验证证据的验收项。",
+      "expected_output": "implement 把决策基线作为硬约束、设计视图作为可按代码事实细化的基线、预估改动面作为探索起点；无需二次确认 plan 或 wiki 目标，完成后逐项报告验收证据。",
       "files": [],
       "expectations": [
         "直接生成 plan 并执行，不因预估改动面缺少精确文件而要求二次确认",
+        "wiki 目标已由 AI 确定即可同步，没有要求用户单独确认 wiki 目标或更新",
         "plan 覆盖需求边界、技术决策、关键设计合同和验收项",
         "精确文件可以按代码事实细化，单纯文件清单变化不视为 scope 变化",
         "需要改变需求边界、技术决策、验收或引入实质风险时停止并请求用户决策",

@@ -7,7 +7,7 @@ import { init, parse } from 'es-module-lexer';
 
 const readerRoot = fileURLToPath(new URL('./public/', import.meta.url));
 const readerModules = ['dochub.js', 'search.mjs', 'library.mjs', 'theme.mjs', 'location.mjs',
-  'reader-code.mjs', 'reader-controls.mjs', 'reader-diagrams.mjs', 'mermaid-viewport.mjs', 'more-menu.mjs'];
+  'reader-code.mjs', 'reader-controls.mjs', 'reader-diagrams.mjs', 'mermaid-viewport.mjs', 'more-menu.mjs', 'share.mjs'];
 let readerPromise, mermaidPromise;
 
 function address(name, bytes, extension) {

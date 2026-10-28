@@ -414,3 +414,9 @@ html[data-theme="dark"] .article-body pre.shiki, html[data-theme="dark"] .articl
   .article-body pre { white-space: pre-wrap; }
   .article-body pre code { white-space: pre-wrap; }
 }
+
+/* A shared article uses the canonical reader without the knowledge sidebar. */
+html[data-wiki-share] .workspace-body { display: block; }
+html[data-wiki-share] .topbar-start { min-width: 0; }
+html[data-wiki-share] .workspace > .topbar .topbar-start { padding-left: 0; }
+html[data-wiki-share] .topbar-start .document-location { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

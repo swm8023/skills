@@ -3,9 +3,11 @@ import { initializeTheme } from './theme.mjs';
 import { initializeCodeBlocks } from './reader-code.mjs';
 import { initializeDiagrams } from './reader-diagrams.mjs';
 import { initializeMoreMenu } from './more-menu.mjs';
+import { initializeShareCapture } from './share.mjs';
 
 (async () => {
   'use strict';
+  initializeShareCapture(window);
   let refreshDiagrams = () => {};
   const themeMode = initializeTheme(window, () => refreshDiagrams());
   const libraryReady = prepareStaticLibrary();

@@ -13,6 +13,7 @@ export function initializeShareCapture(view = window) {
       if (attribute.name.startsWith('data-static-') || ['data-embedded', 'data-theme', 'data-theme-source', 'data-directory', 'data-base-path', 'data-outline-layout'].includes(attribute.name)) root.removeAttribute(attribute.name);
     }
     root.dataset.wikiShare = '1';
+    root.dataset.wikiShareDiagrams = 'svg-v1';
     snapshot.body.className = '';
     snapshot.body.removeAttribute('style');
     snapshot.querySelectorAll('#knowledge-directory,.drawer-shade,#document-search,.related-documents,.adjacent-documents,.page-foot,[data-open-directory],[data-open-search],[data-wiki-host-actions],.wiki-preview-page-actions,.wiki-menu-group[aria-label="账号"]').forEach(node => node.remove());

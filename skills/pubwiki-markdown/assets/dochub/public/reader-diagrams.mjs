@@ -2,9 +2,8 @@ import { controlButton } from './reader-controls.mjs';
 import { createMermaidViewport, setMermaidViewportScale, panMermaidViewport, pinchMermaidViewport,
   mermaidViewportKeyAction, MERMAID_ZOOM_STEP, MERMAID_PAN_STEP } from './mermaid-viewport.mjs';
 
-let mermaidPromise;
-function loadMermaid() {
-  const entry = document.documentElement.dataset.mermaidEntry;
+let mermaidPromise, renderQueue = Promise.resolve();
+function loadMermaid(entry = document.documentElement.dataset.mermaidEntry) {
   if (!entry) return Promise.reject(new Error('图表引擎不可用，请重新发布知识库'));
   mermaidPromise ??= import(entry).then(module => module.default).catch(() => {
     mermaidPromise = undefined;
@@ -13,8 +12,38 @@ function loadMermaid() {
   return mermaidPromise;
 }
 
-function diagramCard(pre, index) {
-  const source = pre.textContent;
+function renderDiagram(source, theme, id, entry) {
+  const result = renderQueue.then(async () => {
+    const mermaid = await loadMermaid(entry);
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', suppressErrorRendering: true,
+      theme: theme === 'dark' ? 'dark' : 'default' });
+    return (await mermaid.render(id, source.trim())).svg;
+  });
+  renderQueue = result.then(() => {}, () => {});
+  return result;
+}
+
+export async function renderShareDiagrams(document) {
+  const entry = document.documentElement.dataset.mermaidEntry;
+  const diagrams = [...document.querySelectorAll('#article-body pre.mermaid')];
+  for (const [index, pre] of diagrams.entries()) {
+    const figure = document.createElement('figure'); figure.dataset.wikiDiagram = '1';
+    const source = document.createElement('pre'); source.dataset.diagramSource = '1';
+    source.hidden = true; source.textContent = pre.textContent; figure.append(source);
+    for (const theme of ['light', 'dark']) {
+      const variant = document.createElement('div'); variant.dataset.diagramTheme = theme;
+      variant.hidden = theme === 'dark';
+      try { variant.innerHTML = await renderDiagram(source.textContent, theme, `pubwiki-share-${theme}-${index}`, entry); }
+      catch (error) { throw new Error(`Unable to render Wiki diagram ${index + 1}: ${error.message || error}`); }
+      if (!variant.querySelector('svg')) throw new Error(`Wiki diagram ${index + 1} did not produce SVG.`);
+      figure.append(variant);
+    }
+    pre.replaceWith(figure);
+  }
+  return document.querySelector('#article-body').innerHTML;
+}
+
+function diagramCard(pre, index, source = pre.textContent) {
   const slot = document.createElement('div'); slot.className = 'diagram-slot';
   const block = document.createElement('section'); block.className = 'diagram-block'; block.setAttribute('aria-label', `Mermaid 图表 ${index + 1}`);
   const toolbar = document.createElement('div'); toolbar.className = 'diagram-toolbar';
@@ -119,8 +148,21 @@ function diagramCard(pre, index) {
 }
 
 export function initializeDiagrams(themeMode) {
-  const cards = [...document.querySelectorAll('.article-body pre.mermaid')].map(diagramCard);
-  if (!cards.length) return () => {};
+  const snapshots = [...document.querySelectorAll('.article-body [data-wiki-diagram]')].map((node, index) => {
+    const variants = Object.fromEntries([...node.querySelectorAll(':scope > [data-diagram-theme]')]
+      .map(variant => [variant.dataset.diagramTheme, variant.innerHTML]));
+    const card = diagramCard(node, index, node.querySelector('[data-diagram-source]')?.textContent || '');
+    return { card, variants };
+  });
+  const refreshSnapshots = () => {
+    for (const { card, variants } of snapshots) {
+      const svg = variants[themeMode() === 'dark' ? 'dark' : 'light'];
+      if (svg) card.render(svg); else card.fail(new Error('静态图表缺少当前主题'));
+    }
+  };
+  refreshSnapshots();
+  const cards = [...document.querySelectorAll('.article-body pre.mermaid')].map((pre, index) => diagramCard(pre, index));
+  if (!cards.length) return refreshSnapshots;
   const visible = new Set(), dirty = new Set(cards);
   let rendering = false, revision = 0;
   const active = card => visible.has(card) || card.expanded();
@@ -129,16 +171,13 @@ export function initializeDiagrams(themeMode) {
     rendering = true;
     const currentRevision = revision;
     try {
-      const mermaid = await loadMermaid();
-      mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', suppressErrorRendering: true,
-        theme: themeMode() === 'dark' ? 'dark' : 'default' });
       for (const [index, card] of cards.entries()) {
         if (revision !== currentRevision) break;
         if (!active(card) || !dirty.has(card)) continue;
         dirty.delete(card);
         card.pending();
         try {
-          const { svg } = await mermaid.render(`pubwiki-diagram-${index}`, card.source.trim());
+          const svg = await renderDiagram(card.source, themeMode(), `pubwiki-diagram-${index}`);
           if (revision === currentRevision) card.render(svg); else dirty.add(card);
         }
         catch (error) { card.fail(error); }
@@ -162,6 +201,7 @@ export function initializeDiagrams(themeMode) {
   } else cards.forEach(card => visible.add(card));
   window.addEventListener('beforeprint', () => { cards.forEach(card => visible.add(card)); renderVisible(); });
   return function refreshDiagrams() {
+    refreshSnapshots();
     revision++;
     cards.forEach(card => dirty.add(card));
     return renderVisible();

@@ -52,7 +52,7 @@ async function mermaid() {
   const directory = 'chunks/mermaid.esm.min';
   const chunks = (await readdir(path.join(root, directory))).filter(name => name.endsWith('.mjs')).sort();
   const result = await modules(root, ['mermaid.esm.min.mjs', ...chunks.map(name => `${directory}/${name}`)], 'pubwiki-mermaid');
-  result.files.set('assets/mermaid-LICENSE', await readFile(path.join(root, '../LICENSE')));
+  result.files.set(`assets/mermaid/${require('mermaid/package.json').version}/LICENSE`, await readFile(path.join(root, '../LICENSE')));
   return result;
 }
 

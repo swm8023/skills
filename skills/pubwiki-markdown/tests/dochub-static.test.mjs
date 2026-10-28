@@ -86,6 +86,26 @@ test('exports content-addressed presentation modules and lazy Mermaid import map
   assert.ok(!(await files(f.output)).includes('assets/mermaid.min.js'), 'the all-diagram UMD bundle must not be shipped');
 });
 
+test('versions shared KaTeX assets and Mermaid licenses without changing module hashes for article edits', async t => {
+  const exportVault = await engine(), f = await fixture(t);
+  await writeFile(f.note, '# Start\n\n$E=mc^2$\n\n```mermaid\nflowchart LR\n A-->B\n```');
+  await exportVault({input: f.input, output: f.output});
+  const require = createRequire(engineURL);
+  const katex = require('katex/package.json').version;
+  const mermaid = require('mermaid/package.json').version;
+  const article = await readFile(path.join(f.output, 'Project/Guides/start.html'), 'utf8');
+  assert.ok(article.includes(`/wiki/assets/katex/${katex}/katex.min.css`), 'formula CSS must use its dependency version');
+  assert.ok((await readFile(path.join(f.output, `assets/katex/${katex}/fonts/KaTeX_Main-Regular.woff2`))).length > 0);
+  assert.ok((await readFile(path.join(f.output, `assets/katex/${katex}/LICENSE`))).length > 0);
+  assert.ok((await readFile(path.join(f.output, `assets/mermaid/${mermaid}/LICENSE`))).length > 0);
+  const imports = JSON.parse(/<script type="importmap">([\s\S]*?)<\/script>/.exec(article)[1]).imports;
+  await writeFile(f.note, '# Changed article\n\n$E=mc^2$\n\n```mermaid\nflowchart LR\n A-->C\n```');
+  const second = path.join(f.root, 'second');
+  await exportVault({input: f.input, output: second});
+  const changed = await readFile(path.join(second, 'Project/Guides/start.html'), 'utf8');
+  assert.deepEqual(JSON.parse(/<script type="importmap">([\s\S]*?)<\/script>/.exec(changed)[1]).imports, imports);
+});
+
 test('exports a lightweight catalog without full article text', async t => {
   const exportVault = await engine(), f = await fixture(t);
   await writeFile(f.note, '---\ntitle: Start\n---\n# Start\n\n' + 'searchable-body-marker '.repeat(2000));

@@ -57,6 +57,8 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
     await writeFile(destination, bytes);
   };
   const assets = await staticAssets(prefix, hasMermaid);
+  const require = createRequire(import.meta.url);
+  const katexVersion = hasMath ? require('katex/package.json').version : '';
   const occupied = new Set(vault.notes.map(note => `${note.slug}.html`));
   const adjust = html => {
     const diagramPage = html.includes('<pre class="mermaid">');
@@ -73,7 +75,7 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
       .replace(/<title>([\s\S]*?) · WheelMaker Wiki<\/title>/, (_match, title) => `<title>${title} · ${escapeText(site.title)}</title>`)
       .replaceAll('团队知识库', escapeText(site.title))
       .replace('<h1 class="library-title">文档库</h1>', `<h1 class="library-title">${escapeText(site.title)}</h1>`);
-    if (result.includes('class="katex"')) result = result.replace('</head>', `<link rel="stylesheet" href="${prefix}/assets/katex/katex.min.css"></head>`);
+    if (result.includes('class="katex"')) result = result.replace('</head>', `<link rel="stylesheet" href="${prefix}/assets/katex/${katexVersion}/katex.min.css"></head>`);
     for (const note of vault.notes) result = result.replaceAll(`${prefix}/document/${note.document_id}`, note.url);
     result = result.replace(/href="([^"<>]*)"/g, (attribute, href) => {
       if (!href.startsWith(`${prefix}/?`)) return attribute;
@@ -110,13 +112,12 @@ export async function exportVault({ input, output, prefix = '/wiki' } = {}) {
   await emit('static/catalog.json', JSON.stringify({ version: 1, documents: catalog }));
   for (const [name, bytes] of assets.files) await emit(name, bytes);
   for (const asset of vault.assets.values()) await emit(`static/assets/${asset.name}`, asset.bytes);
-  const require = createRequire(import.meta.url);
   if (hasMath) {
     const root = path.dirname(require.resolve('katex/package.json'));
-    await emit('assets/katex/katex.min.css', await readFile(path.join(root, 'dist/katex.min.css')));
-    await emit('assets/katex/LICENSE', await readFile(path.join(root, 'LICENSE')));
+    await emit(`assets/katex/${katexVersion}/katex.min.css`, await readFile(path.join(root, 'dist/katex.min.css')));
+    await emit(`assets/katex/${katexVersion}/LICENSE`, await readFile(path.join(root, 'LICENSE')));
     for (const name of await regularFiles(path.join(root, 'dist/fonts')))
-      await emit(`assets/katex/fonts/${name}`, await readFile(path.join(root, 'dist/fonts', name)));
+      await emit(`assets/katex/${katexVersion}/fonts/${name}`, await readFile(path.join(root, 'dist/fonts', name)));
   }
   return { documents: records.length, assets: vault.assets.size, diagnostics };
 }

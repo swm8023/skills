@@ -33,7 +33,7 @@ node <this-skill>/scripts/prepare-wiki.mjs --sync
 
 此命令不会在已有修改上自动 stash 或 rebase；发生 rebase 或远程冲突时，要报告给用户处理。
 
-Git 检查成功后，助手只会在缺失时创建带注释的 `wiki.config.yaml`、`content/` 和 `content/assets/`。不会静默替换已有配置。数据根目录是唯一的内容配置根；AI 索引和 阅读器 runtime 位于其外部。
+Git 检查成功后，Go 只会在缺失时创建默认的 `wiki.config.yaml`、`content/` 和 `content/assets/`。不会静默替换已有配置。数据根目录是唯一的内容配置根；AI 索引和 阅读器 runtime 位于其外部。
 
 ## 内容目录
 
@@ -192,45 +192,27 @@ draft: false
 
 ## Git 和发布
 
-### 准备独立阅读器
+### 使用内置阅读器
 
-阅读器源码位于本 Skill 的 `assets/dochub/`，最初从 DocHub 复制，之后独立维护。
-运行时不连接 NeoExporter、DocHub MCP 或 DocHub Git checkout，也不安装 Quartz。
+阅读器与导出器由 WheelMaker 维护，源码位于其 server/internal/wiki/reader/，随 Go 程序内嵌交付。
+本 Skill 保留笔记创作、分类、规范化与知识关系工作流；运行和发布脚本仅转发到 Go CLI。
+发布机需有 Node.js ≥ 22.12、npm、Git，以及支持内置阅读器命令的新版 WheelMaker Hub 和 CLI。
 
-发布机需有 Node.js ≥ 22.12、npm、Git，以及支持 `wheelmaker-public-vault-v1` 公开输入隔离的 WheelMaker Hub 和 CLI。
-本次输入隔离迁移需要更新一次 Hub/CLI；旧 Hub 和旧阅读器不回退到传递私人 Vault 的方式。
-这不修改 Hub↔Registry 通信协议，也不要求构建 Web 或更新 Registry。
+首次 Wiki 预览或发布时，Go 自动创建真实的 ~/.wheelmaker/wiki/reader/，释放源码并执行锁定依赖安装。
+相同源码及兼容依赖复用，源码变化更新受管理文件，依赖输入变化或依赖失效时重新安装。
+发行包不携带 node_modules；Registry 只提供 Share 时不安装 Wiki npm 依赖。
+旧 reader 链接只解除链接本身，外部目标不被删除；未知普通目录冲突会明确拒绝。
+旧 ensure-reader.mjs 的 --install、--bind、--source 均已退役，运行时会提示升级和新入口。
+不再维护 Skill 绑定、开发源码路径或独立阅读器下载。
 
-首次使用或依赖变化时执行：
-
-```text
-node <this-skill>/scripts/ensure-reader.mjs --install
-```
-
-助手在阅读器自身目录执行固定 lockfile 的 npm ci，并建立：
-
-```text
-~/.wheelmaker/wiki/reader -> <this-skill>/assets/dochub
-~/.wheelmaker/wiki/.pubwiki-reader.json
-```
-
-Windows 使用 Junction，其他平台使用目录符号链接。链接、依赖和私有索引均在 Vault 外。
-已有普通 reader 目录不会被覆盖。仅运行安装助手不会更新正在运行的 Hub。
-
-各命令的职责不同：
-
-| 命令 | 行为 |
+| Skill 入口 | Go 命令 |
 | --- | --- |
-| `ensure-reader.mjs` | 只读检查当前链接、manifest 和依赖，报告真实来源；不安装、不改链、不刷新绑定 |
-| `ensure-reader.mjs --install` | 首次绑定本 Skill；已有绑定时，在当前绑定来源安装 lockfile 依赖并刷新元数据，保留开发链接 |
-| `ensure-reader.mjs --bind` | 显式改绑到执行命令的这份 Skill；不会安装缺失依赖 |
-| `ensure-reader.mjs --install --bind` | 安装并显式改绑到执行命令的这份 Skill |
-| `ensure-reader.mjs --bind --source <absolute-reader-directory>` | 显式绑定开发 checkout；需要安装依赖时同时加 `--install` |
+| prepare-wiki.mjs [--git-url URL] [--sync] | wheelmaker wiki prepare，创建缺失布局并按需同步干净仓库 |
+| publish-wiki.mjs --paths FILE ... | wheelmaker wiki publish-notes，处理已批准的精确文件后发布 |
+| preview-reader.mjs | wheelmaker wiki preview --serve，由 Go 在 127.0.0.1 提供静态预览 |
+| 配置策略检查 | wheelmaker wiki status，只返回受限发布模式，不安装依赖 |
 
-普通发布和预览只执行不带参数的检查，不能悄悄把开发链接切到安装目录。
-更新 Skill 后核对检查结果中的 `source`；只有修改当前绑定的代码，才会在下次导出生效。
-JS、CSS 和导出代码通过链接在下一次导出中生效；package.json、lockfile 或依赖变化后重新执行 `--install`。
-构建中改变阅读器源码会使本次构建失败。常规页面迭代不需要重启 Hub。
+旧 CLI 不支持这些命令时，助手应明确报告需要更新 WheelMaker，不回退到 JS Git、配置读取或原始 Vault 导出。
 
 ### 保存并发布
 
@@ -241,17 +223,17 @@ node <this-skill>/scripts/publish-wiki.mjs --paths "content/<实际repo>/<目录
 ```
 
 每个文件分别传 --paths，不传目录或通配符；移动和删除也包括旧路径。
-固定 data 仓库的 Git 生命周期只由本 Skill 的准备、发布助手管理。
-发布助手在 Git 写入前检查 reader 就绪状态、已有暂存和本批之外的修改，然后仅提交批准路径，
-执行 pull --rebase、push，最后调用 wheelmaker wiki publish。
+固定 data 仓库的 Git 生命周期由 Go 的准备及显式发布入口管理，Skill 助手仅转发已批准参数。
+wheelmaker wiki publish-notes 在 Git 写入前检查已有暂存和本批之外的修改，然后仅提交批准文件，
+执行 pull --rebase --no-autostash、push，最后调用现有认证 Publisher。普通 publish 不自动提交或推送。
 冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。
 用户配置 publish.mode 为 off、disabled、manual 或 false 时返回 skipped。
 配置验证及发布模式由本机 `wheelmaker wiki status` 处理；Skill 仅接收受限的发布模式结果，不读取配置全文。
 
 ### 本地预览与重新发布
 
-本地预览通过 `wheelmaker wiki preview` 走同一份 Hub/CLI 本地隔离实现，在独立 `.previews` 目录生成站点。
-Skill 只接收静态输出路径并监听 127.0.0.1，不直接把 Vault 交给阅读器；不上传、不修改或同步笔记：
+本地预览通过 `wheelmaker wiki preview --serve` 走同一份 Hub/CLI 本地隔离实现，在独立 `.previews` 目录生成站点。
+Go 只在 127.0.0.1 提供经校验的静态输出，Skill 只转发命令，不直接把 Vault 交给阅读器；不上传、不修改或同步笔记：
 
 ```text
 node <this-skill>/scripts/preview-reader.mjs
@@ -264,7 +246,7 @@ wheelmaker wiki publish
 ```
 
 Hub 在本机读取固定 `data/`，先筛选公开笔记和引用附件，生成临时 `.public-input-*`。
-固定导出器和链接的阅读器仅接收这份公开投影；它包含最小站点信息和允许公开的笔记属性，不包含用户配置、项目路由或凭据。
+固定导出器和内置阅读器仅接收这份公开投影；它包含最小站点信息和允许公开的笔记属性，不包含用户配置、项目路由或凭据。
 `draft: true`、删除笔记、私有属性、非代码区域的 Obsidian 注释及未引用附件在进入阅读器前已移除。
 普通项目源码链接保留为说明性引用，不读取或复制 Vault 外的项目文件；图片嵌入等必需附件必须可解析。
 投影在成功、失败或取消后清理，不进入 Vault 或发布包。Skill 不直接调用阅读器导出原始 `data/`。
@@ -285,4 +267,4 @@ Registry 仍在 /wiki/ 提供静态站点，沿用现有应用鉴权和独立阅
 
 ## 范围边界
 
-本 Skill 维护纯 Obsidian Markdown 数据、自带阅读器代码和已确认的 WheelMaker 静态发布流程。
+本 Skill 维护纯 Obsidian Markdown 数据、知识创作规范和已确认发布的薄命令入口。阅读器、依赖安装及发布运行逻辑由 WheelMaker Go 维护。

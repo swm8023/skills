@@ -1,240 +1,25 @@
-#!/usr/bin/env node
-
-import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, readdir, realpath, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { promisify } from 'node:util';
-
-import { inspectWikiConfiguration } from './wiki-runtime.mjs';
-
-const execFile = promisify(execFileCallback);
+import { invokeWikiCLI } from './wiki-runtime.mjs';
 
 export const WIKI_CONFIG_FILENAME = 'wiki.config.yaml';
 
-export const DEFAULT_WIKI_CONFIG = `# Content configuration only; data and index roots are fixed by the Skill.
-# version: 1
-# content:
-#   root: content
-#   assets: content/assets
-#   repo:
-#     rename: {}
-#   directories:
-#     mode: ai
-#     create: confirm
-#   tags:
-#     lookup: current-repo-first
-#     create: confirm
-# publish:
-#   mode: auto
-#   git:
-#     sync: rebase
-#     commit: auto
-#     push: auto
-site:
-  title: WheelMaker Knowledge
-  description: Browse the WheelMaker knowledge base.
-`;
-
-function mergedEnvironment(env) {
-  return { ...process.env, ...(env || {}) };
-}
-
 export function resolveHome({ env = process.env } = {}) {
-  const candidate = process.platform === 'win32'
-    ? (env.USERPROFILE || env.HOME)
-    : (env.HOME || env.USERPROFILE);
+  const candidate = process.platform === 'win32' ? (env.USERPROFILE || env.HOME) : (env.HOME || env.USERPROFILE);
   return path.resolve(candidate || os.homedir());
 }
 
-export function resolveWikiPaths({ env = process.env } = {}) {
-  const home = resolveHome({ env });
-  const wiki = path.join(home, '.wheelmaker', 'wiki');
-  const data = path.join(wiki, 'data');
-  return {
-    home,
-    wiki,
-    data,
-    config: path.join(data, WIKI_CONFIG_FILENAME),
-    content: path.join(data, 'content'),
-    assets: path.join(data, 'content', 'assets'),
-    index: path.join(wiki, '.index'),
-    reader: path.join(wiki, 'reader'),
-    output: path.join(wiki, '.output'),
-  };
+// Pure paths remain available to note-writing helpers; Go owns all preparation.
+export function resolveWikiPaths(options = {}) {
+  const home = resolveHome(options), wiki = path.join(home, '.wheelmaker', 'wiki'), data = path.join(wiki, 'data');
+  return { home, wiki, data, config: path.join(data, WIKI_CONFIG_FILENAME), content: path.join(data, 'content'),
+    assets: path.join(data, 'content', 'assets'), index: path.join(wiki, '.index'),
+    reader: path.join(wiki, 'reader'), output: path.join(wiki, '.output') };
 }
 
-async function pathExists(filename) {
-  try {
-    await stat(filename);
-    return true;
-  } catch (error) {
-    if (error?.code === 'ENOENT') return false;
-    throw error;
-  }
-}
-
-async function isDirectoryEmpty(directory) {
-  try {
-    return (await readdir(directory)).length === 0;
-  } catch (error) {
-    if (error?.code === 'ENOENT') return true;
-    throw error;
-  }
-}
-
-export async function runGit(args, { cwd, env = process.env } = {}) {
-  try {
-    const result = await execFile('git', args, {
-      cwd,
-      env: mergedEnvironment(env),
-      windowsHide: true,
-      maxBuffer: 2 * 1024 * 1024,
-    });
-    return { ...result, code: 0 };
-  } catch (error) {
-    const detail = [error?.stdout, error?.stderr].filter(Boolean).join('\n').trim();
-    const wrapped = new Error(detail || error?.message || `git ${args.join(' ')} failed`);
-    wrapped.cause = error;
-    wrapped.code = error?.code;
-    wrapped.stdout = error?.stdout || '';
-    wrapped.stderr = error?.stderr || '';
-    throw wrapped;
-  }
-}
-
-async function samePath(left, right) {
-  const resolvedLeft = await realpath(left);
-  const resolvedRight = await realpath(right);
-  const normalizedLeft = process.platform === 'win32' ? resolvedLeft.toLowerCase() : resolvedLeft;
-  const normalizedRight = process.platform === 'win32' ? resolvedRight.toLowerCase() : resolvedRight;
-  return normalizedLeft === normalizedRight;
-}
-
-export async function inspectGit(data, { env = process.env } = {}) {
-  try {
-    const result = await runGit(['-C', data, 'rev-parse', '--show-toplevel'], { env });
-    const root = result.stdout.trim();
-    return {
-      valid: Boolean(root) && await samePath(root, data),
-      root,
-      reason: Boolean(root) && await samePath(root, data)
-        ? ''
-        : `Git root is not the fixed data directory: ${root || '(unknown)'}`,
-    };
-  } catch (error) {
-    return { valid: false, root: '', reason: error.message };
-  }
-}
-
-function parsePorcelainEntry(entry) {
-  if (!entry) return null;
-  const status = entry.slice(0, 2);
-  let relativePath = entry.slice(3);
-  if (status.includes('R') || status.includes('C')) {
-    const separator = relativePath.indexOf(' -> ');
-    if (separator >= 0) relativePath = relativePath.slice(separator + 4);
-  }
-  return {
-    status,
-    relativePath: normalizeGitPath(relativePath),
-    staged: status[0] !== ' ' && status[0] !== '?',
-    workingTree: status[1] !== ' ' && status[1] !== '?',
-  };
-}
-
-function normalizeGitPath(value) {
-  return String(value || '').replace(/\\/gu, '/').replace(/^\.\//u, '');
-}
-
-export function parseGitStatus(output) {
-  return String(output || '').split('\0').map(parsePorcelainEntry).filter(Boolean);
-}
-
-export async function readGitStatus(data, { env = process.env } = {}) {
-  const result = await runGit(['-C', data, 'status', '--porcelain=v1', '--untracked-files=all', '-z'], { env });
-  return parseGitStatus(result.stdout);
-}
-
-export async function syncCleanWiki(data, { env = process.env } = {}) {
-  const entries = await readGitStatus(data, { env });
-  if (entries.length) {
-    throw new Error('Wiki Git worktree is not clean; refusing to stash or rebase over existing changes.');
-  }
-  await runGit(['-C', data, 'pull', '--rebase'], { env });
-  return readGitStatus(data, { env });
-}
-
-async function ensureDefaultConfig(config) {
-  try {
-    await writeFile(config, DEFAULT_WIKI_CONFIG, { encoding: 'utf8', flag: 'wx' });
-    return true;
-  } catch (error) {
-    if (error?.code === 'EEXIST') return false;
-    throw error;
-  }
-}
-
-export async function ensureWikiState({ env = process.env, gitUrl = '', runCLI } = {}) {
-  const paths = resolveWikiPaths({ env });
-  const exists = await pathExists(paths.data);
-  const empty = exists ? await isDirectoryEmpty(paths.data) : true;
-  let cloned = false;
-
-  if (!exists || empty) {
-    if (!String(gitUrl || '').trim()) {
-      return {
-        status: 'needs-git-url',
-        cloned: false,
-        paths,
-        message: `The fixed Wiki data directory is ${exists ? 'empty' : 'missing'}; provide its Git URL to clone it.`,
-      };
-    }
-    await mkdir(paths.wiki, { recursive: true });
-    try {
-      await runGit(['clone', '--', String(gitUrl).trim(), paths.data], { env });
-      cloned = true;
-    } catch (error) {
-      return {
-        status: 'blocked',
-        cloned: false,
-        paths,
-        message: `Unable to clone the Wiki Git repository into the fixed data directory: ${error.message}`,
-      };
-    }
-  }
-
-  const git = await inspectGit(paths.data, { env });
-  if (!git.valid) {
-    return {
-      status: 'blocked',
-      cloned,
-      paths,
-      message: `The fixed Wiki data directory is not a Git worktree rooted at data/: ${git.reason}`,
-    };
-  }
-
-  const configCreated = await ensureDefaultConfig(paths.config);
-  let policy;
-  try {
-    policy = await inspectWikiConfiguration({ env, runCLI });
-  } catch (error) {
-    return { status: 'blocked', cloned, paths, configCreated, message: `${WIKI_CONFIG_FILENAME} is malformed: ${error.message}` };
-  }
-  await mkdir(paths.content, { recursive: true });
-  await mkdir(paths.assets, { recursive: true });
-  return {
-    status: 'ready',
-    cloned,
-    configCreated,
-    publishMode: policy.publishMode,
-    paths,
-    gitRoot: git.root,
-  };
-}
-
-if (process.argv[1] && import.meta.url === new URL(process.argv[1], 'file:').href) {
-  const result = await ensureWikiState({ gitUrl: process.argv[2] || '' });
-  console.log(JSON.stringify(result, null, 2));
-  if (result.status !== 'ready') process.exitCode = 2;
+export function ensureWikiState({ gitUrl = '', sync = false, ...options } = {}) {
+  const args = ['wiki', 'prepare'];
+  if (gitUrl) args.push('--git-url', gitUrl);
+  if (sync) args.push('--sync');
+  return invokeWikiCLI(args, options);
 }

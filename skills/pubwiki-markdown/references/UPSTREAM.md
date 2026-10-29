@@ -34,12 +34,19 @@ maintains its own pinned upstream provenance and mind-map reference. Diagram
 output returns to the existing note preview and publication flow; this routing
 does not grant access to private Wiki source or alter publication boundaries.
 
-## Independent reader
+## Built-in WheelMaker reader
 
-The reader in assets/dochub was copied from DocHub and is maintained independently.
-See [reader provenance](../assets/dochub/ORIGIN.md). It uses pinned npm dependencies
-and does not install or invoke Quartz. Hub owns artifact validation, authentication
-and upload. Its trusted Go boundary prepares a public-only projection before
-calling the reader; raw Vaults and user configuration are not reader inputs.
-The local CLI also owns preview generation and returns bounded publication policy
-to the Skill. Registry continues to serve the resulting static website.
+The independent DocHub-derived reader and its behavior tests moved to WheelMaker
+on 2026-10-29. The maintained source is `server/internal/wiki/reader/`, with its
+original provenance in `ORIGIN.md` and Node tests in `server/internal/wiki/tests/`.
+The migration baseline was this repository's commit
+`cc06f41560f0e30b5c93b229dd126e680b3762d8`.
+
+WheelMaker embeds the source and pinned dependency manifests in its Go program;
+Go prepares the real `~/.wheelmaker/wiki/reader/` on first preview or publication.
+This Skill no longer carries, binds, installs or runs the exporter. Its operational
+scripts delegate to the trusted Go CLI. Go also owns scoped note Git publication,
+private configuration parsing, loopback preview serving and public projection.
+Raw Vaults and user configuration never become exporter inputs. Registry serves
+the validated static website and an independent Share profile from the same
+embedded browser source.

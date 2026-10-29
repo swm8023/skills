@@ -29,12 +29,6 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
     'scripts/ensure-reader.mjs',
     'scripts/preview-reader.mjs',
     'scripts/yaml.mjs',
-    'assets/dochub/package.json',
-    'assets/dochub/package-lock.json',
-    'assets/dochub/exporter.mjs',
-    'assets/dochub/vault.mjs',
-    'assets/dochub/public/search.mjs',
-    'assets/dochub/ORIGIN.md',
   ];
   await Promise.all(required.map(mustExist));
 
@@ -50,4 +44,6 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
   assert.match(upstream, /a1dc48e68138490d522c04cbf5822214c6eb1202/u);
   assert.doesNotMatch(active, /(?:^|[\/`])(?:lookup-knowledge|publish-knowledge)(?:$|[\/`])/u);
   assert.doesNotMatch(active, /--(?:config|data)\b/u);
+  assert.match(active, /wheelmaker wiki publish-notes/u);
+  await assert.rejects(access(path.join(skillRoot, 'assets/dochub/exporter.mjs')), { code: 'ENOENT' });
 });

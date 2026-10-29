@@ -12,5 +12,5 @@ test('configuration inspection receives only bounded publication policy from the
 
 test('unknown policy and failed configuration checks cannot become an automatic publish', async () => {
   await assert.rejects(inspectWikiConfiguration({ runCLI: async () => ({ stdout: '{"status":"ready","publishMode":"private-secret"}' }) }), /valid Wiki policy/);
-  await assert.rejects(inspectWikiConfiguration({ runCLI: async () => { throw new Error('configuration is malformed'); } }), /malformed/);
+  await assert.rejects(inspectWikiConfiguration({ runCLI: async () => { throw new Error('private-error-canary'); } }), /update WheelMaker/);
 });

@@ -17,23 +17,23 @@ description: 在固定的 WheelMaker Wiki Vault 中创建、导入、分类、�
 
 把它视为一个 Obsidian Vault。不要发现或使用其他 Vault，不要扫描当前工作目录，也不要接受调用方指定的数据根目录。Wiki 的 Git 根目录必须就是 `data/` 目录。
 
-读取或写入知识前，先运行固定路径准备助手：
+读取或写入知识前，直接调用 WheelMaker CLI 准备固定工作区：
 
 ```text
-node <this-skill>/scripts/prepare-wiki.mjs
+wheelmaker wiki prepare
 ```
 
-助手会在检查配置或内容之前先检查 Git。如果路径不存在或为空，向用户索要 Git URL，并把该 URL 传给助手。如果路径非空但不是 Git worktree，立即停止；不要删除、移动或覆盖任何内容。如果没有 URL，告诉用户自行准备或初始化 Git worktree；不要自动运行 `git init`。
+Go 命令会在检查配置或内容之前先检查 Git。如果路径不存在或为空，向用户索要 Git URL，并使用 `wheelmaker wiki prepare --git-url "<URL>"` 传入该 URL。如果路径非空但不是 Git worktree，立即停止；不要删除、移动或覆盖任何内容。如果没有 URL，告诉用户自行准备或初始化 Git worktree；不要自动运行 `git init`。
 
 计划发布时，在已确认的笔记写入之前，先同步干净的 Git worktree：
 
 ```text
-node <this-skill>/scripts/prepare-wiki.mjs --sync
+wheelmaker wiki prepare --sync
 ```
 
 此命令不会在已有修改上自动 stash 或 rebase；发生 rebase 或远程冲突时，要报告给用户处理。
 
-Git 检查成功后，Go 只会在缺失时创建默认的 `wiki.config.yaml`、`content/` 和 `content/assets/`。不会静默替换已有配置。数据根目录是唯一的内容配置根；AI 索引和 阅读器 runtime 位于其外部。
+Git 检查成功后，Go 只会在缺失时创建默认的 `wiki.config.yaml`、`content/` 和 `content/assets/`。不会静默替换已有配置。数据根目录是唯一的内容配置根；AI 索引和阅读器运行环境位于其外部。
 
 ## 内容目录
 
@@ -132,7 +132,7 @@ site:
 2. **按最终分类保存**：新导入的项目图片默认放在 `content/assets/<实际repo>/<directory>/`，沿用笔记最终确认的 repo 和嵌套分类。已有的共享资源可以原路径复用，不为符合新布局批量迁移。确需移动资源时，先检查整个 Vault 的引用，将受影响页面的链接改写纳入同一预览；仍被其他页面引用的资源不得直接删除。
 3. **重名与缺失检查**：确认本地图片来源存在、目标可确定；复用已有资源前核对内容。相同目标路径但内容不同、同名文件导致解析歧义时，在预览中提出保留、复用或重命名方案，不静默覆盖。未解决的缺失资源、重名歧义或资源冲突会阻止本批发布。
 4. **按阅读器规则改写引用**：本地资源先按笔记相对路径、再按 `content/` 内路径解析；仅有文件名时，必须在内容树中唯一。优先使用能明确定位的相对路径或内容路径，保留 alt、标题和尺寸信息；不硬编码构建产物 URL。重名歧义或缺失引用由 Hub 在交给阅读器前拦截。规范化助手未覆盖的引用形式需另行核查，助手没有诊断不代表图片已验证。
-5. **同批保存、提交和发布**：预览中逐项列出 Markdown 与资源的新增、修改、移动、删除路径；移动要包含旧、新路径。确认后一起写入并校验，再将所有发生变更的精确文件路径交给发布助手。已跟踪且未变化的复用资源不必重复提交，但必须验证仍存在且引用可解析。
+5. **同批保存、提交和发布**：预览中逐项列出 Markdown 与资源的新增、修改、移动、删除路径；移动要包含旧、新路径。确认后一起写入并校验，再将所有发生变更的精确文件路径传给 `wheelmaker wiki publish-notes`。已跟踪且未变化的复用资源不必重复提交，但必须验证仍存在且引用可解析。
 
 这些规则复用下方的同一份完整预览与确认，不另加图片确认轮次。构建和发布后的图片验证见「构建与发布验证」。
 
@@ -184,7 +184,7 @@ draft: false
 - Obsidian 特性选择和知识网络变更（新增出链、反向链接建议、特性理由及诊断）；
 - 本次操作是仅本地保存，还是保存并发布。
 
-展示预览后必须停下来，等待用户对该预览作出明确确认。正式确认前，不得正式写入笔记或资源，也不得执行 Git add、commit、pull、push、发布助手或 `wheelmaker wiki publish`。如果用户在当前请求中已经明确批准了完全相同的内容、路径和处理方式，或此前已批准且预览没有实质变化，可以继承该批准。
+展示预览后必须停下来，等待用户对该预览作出明确确认。正式确认前，不得正式写入笔记或资源，也不得执行 Git add、commit、pull、push 或任何 Wiki 发布命令。如果用户在当前请求中已经明确批准了完全相同的内容、路径和处理方式，或此前已批准且预览没有实质变化，可以继承该批准。
 
 用户最初说“发布 Wiki”可以确定本次操作的发布模式，但不能把尚未展示的 frontmatter、摘要、目录、标签或重复处理结果当成已确认。预览得到确认后，不要再为了 Git 同步、提交或发布单独增加一轮确认；这正是“已确认发布”的后续执行阶段。不要把仅本地保存的指令转换成发布。
 
@@ -192,79 +192,39 @@ draft: false
 
 ## Git 和发布
 
-### 使用内置阅读器
+本 Skill 直接调用已安装的 WheelMaker CLI；工作区准备、阅读器、运行依赖、导出和发布流程均由 WheelMaker 管理。Skill 仅负责知识内容、确认和命令调用，唯一的执行助手是笔记规范化脚本。
 
-阅读器与导出器由 WheelMaker 维护，源码位于其 server/internal/wiki/reader/，随 Go 程序内嵌交付。
-本 Skill 保留笔记创作、分类、规范化与知识关系工作流；运行和发布脚本仅转发到 Go CLI。
-发布机需有 Node.js ≥ 22.12、npm、Git，以及支持内置阅读器命令的新版 WheelMaker Hub 和 CLI。
-
-首次 Wiki 预览或发布时，Go 自动创建真实的 ~/.wheelmaker/wiki/reader/，释放源码并执行锁定依赖安装。
-相同源码及兼容依赖复用，源码变化更新受管理文件，依赖输入变化或依赖失效时重新安装。
-发行包不携带 node_modules；Registry 只提供 Share 时不安装 Wiki npm 依赖。
-旧 reader 链接只解除链接本身，外部目标不被删除；未知普通目录冲突会明确拒绝。
-旧 ensure-reader.mjs 的 --install、--bind、--source 均已退役，运行时会提示升级和新入口。
-不再维护 Skill 绑定、开发源码路径或独立阅读器下载。
-
-| Skill 入口 | Go 命令 |
+| 操作 | Go 命令 |
 | --- | --- |
-| prepare-wiki.mjs [--git-url URL] [--sync] | wheelmaker wiki prepare，创建缺失布局并按需同步干净仓库 |
-| publish-wiki.mjs --paths FILE ... | wheelmaker wiki publish-notes，处理已批准的精确文件后发布 |
-| preview-reader.mjs | wheelmaker wiki preview --serve，由 Go 在 127.0.0.1 提供静态预览 |
-| 配置策略检查 | wheelmaker wiki status，只返回受限发布模式，不安装依赖 |
+| 准备固定工作区 | `wheelmaker wiki prepare`，首次需要时附加 `--git-url "<URL>"` |
+| 发布前同步干净仓库 | `wheelmaker wiki prepare --sync` |
+| 检查发布策略 | `wheelmaker wiki status`，只使用其返回的受限发布模式 |
+| 本地预览 | `wheelmaker wiki preview --serve` |
+| 保存并发布已确认文件 | `wheelmaker wiki publish-notes --paths "<文件>" ...` |
+| 重新发布已有内容 | `wheelmaker wiki publish`，须已有发布授权 |
 
-旧 CLI 不支持这些命令时，助手应明确报告需要更新 WheelMaker，不回退到 JS Git、配置读取或原始 Vault 导出。
+CLI 不存在、命令不受支持或调用失败时，报告实际结果并按需提示更新 WheelMaker。Skill 不自行实现安装、Git 发布或原始 Vault 导出，不读取完整用户配置。
 
 ### 保存并发布
 
-仅本地保存时，只写入并校验已确认的笔记和资源。保存并发布时，使用精确的已批准文件路径：
+仅本地保存时，只写入并校验已确认的笔记和资源。保存并发布时，将精确的已批准文件路径直接传给 Go：
 
 ```text
-node <this-skill>/scripts/publish-wiki.mjs --paths "content/<实际repo>/<目录>/<文件>.md" --paths "content/assets/<实际repo>/<目录>/<图片>.png"
+wheelmaker wiki publish-notes --paths "content/<实际repo>/<目录>/<文件>.md" --paths "content/assets/<实际repo>/<目录>/<图片>.png"
 ```
 
-每个文件分别传 --paths，不传目录或通配符；移动和删除也包括旧路径。
-固定 data 仓库的 Git 生命周期由 Go 的准备及显式发布入口管理，Skill 助手仅转发已批准参数。
-wheelmaker wiki publish-notes 在 Git 写入前检查已有暂存和本批之外的修改，然后仅提交批准文件，
-执行 pull --rebase --no-autostash、push，最后调用现有认证 Publisher。普通 publish 不自动提交或推送。
-冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。
-用户配置 publish.mode 为 off、disabled、manual 或 false 时返回 skipped。
-配置验证及发布模式由本机 `wheelmaker wiki status` 处理；Skill 仅接收受限的发布模式结果，不读取配置全文。
+每个文件分别传 `--paths`，不传目录或通配符；移动和删除也包括旧路径。Go 管理固定 data 仓库的 Git 生命周期，只提交批准文件，再同步、推送和发布；普通 `publish` 不自动提交或推送笔记。
 
-### 本地预览与重新发布
+冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。先用 `wheelmaker wiki status` 检查受限发布模式；若返回 `off`、`disabled`、`manual` 或 `false`，按策略跳过自动发布，不读取配置全文。
 
-本地预览通过 `wheelmaker wiki preview --serve` 走同一份 Hub/CLI 本地隔离实现，在独立 `.previews` 目录生成站点。
-Go 只在 127.0.0.1 提供经校验的静态输出，Skill 只转发命令，不直接把 Vault 交给阅读器；不上传、不修改或同步笔记：
+### 预览和验证
 
-```text
-node <this-skill>/scripts/preview-reader.mjs
-```
+`wheelmaker wiki preview --serve` 提供本地预览，不上传或同步笔记。重新发布现有内容时直接调用 `wheelmaker wiki publish`，仍遵守本次操作已有的发布授权。
 
-纯阅读器修改或已存在内容的重新发布，在已有发布授权时调用：
+发布不得修改源 Markdown。检查对应的目录、标签、搜索、Wikilinks、别名、标题与块链接，以及本批引用图片和附件的实际可读性；代码、公式和 Mermaid 图表应正常显示和交互。
 
-```text
-wheelmaker wiki publish
-```
-
-Hub 在本机读取固定 `data/`，先筛选公开笔记和引用附件，生成临时 `.public-input-*`。
-固定导出器和内置阅读器仅接收这份公开投影；它包含最小站点信息和允许公开的笔记属性，不包含用户配置、项目路由或凭据。
-`draft: true`、删除笔记、私有属性、非代码区域的 Obsidian 注释及未引用附件在进入阅读器前已移除。
-普通项目源码链接保留为说明性引用，不读取或复制 Vault 外的项目文件；图片嵌入等必需附件必须可解析。
-投影在成功、失败或取消后清理，不进入 Vault 或发布包。Skill 不直接调用阅读器导出原始 `data/`。
-随后 Hub 对固定输出 `.output/` 校验、打包及上传；
-Registry 仍在 /wiki/ 提供静态站点，沿用现有应用鉴权和独立阅读入口。
-构建失败不得覆盖当前发布版本。
-
-### 验证
-
-发布不得修改源 Markdown；公开页面保留对应的目录 URL 和链接关系，引用附件由阅读器生成内容哈希 URL。
-草稿、已删除文章、用户配置、私有索引和凭据不得进入阅读器输入或静态产物；公开搜索索引属于静态产物。
-检查目录、筛选分页、浏览器搜索、Wikilinks、别名、标题/块链接及本批引用的图片。
-公式由本地 KaTeX 渲染；代码在导出时通过 Shiki 生成 Dark+/Light+ 双主题高亮，未知语言保留纯文本。代码块支持复制、行号和自动换行。Mermaid 使用随产物提供的资源，支持缩放、拖动、双指操作和放大查看；单张图表失败时显示错误和源码，不影响其他图表。这些功能不依赖 CDN 或 MCP。
-
-阅读器的 CSS、JavaScript 和 Mermaid 分包通过内容哈希命名，接入 Registry 已有的私有长期缓存；import map 仅包含固定阅读器依赖，不含 Vault 内容或用户配置。Mermaid 仅在图表接近可视区域时下载对应类型并渲染，主题切换会更新当前可见或放大查看的图表。首页和已导出的目录页直接显示静态列表；旧的目录筛选链接使用轻量 `static/catalog.json`，输入全文查询后才加载 `static/search.json`。文章、目录元数据和搜索内容仍使用原有鉴权及协商缓存策略，不进入长期保留的展示资源目录。
-涉及图片时核对实际产物文件和页面 src，线上验证必须使用已认证入口。
-就绪检查和本地导出不能替代线上发布成功的证据。
+私人 Wiki 原稿、完整配置、私有索引、项目路由和凭据不得交给固定导出器、浏览器或 Release Server。Skill 不绕过 Go 直接向阅读器提供原始 data/；只接收 CLI 的受限状态和结果。线上验证使用已认证入口，就绪检查或本地预览不能替代线上发布成功的证据。
 
 ## 范围边界
 
-本 Skill 维护纯 Obsidian Markdown 数据、知识创作规范和已确认发布的薄命令入口。阅读器、依赖安装及发布运行逻辑由 WheelMaker Go 维护。
+本 Skill 维护 Obsidian Markdown 数据、知识创作规范和已确认的 Go CLI 调用。研发测量工具在 WheelMaker 仓库维护，Skill 不携带阅读器、运行环境或发布转发脚本。

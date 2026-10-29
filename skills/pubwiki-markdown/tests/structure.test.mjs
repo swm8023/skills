@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
@@ -22,15 +22,10 @@ test('pubwiki-markdown contains its active instructions and complete upstream ma
     'references/obsidian-markdown/CALLOUTS.md',
     'references/obsidian-markdown/EMBEDS.md',
     'references/obsidian-markdown/PROPERTIES.md',
-    'scripts/wiki-state.mjs',
-    'scripts/prepare-wiki.mjs',
     'scripts/normalize-note.mjs',
-    'scripts/publish-wiki.mjs',
-    'scripts/ensure-reader.mjs',
-    'scripts/preview-reader.mjs',
-    'scripts/yaml.mjs',
   ];
   await Promise.all(required.map(mustExist));
+  assert.deepEqual(await readdir(path.join(skillRoot, 'scripts')), ['normalize-note.mjs']);
 
   const active = await readFile(await mustExist('SKILL.md'), 'utf8');
   const upstream = await readFile(await mustExist('references/UPSTREAM.md'), 'utf8');

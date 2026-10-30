@@ -27,12 +27,13 @@ how the syntax is selected during knowledge generation, including confirmed
 Wikilinks, derived backlinks, feature prompts, and preview diagnostics; it is a
 local workflow extension, not upstream syntax material.
 
-Writing guidance in that reference also selects prose, lists, tables, callouts,
-and diagrams according to the reader's needs. Mermaid creation and editing route
-to the sibling [write-doc skill](../../write-doc/SKILL.md), whose diagram branch
-bundles the Mermaid references and their pinned upstream provenance. Diagram
-output returns to the existing note preview and publication flow; this routing
-does not grant access to private Wiki source or alter publication boundaries.
+Writing and revision route to the sibling [write-doc skill](../../write-doc/SKILL.md),
+which supplies the before-writing references, post-draft optimization, and bundled
+Mermaid guidance. The Wiki reference gives diagrams priority for hierarchies,
+flows, interactions, state changes, data relationships, and dependencies. Candidate
+prose and diagrams return to the existing note preview and publication flow;
+this routing does not grant access to private Wiki source or alter publication
+boundaries.
 
 ## Built-in WheelMaker reader
 

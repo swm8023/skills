@@ -36,7 +36,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 直接以 `source` 为唯一事实来源，不生成中间契约副本。approved-spec 与 confirmed-conversation 中，决策基线是硬约束，功能与技术设计是可按代码事实细化的实施基线，预估改动面是探索起点，验收及其验证证据是完成条件；旧结构按语义读取。approved-fix 中，根因和 fix scope 是修复边界，修复方案是实施基线，acceptance、原始 repro、回归测试和相关测试是完成条件。
 
-只有需要改变 `source` 中的需求边界、技术决策、修复边界、验收，或引入新的实质风险时才回到用户决策；局部实现结构、精确文件和任务顺序由 plan/Todo 自行确定。
+只有需要改变 `source` 中的需求决策、技术决策、修复边界、验收，或引入新的实质风险时才回到用户决策；局部实现结构、精确文件和任务顺序由 plan/Todo 自行确定。
 
 ## 阶段 2：形成执行计划
 
@@ -152,7 +152,7 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 
 写完计划后重新对照输入：
 
-1. **覆盖度**：每项需求边界、技术决策、关键设计合同和验收都能指向对应任务；旧 spec 的需求、决策和排除项按同样语义检查。
+1. **覆盖度**：每项需求决策、技术决策、关键设计合同和验收都能指向对应任务；旧 spec 的需求、决策和排除项按同样语义检查。
 2. **占位符**：搜索并消除上文禁止项。
 3. **一致性**：类型、函数名、路径、命令和测试名称前后一致。
 4. **顺序**：实现前确定验证信号和必要基线；采用 RED/GREEN 时先测试再实现；共享基础设施先于依赖它的任务；每个 checkpoint 前都有验证信号。
@@ -200,7 +200,7 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 4. 按任务执行命令，读取实际输出和 exit code。失败时先判断是预期 RED、实现问题、环境问题还是计划错误。
 5. 持久化 plan 存在 checkbox 时，完成一个步骤就更新对应 checkbox；不要等到最后一次性勾完。
 6. 一个独立工作单元验证通过后，调用 `git-workflow` 的 `checkpoint` 阶段。只 stage prepare 后确认属于本任务的文件，不使用会夹带无关修改的命令。
-7. 执行中发现计划需要调整时，先记录原因，再更新 plan 或 Todo。精确文件、局部实现结构和任务顺序的调整无需二次确认；如果调整改变需求边界、技术决策、验收或引入新的实质风险，先向用户确认。
+7. 执行中发现计划需要调整时，先记录原因，再更新 plan 或 Todo。精确文件、局部实现结构和任务顺序的调整无需二次确认；如果调整改变需求决策、技术决策、验收或引入新的实质风险，先向用户确认。
 
 ## 停止条件
 

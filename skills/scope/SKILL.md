@@ -69,7 +69,7 @@ description: Scope product or code changes before implementation when requiremen
 
 设计呈现只用于暴露理解偏差，不要求达到 spec 的详细度；不展开完整验收证据、预估改动面、文件范围或实施步骤，除非它们会影响已确认决策。
 
-这一轮只做设计确认，不同时给出 A/B 出口。呈现后按以下格式确认：
+呈现后按以下格式确认：
 
 ```markdown
 确认以上理解并继续选择执行路径？
@@ -89,13 +89,13 @@ description: Scope product or code changes before implementation when requiremen
 ```markdown
 **wiki 更新：** <更新 path / 新建 path / 不更新 wiki>
 
-**A. 落 spec** —— 写入 `docs/scope/<日期>-<slug>.md`，批准后执行。
+请选择是否落 spec：
 
-**B. 不落 spec** —— 在当前对话中生成实施契约；确认后执行，不生成 scope 或 plan 文档。
+A. 落 spec —— 写入 `docs/scope/<日期>-<slug>.md`，批准后执行。
+
+B. 不落 spec —— 在当前对话中生成实施契约；确认后执行，不生成 scope 或 plan 文档。
 
 **推荐路径：** <A / B>，<简短理由>
-
-走 A 还是 B？
 ```
 
 默认依据此时的规模判断推荐路径：中大需求推荐 A，小需求推荐 B；有明确理由时可以偏离并说明原因。用户选择优先于推荐；用户确认路径后进入出口执行，wiki 目标无需单独确认。

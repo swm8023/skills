@@ -1,9 +1,11 @@
 ---
 name: write-doc
-description: 新写、重组、润色或审阅中文文档、RFC、README、PR 描述和 commit message 时使用。按任务阶段加载技术文结构、中文写作和成稿优化参考；需要图示或修改 Mermaid 图时加载包内绘图参考。
+description: 新写、重组、润色或审阅中文文档、RFC、README、PR 描述和 commit message 时使用。以 Diátaxis 组织技术文档结构，参考 Google developer style、STE 和 Global English 的中文适用原则检查句子表达、操作指令和语法歧义；成稿后优化中文表达，需要图示时加载 Mermaid 参考。
 ---
 
 # write-doc
+
+Diátaxis 的结构参考放在 [write-technical](references/write-technical.md)；Google developer style（句子表达）、STE（操作指令）和 Global English（语法消歧）的中文适用原则放在 [write-zh](references/write-zh.md)。
 
 | 任务 | 写前读取 | 成稿后读取 |
 | --- | --- | --- |

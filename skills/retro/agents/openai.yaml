@@ -1,5 +1,0 @@
-interface:
-  display_name: "Retro 会话复盘"
-  short_description: "复盘编码会话，定位导航、自动检查、规范、工具和信息访问的改进"
-policy:
-  allow_implicit_invocation: false

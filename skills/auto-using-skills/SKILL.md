@@ -21,7 +21,7 @@ description: Use at the start of every task to select applicable skills. Routes 
 
 1. **用户点名 skill**：先调用被点名的 skill。
 2. **仅限手动触发**：遵守 skill 的显式限制，包括 `disable-model-invocation: true`、`agents/openai.yaml` 中的 `allow_implicit_invocation: false` 或仅限手动触发的说明。`$skill-name`、`/skill-name` 或明确要求使用该 skill 才算点名；普通的“review”“审查”“audit”不算。没有点名时继续执行后续路由，不要因意图或 description 相似而自动选择它们。
-3. **WheelMaker session 默认交接**：用户提供 session ID 并要求继续、总结、交接或未说明导出目的时，调用 `handoff`。只有用户明确点名 `export-session`/`$export-session` 并要求导出诊断 JSON 时才调用 `export-session`；session ID 本身永远不触发导出。
+3. **WheelMaker session 默认交接**：用户提供 session ID 并要求继续、总结、交接或未说明导出目的时，调用 `handoff`。
 4. **执行已确认范围或修复**：用户已批准 spec、scope 已取得对话内实施契约确认，或 debug 已提交证据充分的修复契约且用户明确批准时，调用 `implement`。bug 使用 `source_kind: approved-fix`；此项优先于通用 bug 路由，即使确认消息再次提到“bug”“失败”或“修复”。
 5. **新的 bug / failure**：用户报告坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，且还没有获批修复契约时，调用 `debug`。不要先走 `scope`。
 6. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki` 时调用 `wiki`；固定 WheelMaker Vault 的检索用 `pubwiki-search`，写入和发布用 `pubwiki-markdown`。按用户目标和已有路径确定知识库，不同时启动两套写入流程。

@@ -3,7 +3,7 @@
   "assembledOn": "2026-10-30",
   "selection": "B",
   "primaryEditingSource": "humanizer-zh",
-  "policy": "Source blocks are moved and reordered verbatim. Only reference headers, source markers, blank separators, and recorded relative-link rebasing are generated.",
+  "policy": "Source blocks are moved and reordered verbatim. Only reference headers, blank separators, and recorded relative-link rebasing are generated.",
   "priorityDecision": "humanizer-zh controls editing scope; shuorenhua supplies compatible factual protections and explicit user-scope options.",
   "excludedConflictingShuorenhuaLines": [
     10,
@@ -187,7 +187,7 @@
     {
       "path": "references/write-technical.md",
       "header": "# write-technical\n\n",
-      "sha256": "cf6a1a98285dbd3928daac787c58b8f7873fd2f7d0e8a0e4e6211e29df6b8e97",
+      "sha256": "7859ec1ddf953b81e0091baf03c3df2de87c3bf878dff7446ff522f2f8725685",
       "blocks": [
         "write-technical-01",
         "write-technical-02",
@@ -197,7 +197,7 @@
     {
       "path": "references/write-zh.md",
       "header": "# write-zh\n\n",
-      "sha256": "5d9ed2fb3aa400727cda27773de593017babcd4965d0c56ed4738847a43ff7e8",
+      "sha256": "84e29cc213bf8394f199e4dbc6211127fb42abcc2f2c98abeb62e64f39c2c401",
       "blocks": [
         "write-zh-01",
         "write-zh-02",
@@ -210,7 +210,7 @@
     {
       "path": "references/optimize-zh.md",
       "header": "# optimize-zh\n\n",
-      "sha256": "136c61cc66e97dbd230f1d91c152afc4082756e4ba4de91d7ecfd62491f98113",
+      "sha256": "1b21af6ce2936d6586d3c6f5283506eda2b2d05251ab1c42a7cc8a47383a2422",
       "blocks": [
         "optimize-zh-01",
         "optimize-zh-02",
@@ -246,7 +246,6 @@
       "source": "technical-writing",
       "startLine": 13,
       "endLine": 23,
-      "marker": "<!-- source: technical-writing:13-23; block: write-technical-01 -->",
       "sourceSha256": "ffda2987a4fe0e517f2c3d85ef5ef3379ff6dbdab1c7b3f51d23e57af1cc37f2",
       "renderedSha256": "ffda2987a4fe0e517f2c3d85ef5ef3379ff6dbdab1c7b3f51d23e57af1cc37f2",
       "transforms": []
@@ -257,7 +256,6 @@
       "source": "technical-writing",
       "startLine": 25,
       "endLine": 35,
-      "marker": "<!-- source: technical-writing:25-35; block: write-technical-02 -->",
       "sourceSha256": "0ed0d5060b29f68c53a7f8aa1d2f73942eefd1a47ab12299838bb747c70e6830",
       "renderedSha256": "0ed0d5060b29f68c53a7f8aa1d2f73942eefd1a47ab12299838bb747c70e6830",
       "transforms": []
@@ -268,7 +266,6 @@
       "source": "technical-writing",
       "startLine": 39,
       "endLine": 39,
-      "marker": "<!-- source: technical-writing:39-39; block: write-technical-03 -->",
       "sourceSha256": "352a1693b4b4f5577f258c7eead3df5255280fbd35b1f8d0a7e03fcded5c13d7",
       "renderedSha256": "352a1693b4b4f5577f258c7eead3df5255280fbd35b1f8d0a7e03fcded5c13d7",
       "transforms": []
@@ -279,7 +276,6 @@
       "source": "technical-writing",
       "startLine": 11,
       "endLine": 11,
-      "marker": "<!-- source: technical-writing:11-11; block: write-zh-01 -->",
       "sourceSha256": "0f1ae9533277edc86cb911bebbfd424333e4afb482ad144a4b25bdc36032cf25",
       "renderedSha256": "0f1ae9533277edc86cb911bebbfd424333e4afb482ad144a4b25bdc36032cf25",
       "transforms": []
@@ -290,7 +286,6 @@
       "source": "humanizer-zh",
       "startLine": 23,
       "endLine": 23,
-      "marker": "<!-- source: humanizer-zh:23-23; block: write-zh-02 -->",
       "sourceSha256": "06377b30e71241e36fadca05208ffc705f28f42a5b6a07785e994c42938b3aef",
       "renderedSha256": "06377b30e71241e36fadca05208ffc705f28f42a5b6a07785e994c42938b3aef",
       "transforms": []
@@ -301,7 +296,6 @@
       "source": "humanizer-zh",
       "startLine": 32,
       "endLine": 38,
-      "marker": "<!-- source: humanizer-zh:32-38; block: write-zh-03 -->",
       "sourceSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
       "renderedSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
       "transforms": []
@@ -312,7 +306,6 @@
       "source": "technical-writing",
       "startLine": 45,
       "endLine": 56,
-      "marker": "<!-- source: technical-writing:45-56; block: write-zh-04 -->",
       "sourceSha256": "4281a2fb41172717a9d10ca175148e4acb552a90867e8a51af1b550c3dcf8192",
       "renderedSha256": "4281a2fb41172717a9d10ca175148e4acb552a90867e8a51af1b550c3dcf8192",
       "transforms": []
@@ -323,7 +316,6 @@
       "source": "technical-writing",
       "startLine": 58,
       "endLine": 65,
-      "marker": "<!-- source: technical-writing:58-65; block: write-zh-05 -->",
       "sourceSha256": "56c055187ef842061aff1afce916cc0079167126db3dc3b3eea15394dad7a016",
       "renderedSha256": "56c055187ef842061aff1afce916cc0079167126db3dc3b3eea15394dad7a016",
       "transforms": []
@@ -334,7 +326,6 @@
       "source": "technical-writing",
       "startLine": 67,
       "endLine": 79,
-      "marker": "<!-- source: technical-writing:67-79; block: write-zh-06 -->",
       "sourceSha256": "dbe72e7a819ce5faaf641c3af7dd374f4d970b735b635760d709b4ef6540db15",
       "renderedSha256": "dbe72e7a819ce5faaf641c3af7dd374f4d970b735b635760d709b4ef6540db15",
       "transforms": []
@@ -345,7 +336,6 @@
       "source": "humanizer-zh",
       "startLine": 17,
       "endLine": 17,
-      "marker": "<!-- source: humanizer-zh:17-17; block: optimize-zh-01 -->",
       "sourceSha256": "66f3783fc8b5c76eeb8d92832c6c6ee9bd7f5c320ae9b84ac51ba22fbf849ad0",
       "renderedSha256": "66f3783fc8b5c76eeb8d92832c6c6ee9bd7f5c320ae9b84ac51ba22fbf849ad0",
       "transforms": []
@@ -356,7 +346,6 @@
       "source": "humanizer-zh",
       "startLine": 19,
       "endLine": 30,
-      "marker": "<!-- source: humanizer-zh:19-30; block: optimize-zh-02 -->",
       "sourceSha256": "0f880f2a9fc0de4f5564e944b870cf5262ae951428bcbe347c1dfcf430501049",
       "renderedSha256": "0f880f2a9fc0de4f5564e944b870cf5262ae951428bcbe347c1dfcf430501049",
       "transforms": []
@@ -367,7 +356,6 @@
       "source": "shuorenhua",
       "startLine": 12,
       "endLine": 14,
-      "marker": "<!-- source: shuorenhua:12-14; block: optimize-zh-03 -->",
       "sourceSha256": "767e6da7ecac2acafbb9cdd8805616b655a8ef7c97914d9faf766a15fa31f924",
       "renderedSha256": "767e6da7ecac2acafbb9cdd8805616b655a8ef7c97914d9faf766a15fa31f924",
       "transforms": []
@@ -378,7 +366,6 @@
       "source": "shuorenhua",
       "startLine": 16,
       "endLine": 22,
-      "marker": "<!-- source: shuorenhua:16-22; block: optimize-zh-04 -->",
       "sourceSha256": "f023793bd99ef0f585935963b1fc715e9fa4abadf67b98a8be0bbfe64f2af0da",
       "renderedSha256": "f023793bd99ef0f585935963b1fc715e9fa4abadf67b98a8be0bbfe64f2af0da",
       "transforms": []
@@ -389,7 +376,6 @@
       "source": "humanizer-zh",
       "startLine": 32,
       "endLine": 38,
-      "marker": "<!-- source: humanizer-zh:32-38; block: optimize-zh-05 -->",
       "sourceSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
       "renderedSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
       "transforms": []
@@ -400,7 +386,6 @@
       "source": "humanizer-zh",
       "startLine": 40,
       "endLine": 45,
-      "marker": "<!-- source: humanizer-zh:40-45; block: optimize-zh-06 -->",
       "sourceSha256": "d1f9846e5547a3c2e975a2d0dc244c5298c4af7a6226798f9b6de6c9a36b8742",
       "renderedSha256": "d1f9846e5547a3c2e975a2d0dc244c5298c4af7a6226798f9b6de6c9a36b8742",
       "transforms": []
@@ -411,7 +396,6 @@
       "source": "humanizer-zh",
       "startLine": 47,
       "endLine": 52,
-      "marker": "<!-- source: humanizer-zh:47-52; block: optimize-zh-07 -->",
       "sourceSha256": "03d64c7bb438a679af3ca91793ebf39aa39bdb7045f56df66f17950e9e689c35",
       "renderedSha256": "03d64c7bb438a679af3ca91793ebf39aa39bdb7045f56df66f17950e9e689c35",
       "transforms": []
@@ -422,7 +406,6 @@
       "source": "shuorenhua",
       "startLine": 51,
       "endLine": 51,
-      "marker": "<!-- source: shuorenhua:51-51; block: optimize-zh-08 -->",
       "sourceSha256": "190e00e55383d64186e79dcd5a5333476382bed22acce9177f23149d275542c2",
       "renderedSha256": "190e00e55383d64186e79dcd5a5333476382bed22acce9177f23149d275542c2",
       "transforms": []
@@ -433,7 +416,6 @@
       "source": "shuorenhua",
       "startLine": 55,
       "endLine": 61,
-      "marker": "<!-- source: shuorenhua:55-61; block: optimize-zh-09 -->",
       "sourceSha256": "b8bb53503e24b1b68447f9daa13ba34498d8476317ac78dd620b2b39a8776ad3",
       "renderedSha256": "b8bb53503e24b1b68447f9daa13ba34498d8476317ac78dd620b2b39a8776ad3",
       "transforms": []
@@ -444,7 +426,6 @@
       "source": "shuorenhua",
       "startLine": 75,
       "endLine": 75,
-      "marker": "<!-- source: shuorenhua:75-75; block: optimize-zh-10 -->",
       "sourceSha256": "f59b2c0fd932bc0b4259e0afe788a56bbd44c9e38d79a15287da188eb6494a2d",
       "renderedSha256": "f59b2c0fd932bc0b4259e0afe788a56bbd44c9e38d79a15287da188eb6494a2d",
       "transforms": []
@@ -455,7 +436,6 @@
       "source": "humanizer-zh",
       "startLine": 54,
       "endLine": 58,
-      "marker": "<!-- source: humanizer-zh:54-58; block: optimize-zh-11 -->",
       "sourceSha256": "4912e4c72c2ec50d3f4b5855519dac8284a6448d4d8a563e6fb86b95ae1f57be",
       "renderedSha256": "4912e4c72c2ec50d3f4b5855519dac8284a6448d4d8a563e6fb86b95ae1f57be",
       "transforms": []
@@ -466,7 +446,6 @@
       "source": "humanizer-zh",
       "startLine": 60,
       "endLine": 110,
-      "marker": "<!-- source: humanizer-zh:60-110; block: optimize-zh-12 -->",
       "sourceSha256": "2bc05e4514dbd8b7cbc82762f0422d58ba7ba9bac7a63e43e2ec8aa34dab8cf0",
       "renderedSha256": "2bc05e4514dbd8b7cbc82762f0422d58ba7ba9bac7a63e43e2ec8aa34dab8cf0",
       "transforms": []
@@ -477,7 +456,6 @@
       "source": "humanizer-zh",
       "startLine": 112,
       "endLine": 172,
-      "marker": "<!-- source: humanizer-zh:112-172; block: optimize-zh-13 -->",
       "sourceSha256": "1c5498ce3a46dc2f03776f078af953acba512eb5b88f0de25daf731c49c9c32a",
       "renderedSha256": "1c5498ce3a46dc2f03776f078af953acba512eb5b88f0de25daf731c49c9c32a",
       "transforms": []
@@ -488,7 +466,6 @@
       "source": "humanizer-zh",
       "startLine": 174,
       "endLine": 244,
-      "marker": "<!-- source: humanizer-zh:174-244; block: optimize-zh-14 -->",
       "sourceSha256": "0d773243905e20aba61a41c92c259c18074cfe22465175f493481d8d8a1a302f",
       "renderedSha256": "0d773243905e20aba61a41c92c259c18074cfe22465175f493481d8d8a1a302f",
       "transforms": []
@@ -499,7 +476,6 @@
       "source": "humanizer-zh",
       "startLine": 246,
       "endLine": 276,
-      "marker": "<!-- source: humanizer-zh:246-276; block: optimize-zh-15 -->",
       "sourceSha256": "78595bfb947a96f7d244b5d8ef2435b738a11d640d619ac5e825392b93de11a1",
       "renderedSha256": "78595bfb947a96f7d244b5d8ef2435b738a11d640d619ac5e825392b93de11a1",
       "transforms": []
@@ -510,7 +486,6 @@
       "source": "humanizer-zh",
       "startLine": 278,
       "endLine": 318,
-      "marker": "<!-- source: humanizer-zh:278-318; block: optimize-zh-16 -->",
       "sourceSha256": "61874266e22a6c4631e230a04b9ffb92b3d7f8293a8aee02537985b6419fcc62",
       "renderedSha256": "61874266e22a6c4631e230a04b9ffb92b3d7f8293a8aee02537985b6419fcc62",
       "transforms": []
@@ -521,7 +496,6 @@
       "source": "humanizer-zh",
       "startLine": 320,
       "endLine": 382,
-      "marker": "<!-- source: humanizer-zh:320-382; block: optimize-zh-17 -->",
       "sourceSha256": "cf40140757aa4d9a84658b3e0d9caa5da48185dd3fc069c9226484d053a06bff",
       "renderedSha256": "cf40140757aa4d9a84658b3e0d9caa5da48185dd3fc069c9226484d053a06bff",
       "transforms": []
@@ -532,7 +506,6 @@
       "source": "shuorenhua",
       "startLine": 63,
       "endLine": 67,
-      "marker": "<!-- source: shuorenhua:63-67; block: optimize-zh-18 -->",
       "sourceSha256": "c3db4da6158eee9e6a9a345c09f549c043e8902a22e6a33b948fcfb594b4f17a",
       "renderedSha256": "c3db4da6158eee9e6a9a345c09f549c043e8902a22e6a33b948fcfb594b4f17a",
       "transforms": []
@@ -543,7 +516,6 @@
       "source": "shuorenhua",
       "startLine": 49,
       "endLine": 49,
-      "marker": "<!-- source: shuorenhua:49-49; block: optimize-zh-19 -->",
       "sourceSha256": "1e11db5c538dd2ea5b7cb929d1d90413073c354063c8891c9a1781664a5f36f6",
       "renderedSha256": "67c5f6d56ee6f62ce6ce22e61d20c44f72dd0d0ee5f5673532cad2ac7ef70978",
       "transforms": [
@@ -563,7 +535,6 @@
       "source": "humanizer-zh",
       "startLine": 384,
       "endLine": 393,
-      "marker": "<!-- source: humanizer-zh:384-393; block: optimize-zh-20 -->",
       "sourceSha256": "3a40fdbd184130693149a9183a5b56af396b9bf527366cc16ae45ac7dafef62f",
       "renderedSha256": "3a40fdbd184130693149a9183a5b56af396b9bf527366cc16ae45ac7dafef62f",
       "transforms": []
@@ -574,7 +545,6 @@
       "source": "technical-writing",
       "startLine": 81,
       "endLine": 92,
-      "marker": "<!-- source: technical-writing:81-92; block: optimize-zh-21 -->",
       "sourceSha256": "c330a7411a6d02d46d7348ffb144bd01f2c0f43b80f93bdc8c89e886bf6500b8",
       "renderedSha256": "c330a7411a6d02d46d7348ffb144bd01f2c0f43b80f93bdc8c89e886bf6500b8",
       "transforms": []
@@ -585,7 +555,6 @@
       "source": "humanizer-zh",
       "startLine": 395,
       "endLine": 401,
-      "marker": "<!-- source: humanizer-zh:395-401; block: optimize-zh-22 -->",
       "sourceSha256": "4d339f92c4077a1c9fa986002119ab85a4cefc4e00f8d5d1ed108fd103367c7b",
       "renderedSha256": "4d339f92c4077a1c9fa986002119ab85a4cefc4e00f8d5d1ed108fd103367c7b",
       "transforms": []
@@ -596,7 +565,6 @@
       "source": "shuorenhua",
       "startLine": 73,
       "endLine": 73,
-      "marker": "<!-- source: shuorenhua:73-73; block: optimize-zh-23 -->",
       "sourceSha256": "b5e0c280473e24f29bf0cb41891c3f7bb9e3c1bdd036697f19183f3b200a04ee",
       "renderedSha256": "b5e0c280473e24f29bf0cb41891c3f7bb9e3c1bdd036697f19183f3b200a04ee",
       "transforms": []
@@ -607,7 +575,6 @@
       "source": "humanizer-zh",
       "startLine": 403,
       "endLine": 408,
-      "marker": "<!-- source: humanizer-zh:403-408; block: optimize-zh-24 -->",
       "sourceSha256": "9b10f089973c3cfc8159642063a4a856783627f5ae6aab26ff24043b624772d1",
       "renderedSha256": "9b10f089973c3cfc8159642063a4a856783627f5ae6aab26ff24043b624772d1",
       "transforms": []

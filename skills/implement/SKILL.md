@@ -194,14 +194,13 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 
 ## 阶段 3：执行
 
-1. `wiki_target` 不是 `none` 时先调用 `wiki` 同步目标；为 `none` 时跳过。目标变化时按 `scope` 的「wiki 落地判断」自行调整，无需用户单独确认。
-2. 把 plan 或 `source` 转成 Todo；只允许一个任务处于 `in_progress`。
-3. 每个任务开始前读取相关文件和测试，确认计划仍匹配当前代码。
-4. 执行上面的验证契约。实施前确定对应方法、必要基线和判断标准；使用替代验证时记录原因，不伪造 RED/GREEN，也不跳过 source 的必要验收。
-5. 按任务执行命令，读取实际输出和 exit code。失败时先判断是预期 RED、实现问题、环境问题还是计划错误。
-6. 持久化 plan 存在 checkbox 时，完成一个步骤就更新对应 checkbox；不要等到最后一次性勾完。
-7. 一个独立工作单元验证通过后，调用 `git-workflow` 的 `checkpoint` 阶段。只 stage prepare 后确认属于本任务的文件，不使用会夹带无关修改的命令。
-8. 执行中发现计划需要调整时，先记录原因，再更新 plan 或 Todo。精确文件、局部实现结构和任务顺序的调整无需二次确认；如果调整改变需求边界、技术决策、验收或引入新的实质风险，先向用户确认。
+1. 把 plan 或 `source` 转成 Todo；只允许一个任务处于 `in_progress`。
+2. 每个任务开始前读取相关文件和测试，确认计划仍匹配当前代码。
+3. 执行上面的验证契约。实施前确定对应方法、必要基线和判断标准；使用替代验证时记录原因，不伪造 RED/GREEN，也不跳过 source 的必要验收。
+4. 按任务执行命令，读取实际输出和 exit code。失败时先判断是预期 RED、实现问题、环境问题还是计划错误。
+5. 持久化 plan 存在 checkbox 时，完成一个步骤就更新对应 checkbox；不要等到最后一次性勾完。
+6. 一个独立工作单元验证通过后，调用 `git-workflow` 的 `checkpoint` 阶段。只 stage prepare 后确认属于本任务的文件，不使用会夹带无关修改的命令。
+7. 执行中发现计划需要调整时，先记录原因，再更新 plan 或 Todo。精确文件、局部实现结构和任务顺序的调整无需二次确认；如果调整改变需求边界、技术决策、验收或引入新的实质风险，先向用户确认。
 
 ## 停止条件
 
@@ -216,8 +215,8 @@ After verification passes, invoke `git-workflow` in `checkpoint` mode for this t
 ## 阶段 4：完成
 
 1. 确认 Plan/Todo 必须覆盖 `source`，实施结果没有违反其中的硬约束或修复边界。
-2. 回顾实施过程：如果产生了值得沉淀的新知识（实施中形成的决策背景、约定修订、架构事实），按 `scope` 的「wiki 落地判断」自行确定或调整目标，调用 `wiki` 补充同步，无需用户单独确认 wiki 更新。
-3. 执行 `source` 要求的验证，为每项验收记录实际结果与证据；使用 RED/GREEN 时保留对应证据，其他方式保留基线、观察结果和必要回归。存在必需验收或验证失败、未执行时，不得以 `complete` 结束。
+2. 执行 `source` 要求的验证，为每项验收记录实际结果与证据；使用 RED/GREEN 时保留对应证据，其他方式保留基线、观察结果和必要回归。存在必需验收或验证失败、未执行时，不得以 `complete` 结束。
+3. 实现与验证完成后，按 `scope` 的「wiki 落地判断」复核目标并调用 `wiki` 同步实际结果；无需更新则跳过，无需用户单独确认。
 4. 检查 `git status -sb` 和实际 diff，区分任务修改与 prepare 前已有修改。
 5. 调用 `git-workflow` 的 `finalize` 阶段，传入 `complete`、`blocked`、`verification_failed` 或 `awaiting_review` 中的真实结果。
 6. finalize 返回前，不得把持久化修改任务报告为完成。

@@ -178,7 +178,7 @@ C4Context
 ## Getting Started
 
 1. **Identify what you need to communicate** - Architecture? Flow? Data model?
-2. **Choose the appropriate diagram type** - See "Diagram Type Selection Guide" in SKILL.md
+2. **Choose the appropriate diagram type** - See "Diagram Type Selection Guide" in index.md
 3. **Start simple** - Add core entities/components first
 4. **Add relationships** - Connect elements with appropriate connectors
 5. **Refine and style** - Add details, notes, and custom theming
@@ -189,7 +189,7 @@ C4Context
 
 For comprehensive syntax and advanced features, see:
 
-- **[SKILL.md](SKILL.md)** - Quick start guide and diagram selection
+- **[index.md](index.md)** - Quick start guide and diagram selection
 - **[references/class-diagrams.md](references/class-diagrams.md)** - Relationships, multiplicity, methods
 - **[references/sequence-diagrams.md](references/sequence-diagrams.md)** - Messages, activations, loops, alt blocks
 - **[references/flowcharts.md](references/flowcharts.md)** - Node shapes, decision logic, subgraphs
@@ -239,6 +239,6 @@ For comprehensive syntax and advanced features, see:
 ## Support
 
 For questions, syntax help, or advanced features, refer to:
-- SKILL.md for quick reference
+- index.md for quick reference
 - Reference files in `references/` for detailed syntax
 - [Mermaid official docs](https://mermaid.js.org) for latest features

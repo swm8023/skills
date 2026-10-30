@@ -29,8 +29,8 @@ local workflow extension, not upstream syntax material.
 
 Writing guidance in that reference also selects prose, lists, tables, callouts,
 and diagrams according to the reader's needs. Mermaid creation and editing route
-to the sibling [mermaid-diagrams skill](../../mermaid-diagrams/SKILL.md), which
-maintains its own pinned upstream provenance and mind-map reference. Diagram
+to the sibling [write-doc skill](../../write-doc/SKILL.md), whose diagram branch
+bundles the Mermaid references and their pinned upstream provenance. Diagram
 output returns to the existing note preview and publication flow; this routing
 does not grant access to private Wiki source or alter publication boundaries.
 

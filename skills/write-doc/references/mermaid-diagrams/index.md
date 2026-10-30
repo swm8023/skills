@@ -1,8 +1,3 @@
----
-name: mermaid-diagrams
-description: 创建、修改和检查 Mermaid 思维导图、流程图、时序图、状态图、ER 图及架构图。用户要求画图，或文档中的层级、分支、调用和依赖关系需要可视化时使用；简单步骤和字段对照优先使用列表或表格。
----
-
 # Mermaid Diagramming
 
 Create professional software diagrams using Mermaid's text-based syntax. Mermaid renders diagrams from simple text definitions, making diagrams version-controllable, easy to update, and maintainable alongside code.

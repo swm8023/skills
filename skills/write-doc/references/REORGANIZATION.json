@@ -641,71 +641,120 @@
       ]
     }
   ],
-  "mirroredFiles": [
+  "mermaidSource": {
+    "repository": "https://github.com/swm8023/skills",
+    "commit": "29cc2800b6be58448ab1a8718cc5e804792cb0ad"
+  },
+  "mermaidFiles": [
     {
-      "source": "skills/mermaid-diagrams/agents/openai.yaml",
-      "target": "references/mermaid-diagrams/agents/openai.yaml",
-      "sha256": "e0baecf6be4c3e944a744929326f010402cc2d220fc31c3ad72d9921baa66693"
-    },
-    {
-      "source": "skills/mermaid-diagrams/LICENSE",
+      "source": "skills/write-doc/references/mermaid-diagrams/LICENSE",
       "target": "references/mermaid-diagrams/LICENSE",
-      "sha256": "4b4447da5344f8b2d3a8a19ba8366d1ac7a24d9ab4690bd04576dc772ddf8321"
+      "sourceSha256": "4b4447da5344f8b2d3a8a19ba8366d1ac7a24d9ab4690bd04576dc772ddf8321",
+      "sha256": "4b4447da5344f8b2d3a8a19ba8366d1ac7a24d9ab4690bd04576dc772ddf8321",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/README.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/README.md",
       "target": "references/mermaid-diagrams/README.md",
-      "sha256": "696640b6520d581b27a888ee0df786745a918845c74c94e92f329bc3f48008c2"
+      "sourceSha256": "696640b6520d581b27a888ee0df786745a918845c74c94e92f329bc3f48008c2",
+      "sha256": "f3c31f921c1a1176fec65524f87858c3138a54babef29320ef3f2687b94b6b44",
+      "transforms": [
+        {
+          "from": "SKILL.md",
+          "to": "index.md"
+        }
+      ]
     },
     {
-      "source": "skills/mermaid-diagrams/references/advanced-features.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/advanced-features.md",
       "target": "references/mermaid-diagrams/references/advanced-features.md",
-      "sha256": "397203a6a72bccf6beea7a891c31007660e57396acfda84f22dcfb4c07cbe0fa"
+      "sourceSha256": "397203a6a72bccf6beea7a891c31007660e57396acfda84f22dcfb4c07cbe0fa",
+      "sha256": "397203a6a72bccf6beea7a891c31007660e57396acfda84f22dcfb4c07cbe0fa",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/architecture-diagrams.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/architecture-diagrams.md",
       "target": "references/mermaid-diagrams/references/architecture-diagrams.md",
-      "sha256": "2cc9629ae4f3c82f7495937bf0d3c426c2e20f5b325fc5b3998d32a98d839d54"
+      "sourceSha256": "2cc9629ae4f3c82f7495937bf0d3c426c2e20f5b325fc5b3998d32a98d839d54",
+      "sha256": "2cc9629ae4f3c82f7495937bf0d3c426c2e20f5b325fc5b3998d32a98d839d54",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/c4-diagrams.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/c4-diagrams.md",
       "target": "references/mermaid-diagrams/references/c4-diagrams.md",
-      "sha256": "c062263f8101f5da78c6202b000b79848b1f3d0a7fb4a88fdd777ec1a87e9c22"
+      "sourceSha256": "c062263f8101f5da78c6202b000b79848b1f3d0a7fb4a88fdd777ec1a87e9c22",
+      "sha256": "c062263f8101f5da78c6202b000b79848b1f3d0a7fb4a88fdd777ec1a87e9c22",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/class-diagrams.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/class-diagrams.md",
       "target": "references/mermaid-diagrams/references/class-diagrams.md",
-      "sha256": "732e32676c397b4f8b08a48c67fa08d26572ba9fbf9bd5251dec44d4d31a133d"
+      "sourceSha256": "732e32676c397b4f8b08a48c67fa08d26572ba9fbf9bd5251dec44d4d31a133d",
+      "sha256": "732e32676c397b4f8b08a48c67fa08d26572ba9fbf9bd5251dec44d4d31a133d",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/erd-diagrams.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/erd-diagrams.md",
       "target": "references/mermaid-diagrams/references/erd-diagrams.md",
-      "sha256": "b5fe268baecce3de92c97627fc9b558df42be87c17d9d6e7577bfa35185b1216"
+      "sourceSha256": "b5fe268baecce3de92c97627fc9b558df42be87c17d9d6e7577bfa35185b1216",
+      "sha256": "b5fe268baecce3de92c97627fc9b558df42be87c17d9d6e7577bfa35185b1216",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/flowcharts.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/flowcharts.md",
       "target": "references/mermaid-diagrams/references/flowcharts.md",
-      "sha256": "e5716f510c94e3474c1db9f166ff2481194f20c10602df0b3a5c6091d25301bd"
+      "sourceSha256": "e5716f510c94e3474c1db9f166ff2481194f20c10602df0b3a5c6091d25301bd",
+      "sha256": "e5716f510c94e3474c1db9f166ff2481194f20c10602df0b3a5c6091d25301bd",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/mindmaps.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/mindmaps.md",
       "target": "references/mermaid-diagrams/references/mindmaps.md",
-      "sha256": "8d85bfe9d4c9baada1951ba95db34e13e81d3a019bf4c6c877b8378e34acbfdf"
+      "sourceSha256": "8d85bfe9d4c9baada1951ba95db34e13e81d3a019bf4c6c877b8378e34acbfdf",
+      "sha256": "8d85bfe9d4c9baada1951ba95db34e13e81d3a019bf4c6c877b8378e34acbfdf",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/sequence-diagrams.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/sequence-diagrams.md",
       "target": "references/mermaid-diagrams/references/sequence-diagrams.md",
-      "sha256": "9c016fd7c51f7f9d155ca156fb19649bdcf56c98a76fc8572a2b3d54098a1fef"
+      "sourceSha256": "9c016fd7c51f7f9d155ca156fb19649bdcf56c98a76fc8572a2b3d54098a1fef",
+      "sha256": "9c016fd7c51f7f9d155ca156fb19649bdcf56c98a76fc8572a2b3d54098a1fef",
+      "transforms": []
     },
     {
-      "source": "skills/mermaid-diagrams/references/UPSTREAM.md",
+      "source": "skills/write-doc/references/mermaid-diagrams/references/UPSTREAM.md",
       "target": "references/mermaid-diagrams/references/UPSTREAM.md",
-      "sha256": "12039babc30b275d4aad01a9b89642b539735ac96855cc1949a3f375a94e0deb"
+      "sourceSha256": "12039babc30b275d4aad01a9b89642b539735ac96855cc1949a3f375a94e0deb",
+      "sha256": "31f0ef397ce1d81174e180cc313c410f78f78392b91f807e0371552a7a3328de",
+      "transforms": [
+        {
+          "from": "The local `SKILL.md`",
+          "to": "The local `index.md`"
+        },
+        {
+          "from": "`agents/openai.yaml` is local discovery metadata and enables implicit invocation.\n",
+          "to": ""
+        }
+      ]
     },
     {
-      "source": "skills/mermaid-diagrams/SKILL.md",
-      "target": "references/mermaid-diagrams/SKILL.md",
-      "sha256": "f7be8add3064c2635987db47b70f4e614e486d4a9b155a89947135db42eff72f"
+      "source": "skills/write-doc/references/mermaid-diagrams/SKILL.md",
+      "target": "references/mermaid-diagrams/index.md",
+      "sourceSha256": "f7be8add3064c2635987db47b70f4e614e486d4a9b155a89947135db42eff72f",
+      "sha256": "dcccdf039e9c75be257fa5a7d762925118592dc1303652cee97b08b427b321c8",
+      "transforms": [
+        {
+          "from": "---\r\nname: mermaid-diagrams\r\ndescription: 创建、修改和检查 Mermaid 思维导图、流程图、时序图、状态图、ER 图及架构图。用户要求画图，或文档中的层级、分支、调用和依赖关系需要可视化时使用；简单步骤和字段对照优先使用列表或表格。\r\n---\r\n\r\n",
+          "to": ""
+        }
+      ]
+    }
+  ],
+  "removedMermaidFiles": [
+    {
+      "source": "skills/write-doc/references/mermaid-diagrams/agents/openai.yaml",
+      "sha256": "e0baecf6be4c3e944a744929326f010402cc2d220fc31c3ad72d9921baa66693",
+      "reason": "Standalone skill invocation metadata removed"
     }
   ]
 }

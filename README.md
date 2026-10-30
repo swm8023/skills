@@ -14,7 +14,8 @@ drafting, and Mermaid when diagrams are needed. The three writing references
 contain source passages moved and regrouped without rewriting. Editing conflicts
 follow `humanizer-zh`; compatible `shuorenhua` protections are retained.
 The [source map](skills/write-doc/references/REORGANIZATION.json) records source
-spans and hashes, and the complete Mermaid package is copied unchanged.
+spans and hashes. Mermaid is bundled as an ordinary reference under `write-doc`,
+with its diagram guidance retained and standalone skill entry removed.
 
 ## Chinese technical writing
 

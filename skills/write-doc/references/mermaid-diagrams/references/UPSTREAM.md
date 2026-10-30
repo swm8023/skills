@@ -12,7 +12,7 @@ The upstream skill directory was imported with its README and seven references:
 Those reference files and the README retain upstream content; line endings and
 insignificant trailing whitespace are normalized to repository conventions.
 
-The local `SKILL.md` adapts invocation guidance, adds mind-map selection,
+The local `index.md` adapts invocation guidance, adds mind-map selection,
 uses Markdown code blocks as the default document output, and replaces mandatory
 diagramming and online validation advice with focused diagrams and local checks.
 Its rules preserve the calling workflow's source access, paths, preview, Git,
@@ -20,5 +20,4 @@ publication, and private-data boundaries. Upstream optional renderer examples
 do not establish support in the calling application's renderer.
 
 `mindmaps.md` is a local reference informed by the official Mermaid documentation.
-`agents/openai.yaml` is local discovery metadata and enables implicit invocation.
 This import does not add a runtime network dependency or change any renderer.

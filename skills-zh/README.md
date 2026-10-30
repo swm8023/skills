@@ -9,6 +9,7 @@
 | Superpowers | [superpowers/](superpowers/README.md) | [记录](superpowers.TRANSLATION.json) | 原有 13 个 skill 包的译文，仅移动目录 |
 | Caveman | [caveman/](caveman/README.md) | [记录](caveman.TRANSLATION.json) | 原有历史译文，仅移动目录 |
 | Softaworks Agent Toolkit | [softaworks/](softaworks/README.md) | [记录](softaworks.TRANSLATION.json) | 四个完整 skill 包，23 份 Markdown |
+| pstack（Cursor plugins） | [pstack/](pstack/README.md) | [记录](pstack.TRANSLATION.json) | technical-writing 完整包，逐句翻译后按 humanizer-zh 润色 |
 
 ## 目录和历史资料
 
@@ -38,3 +39,9 @@ Softaworks 对应上游 `3027f20f3181758385a1bb8c022d4041dfb4de84`，2026-10-26 
 对应中文，不增加段落、列表项或表格行。LICENSE 原样保留。
 
 这些文件均为参考资料；本地正在使用的定制 `skills/mermaid-diagrams/` 独立保留。
+
+pstack 对应 Cursor plugins 提交 `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`，
+2026-10-30 核对。选取完整 `technical-writing` 包及 pstack LICENSE。
+106 行正文按原文逐句翻译，再按 `humanizer-zh` 规则润色中文措辞；
+标题、行结构、英语辨析原句、技术示例和调用策略保留。
+原有 `unslop` 引用作为配套依赖记录，LICENSE 原样保留。

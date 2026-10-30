@@ -19,12 +19,20 @@ the source folder. These archives are separate from active project `skills/`.
 | Superpowers | [superpowers](skills.bak/superpowers/README.md) | [superpowers](skills-zh/superpowers/README.md) | Existing 13 skill packages, reorganized without refreshing their contents |
 | Caveman | [caveman](skills.bak/caveman/README.md) | [caveman](skills-zh/caveman/README.md) | Existing historical skill, reorganized without content changes |
 | Softaworks Agent Toolkit | [softaworks](skills.bak/softaworks/README.md) | [softaworks](skills-zh/softaworks/README.md) | Four selected packages: skill-judge, writing-clearly-and-concisely, lesson-learned, mermaid-diagrams |
+| pstack (Cursor plugins) | [pstack](skills.bak/pstack/README.md) | [pstack](skills-zh/pstack/README.md) | Selected technical-writing package and LICENSE; sentence-aligned Chinese translation reviewed with humanizer-zh |
 
 Softaworks is pinned to `3027f20f3181758385a1bb8c022d4041dfb4de84`
 (verified 2026-10-26). Its four packages contain all 23 upstream Markdown files,
 including supporting references, with sentence-aligned Chinese translations and
 English technical terms retained. Source manifests record original hashes and file modes;
 translation manifests also record translated hashes and preservation rules.
+
+pstack is pinned to Cursor plugins commit `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`
+(verified 2026-10-30). The selection contains the complete `technical-writing`
+package and pstack LICENSE. Its 106-line Chinese translation preserves the
+upstream structure, English headings, technical examples, and invocation policy,
+with a final wording review using the pinned `humanizer-zh` rules. The adjacent
+manifests record the source paths, hashes, and editorial provenance.
 
 Historical documents may refer to the former flat paths. Superpowers packages
 formerly at `skills.bak/<skill>/` or `skills-zh/<skill>/` now live under

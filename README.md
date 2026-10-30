@@ -6,6 +6,16 @@ Add skills under `skills/<skill-name>/SKILL.md`, then push the repo.
 
 WheelMaker tracks this folder as a Project at `D:\Code\skills`. If the GitHub repository is public, or the local `skills` CLI can access it with Git credentials, it can also be used as a remote Skill Source with `swm8023/skills`.
 
+## Document writing
+
+[`write-doc`](skills/write-doc/SKILL.md) routes document work through bundled
+references: `write-technical` and `write-zh` before drafting, `optimize-zh` after
+drafting, and Mermaid when diagrams are needed. The three writing references
+contain source passages moved and regrouped without rewriting. Editing conflicts
+follow `humanizer-zh`; compatible `shuorenhua` protections are retained.
+The [source map](skills/write-doc/references/REORGANIZATION.json) records source
+spans and hashes, and the complete Mermaid package is copied unchanged.
+
 ## Chinese technical writing
 
 [`technical-writing`](skills/technical-writing/SKILL.md) is the local Chinese

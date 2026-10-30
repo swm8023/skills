@@ -1,0 +1,7 @@
+interface:
+  display_name: "中文技术写作"
+  short_description: "面向中文技术文档，组织结构、核对事实并审校语序、术语与操作步骤"
+  default_prompt: "使用 $technical-writing 撰写或审校这份中文技术文档，按读者任务组织内容，并保留事实、术语、代码与必要限定。"
+
+policy:
+  allow_implicit_invocation: false

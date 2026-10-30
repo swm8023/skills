@@ -6,6 +6,14 @@ Add skills under `skills/<skill-name>/SKILL.md`, then push the repo.
 
 WheelMaker tracks this folder as a Project at `D:\Code\skills`. If the GitHub repository is public, or the local `skills` CLI can access it with Git credentials, it can also be used as a remote Skill Source with `swm8023/skills`.
 
+## Chinese technical writing
+
+[`technical-writing`](skills/technical-writing/SKILL.md) is the local Chinese
+adaptation for drafting, restructuring, and reviewing technical documents.
+Invoke it explicitly with `$technical-writing`. It includes Chinese examples,
+document-type guidance, and a final wording and meaning check. Source provenance
+and adaptation choices are in its [source record](skills/technical-writing/references/UPSTREAM.md).
+
 ## Reference archive organization
 
 Original references live in `skills.bak/<source>/`; Chinese references mirror

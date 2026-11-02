@@ -11,19 +11,17 @@ WheelMaker tracks this folder as a Project at `D:\Code\skills`. If the GitHub re
 [`write-doc`](skills/write-doc/SKILL.md) routes document work through bundled
 references: `write-technical` and `write-zh` before drafting, `optimize-zh` after
 drafting, and Mermaid when diagrams are needed. The three writing references
-contain source passages moved and regrouped without rewriting. Editing conflicts
+contain source passages selected and regrouped without new writing guidance. Editing conflicts
 follow `humanizer-zh`; compatible `shuorenhua` protections are retained.
 The [source map](skills/write-doc/references/REORGANIZATION.json) records source
 spans and hashes. Mermaid is bundled as an ordinary reference under `write-doc`,
 with its diagram guidance retained and standalone skill entry removed.
 
-## Chinese technical writing
-
-[`technical-writing`](skills/technical-writing/SKILL.md) is the local Chinese
-adaptation for drafting, restructuring, and reviewing technical documents.
-Invoke it explicitly with `$technical-writing`. It includes Chinese examples,
-document-type guidance, and a final wording and meaning check. Source provenance
-and adaptation choices are in its [source record](skills/technical-writing/references/UPSTREAM.md).
+The standalone `technical-writing` entry is retired. Its Chinese adaptation and
+the applicable upstream Diátaxis, Google developer style, STE, and Global English
+rules are integrated into `write-doc`; English-specific rules remain in the
+source snapshots and translation archive. The retired local package is preserved
+in the [archive](skills.bak/technical-writing-local/SKILL.md).
 
 ## Reference archive organization
 

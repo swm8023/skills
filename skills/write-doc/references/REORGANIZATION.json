@@ -1,9 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "assembledOn": "2026-10-30",
   "selection": "B",
   "primaryEditingSource": "humanizer-zh",
-  "policy": "Source blocks are moved and reordered verbatim. Only reference headers, blank separators, and recorded relative-link rebasing are generated.",
+  "policy": "Source passages are selected, moved and regrouped. Only reference headers, blank separators, recorded fragment exclusions and relative-link rebasing are generated; no new writing guidance is authored in the three references.",
   "priorityDecision": "humanizer-zh controls editing scope; shuorenhua supplies compatible factual protections and explicit user-scope options.",
   "excludedConflictingShuorenhuaLines": [
     10,
@@ -30,6 +30,10 @@
       "unselectedLineRanges": [
         [
           1,
+          8
+        ],
+        [
+          10,
           10
         ],
         [
@@ -41,11 +45,15 @@
           24
         ],
         [
-          36,
-          38
+          34,
+          34
         ],
         [
-          40,
+          36,
+          36
+        ],
+        [
+          44,
           44
         ],
         [
@@ -181,30 +189,87 @@
           402
         ]
       ]
+    },
+    {
+      "id": "technical-writing-upstream-zh",
+      "repository": "https://github.com/swm8023/skills",
+      "commit": "d9b90964eac12ed93d5436df96b92d3a71804b5c",
+      "path": "skills-zh/pstack/skills/technical-writing/SKILL.md",
+      "upstreamRepository": "https://github.com/cursor/plugins",
+      "upstreamCommit": "4dd1d05818d19792e7cd6e818f1667f95f7e1dbe",
+      "upstreamPath": "pstack/skills/technical-writing/SKILL.md",
+      "snapshot": "references/sources/technical-writing-upstream-zh.txt",
+      "sha256": "ddc849cc482f503474e37ba5ffae7eb7966cbef55df7cf46485aff6ef2c4248a",
+      "licenseSection": "technical-writing",
+      "licenseSha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "lineCount": 106,
+      "unselectedLineRanges": [
+        [
+          1,
+          10
+        ],
+        [
+          20,
+          20
+        ],
+        [
+          29,
+          29
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          64,
+          64
+        ],
+        [
+          75,
+          75
+        ],
+        [
+          90,
+          90
+        ],
+        [
+          97,
+          106
+        ]
+      ]
     }
   ],
   "documents": [
     {
       "path": "references/write-technical.md",
       "header": "# write-technical\n\n",
-      "sha256": "7859ec1ddf953b81e0091baf03c3df2de87c3bf878dff7446ff522f2f8725685",
+      "sha256": "f2c2e392fc65f103ba8bf06597c11ec1513382c53bff9acf5eab2cb454123987",
       "blocks": [
         "write-technical-01",
         "write-technical-02",
-        "write-technical-03"
+        "write-technical-03",
+        "write-technical-04",
+        "write-technical-05"
       ]
     },
     {
       "path": "references/write-zh.md",
       "header": "# write-zh\n\n",
-      "sha256": "84e29cc213bf8394f199e4dbc6211127fb42abcc2f2c98abeb62e64f39c2c401",
+      "sha256": "e892a6eb077c7cc5ce751707d834f04422a6faac4c2ed06e1ea70107c39bf6f7",
       "blocks": [
         "write-zh-01",
         "write-zh-02",
         "write-zh-03",
         "write-zh-04",
         "write-zh-05",
-        "write-zh-06"
+        "write-zh-06",
+        "write-zh-07",
+        "write-zh-08",
+        "write-zh-09",
+        "write-zh-10",
+        "write-zh-11",
+        "write-zh-12",
+        "write-zh-13"
       ]
     },
     {
@@ -244,6 +309,16 @@
       "id": "write-technical-01",
       "document": "references/write-technical.md",
       "source": "technical-writing",
+      "startLine": 9,
+      "endLine": 9,
+      "sourceSha256": "c7280c355478afa8a91febd7ea3f02ebd9bc1de7944c32714ce3683392bd9b9e",
+      "renderedSha256": "c7280c355478afa8a91febd7ea3f02ebd9bc1de7944c32714ce3683392bd9b9e",
+      "transforms": []
+    },
+    {
+      "id": "write-technical-02",
+      "document": "references/write-technical.md",
+      "source": "technical-writing",
       "startLine": 13,
       "endLine": 23,
       "sourceSha256": "ffda2987a4fe0e517f2c3d85ef5ef3379ff6dbdab1c7b3f51d23e57af1cc37f2",
@@ -251,84 +326,44 @@
       "transforms": []
     },
     {
-      "id": "write-technical-02",
+      "id": "write-technical-03",
+      "document": "references/write-technical.md",
+      "source": "technical-writing-upstream-zh",
+      "startLine": 30,
+      "endLine": 49,
+      "sourceSha256": "2edf1357e5eaf6250749ce7af9dd18e4f1e04f2ed253a1562963f8ee2dbaeb5b",
+      "renderedSha256": "2edf1357e5eaf6250749ce7af9dd18e4f1e04f2ed253a1562963f8ee2dbaeb5b",
+      "transforms": []
+    },
+    {
+      "id": "write-technical-04",
       "document": "references/write-technical.md",
       "source": "technical-writing",
       "startLine": 25,
-      "endLine": 35,
-      "sourceSha256": "0ed0d5060b29f68c53a7f8aa1d2f73942eefd1a47ab12299838bb747c70e6830",
-      "renderedSha256": "0ed0d5060b29f68c53a7f8aa1d2f73942eefd1a47ab12299838bb747c70e6830",
-      "transforms": []
+      "endLine": 33,
+      "sourceSha256": "de98169b0d62d1bfb42f01ae25702bacfb703333dfc013d0f2874610a469a46d",
+      "renderedSha256": "9232cc9118a8d5a256cac7b83774546215a2dd72c97f629d1b6bd624dbf28b4d",
+      "transforms": [
+        {
+          "from": "| 首次完成一件事 | 入门教程 | 写清前置条件，沿一条可完成的路径推进，在关键步骤给出可观察的结果。 |\n| 已有背景，解决具体问题 | 操作指南 | 条件、动作、结果和必要分支；较长的原理说明放在适当位置或另行链接。 |\n| 查找确定信息 | 接口、命令或配置参考 | 按对象组织字段、类型、默认值、范围、单位、错误及适用条件。 |\n| 理解机制和原因 | 原理或架构说明 | 围绕一个问题解释机制、约束、取舍和边界，例子对应实际关系。 |\n",
+          "to": ""
+        }
+      ]
     },
     {
-      "id": "write-technical-03",
+      "id": "write-technical-05",
       "document": "references/write-technical.md",
       "source": "technical-writing",
-      "startLine": 39,
-      "endLine": 39,
-      "sourceSha256": "352a1693b4b4f5577f258c7eead3df5255280fbd35b1f8d0a7e03fcded5c13d7",
-      "renderedSha256": "352a1693b4b4f5577f258c7eead3df5255280fbd35b1f8d0a7e03fcded5c13d7",
-      "transforms": []
-    },
-    {
-      "id": "write-zh-01",
-      "document": "references/write-zh.md",
-      "source": "technical-writing",
-      "startLine": 11,
-      "endLine": 11,
-      "sourceSha256": "0f1ae9533277edc86cb911bebbfd424333e4afb482ad144a4b25bdc36032cf25",
-      "renderedSha256": "0f1ae9533277edc86cb911bebbfd424333e4afb482ad144a4b25bdc36032cf25",
-      "transforms": []
-    },
-    {
-      "id": "write-zh-02",
-      "document": "references/write-zh.md",
-      "source": "humanizer-zh",
-      "startLine": 23,
-      "endLine": 23,
-      "sourceSha256": "06377b30e71241e36fadca05208ffc705f28f42a5b6a07785e994c42938b3aef",
-      "renderedSha256": "06377b30e71241e36fadca05208ffc705f28f42a5b6a07785e994c42938b3aef",
-      "transforms": []
-    },
-    {
-      "id": "write-zh-03",
-      "document": "references/write-zh.md",
-      "source": "humanizer-zh",
-      "startLine": 32,
-      "endLine": 38,
-      "sourceSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
-      "renderedSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
-      "transforms": []
-    },
-    {
-      "id": "write-zh-04",
-      "document": "references/write-zh.md",
-      "source": "technical-writing",
-      "startLine": 45,
-      "endLine": 56,
-      "sourceSha256": "4281a2fb41172717a9d10ca175148e4acb552a90867e8a51af1b550c3dcf8192",
-      "renderedSha256": "4281a2fb41172717a9d10ca175148e4acb552a90867e8a51af1b550c3dcf8192",
-      "transforms": []
-    },
-    {
-      "id": "write-zh-05",
-      "document": "references/write-zh.md",
-      "source": "technical-writing",
-      "startLine": 58,
-      "endLine": 65,
-      "sourceSha256": "56c055187ef842061aff1afce916cc0079167126db3dc3b3eea15394dad7a016",
-      "renderedSha256": "56c055187ef842061aff1afce916cc0079167126db3dc3b3eea15394dad7a016",
-      "transforms": []
-    },
-    {
-      "id": "write-zh-06",
-      "document": "references/write-zh.md",
-      "source": "technical-writing",
-      "startLine": 67,
-      "endLine": 79,
-      "sourceSha256": "dbe72e7a819ce5faaf641c3af7dd374f4d970b735b635760d709b4ef6540db15",
-      "renderedSha256": "dbe72e7a819ce5faaf641c3af7dd374f4d970b735b635760d709b4ef6540db15",
-      "transforms": []
+      "startLine": 35,
+      "endLine": 35,
+      "sourceSha256": "e9f94e92d3a23e98d2e471417b0365b01f86621373d4516b2d3ead4409806a66",
+      "renderedSha256": "596734626e0bb734dd2c128779d418f6b0a1ca634f11c78279fd6df7bd8b1e6f",
+      "transforms": [
+        {
+          "from": "同一页面承担多种任务时按用途分区；内容较多或需要独立维护时再拆页。",
+          "to": ""
+        }
+      ]
     },
     {
       "id": "optimize-zh-01",
@@ -578,6 +613,201 @@
       "sourceSha256": "9b10f089973c3cfc8159642063a4a856783627f5ae6aab26ff24043b624772d1",
       "renderedSha256": "9b10f089973c3cfc8159642063a4a856783627f5ae6aab26ff24043b624772d1",
       "transforms": []
+    },
+    {
+      "id": "write-zh-01",
+      "document": "references/write-zh.md",
+      "source": "technical-writing",
+      "startLine": 11,
+      "endLine": 11,
+      "sourceSha256": "0f1ae9533277edc86cb911bebbfd424333e4afb482ad144a4b25bdc36032cf25",
+      "renderedSha256": "0f1ae9533277edc86cb911bebbfd424333e4afb482ad144a4b25bdc36032cf25",
+      "transforms": []
+    },
+    {
+      "id": "write-zh-02",
+      "document": "references/write-zh.md",
+      "source": "humanizer-zh",
+      "startLine": 23,
+      "endLine": 23,
+      "sourceSha256": "06377b30e71241e36fadca05208ffc705f28f42a5b6a07785e994c42938b3aef",
+      "renderedSha256": "06377b30e71241e36fadca05208ffc705f28f42a5b6a07785e994c42938b3aef",
+      "transforms": []
+    },
+    {
+      "id": "write-zh-03",
+      "document": "references/write-zh.md",
+      "source": "technical-writing",
+      "startLine": 37,
+      "endLine": 43,
+      "sourceSha256": "b21451a9390857b0a530da8e39b6005778eacfb08122d35fba27ec96a483f0ff",
+      "renderedSha256": "b21451a9390857b0a530da8e39b6005778eacfb08122d35fba27ec96a483f0ff",
+      "transforms": []
+    },
+    {
+      "id": "write-zh-04",
+      "document": "references/write-zh.md",
+      "source": "technical-writing-upstream-zh",
+      "startLine": 11,
+      "endLine": 19,
+      "sourceSha256": "58d3e982b6d0090e80e5effcfb3d66b36a44b2beb0806d5e463a578f295039e0",
+      "renderedSha256": "23a60e12acb35832ae67ccc33d0053a7a692ff3e4463074578a7a177112f0dbf",
+      "transforms": [
+        {
+          "from": "发现新的问题用语时，在回复中给出它及其替代说法的 diff，建议加入 `unslop` 的 abstract-metaphor rule。不要直接编辑那个 skill。",
+          "to": ""
+        }
+      ]
+    },
+    {
+      "id": "write-zh-05",
+      "document": "references/write-zh.md",
+      "source": "technical-writing-upstream-zh",
+      "startLine": 21,
+      "endLine": 28,
+      "sourceSha256": "dd04ebf02cddeb5236f0a82dcf8c245ee89326b3a9ac3435d173ccde25114411",
+      "renderedSha256": "dd04ebf02cddeb5236f0a82dcf8c245ee89326b3a9ac3435d173ccde25114411",
+      "transforms": []
+    },
+    {
+      "id": "write-zh-06",
+      "document": "references/write-zh.md",
+      "source": "humanizer-zh",
+      "startLine": 32,
+      "endLine": 38,
+      "sourceSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
+      "renderedSha256": "f598b081eacb832ba6f7d4941136727226a2f091ddf808d5b28c2775e8170e8c",
+      "transforms": []
+    },
+    {
+      "id": "write-zh-07",
+      "document": "references/write-zh.md",
+      "source": "technical-writing-upstream-zh",
+      "startLine": 51,
+      "endLine": 63,
+      "sourceSha256": "0b680566598ec0cd21cf3049c161b5e37498a576da8f30c92d8177b236b7bef6",
+      "renderedSha256": "3961e32e9d6150d24c52687bbac505d09635a62a160647a67101a364058e8a6b",
+      "transforms": [
+        {
+          "from": "- 用 \"you\"（你）直接面向读者，使用 present tense。只有确实在之后发生的事情才用 \"Will\"（将会）。\n",
+          "to": ""
+        },
+        {
+          "from": " 或比喻",
+          "to": ""
+        },
+        {
+          "from": "使用 sentence case。",
+          "to": ""
+        },
+        {
+          "from": "使用 serial comma。",
+          "to": ""
+        }
+      ]
+    },
+    {
+      "id": "write-zh-08",
+      "document": "references/write-zh.md",
+      "source": "technical-writing-upstream-zh",
+      "startLine": 65,
+      "endLine": 74,
+      "sourceSha256": "d1ce534823e68aaa6e2d0b841a595fdd2d71d5ff2ad1ba99cf426ee1aa0d50ef",
+      "renderedSha256": "c79f1ae087e31a71b0c2195ec4b9ceaa09c27fbaddaf8485911d44497175df71",
+      "transforms": [
+        {
+          "from": "- 指令超过约 20 个英文词、其他句子超过约 25 个英文词时，拆开。\n",
+          "to": ""
+        },
+        {
+          "from": "- 保留 \"the\" 和 \"a\" 这样的 article。\"Remove backup file\"（删除备份文件）的解读可能有歧义；\"Remove the backup file\"（删除该备份文件）指向明确。\n",
+          "to": ""
+        },
+        {
+          "from": "- 尽量避免 \"-ing\" 形式的词。\n",
+          "to": ""
+        }
+      ]
+    },
+    {
+      "id": "write-zh-09",
+      "document": "references/write-zh.md",
+      "source": "technical-writing-upstream-zh",
+      "startLine": 76,
+      "endLine": 89,
+      "sourceSha256": "29016ae1d0676c6f46bd7edd8f4cbed3afeaad8c8626e2d61d697040db5ef996",
+      "renderedSha256": "abed5a71af6ea32e944d8f4a451c722894134271c439055a07fc681f1320ad11",
+      "transforms": [
+        {
+          "from": "- 保留体现句子结构的小词，比如 \"that\"，它出现在 \"Ensure that the switch is off\"（确保开关已关闭）中。不要为了减少词数牺牲清晰度。\n",
+          "to": ""
+        },
+        {
+          "from": "- 并列结构中，重复 article 可以防止误读。指两个不同对象时，写 \"the client and the host\"（客户端和主机），不要写 \"the client and host\"（客户端和主机）。\n",
+          "to": ""
+        },
+        {
+          "from": "- 用句号，不用分号。把 em dash 改为新句子。\n",
+          "to": ""
+        },
+        {
+          "from": "- 括号里的内容应是语法完整的表达，或另写成一句。不要用 \"(s)\" 表示复数。\n",
+          "to": ""
+        },
+        {
+          "from": "- 不用 slash：写 \"a, b, or both\"（a、b 或两者），不要写 \"a/b\" 或 \"and/or\"（和／或）。\n",
+          "to": ""
+        },
+        {
+          "from": "- 不用 idiom、口语化表达、Latin abbreviation 或比喻。\n",
+          "to": ""
+        }
+      ]
+    },
+    {
+      "id": "write-zh-10",
+      "document": "references/write-zh.md",
+      "source": "technical-writing",
+      "startLine": 45,
+      "endLine": 56,
+      "sourceSha256": "4281a2fb41172717a9d10ca175148e4acb552a90867e8a51af1b550c3dcf8192",
+      "renderedSha256": "4281a2fb41172717a9d10ca175148e4acb552a90867e8a51af1b550c3dcf8192",
+      "transforms": []
+    },
+    {
+      "id": "write-zh-11",
+      "document": "references/write-zh.md",
+      "source": "technical-writing",
+      "startLine": 58,
+      "endLine": 65,
+      "sourceSha256": "56c055187ef842061aff1afce916cc0079167126db3dc3b3eea15394dad7a016",
+      "renderedSha256": "56c055187ef842061aff1afce916cc0079167126db3dc3b3eea15394dad7a016",
+      "transforms": []
+    },
+    {
+      "id": "write-zh-12",
+      "document": "references/write-zh.md",
+      "source": "technical-writing-upstream-zh",
+      "startLine": 91,
+      "endLine": 96,
+      "sourceSha256": "21cf0d60855f054c9d4456e7b7e09524efe24a9ef2c0472bcd08293b0a59cb79",
+      "renderedSha256": "c384a642cdf44f51a04a712deab4e504da59392fe12d78ca8696d85d8a9ee6d3",
+      "transforms": [
+        {
+          "from": "- 本 skill 处理的每份文档都要应用 **unslop** skill。AI 用词（AI vocabulary）、赘语（filler）、不确定性表达（hedging）和格式痕迹（formatting tells）等 slop-pattern 清单由它负责。\n",
+          "to": ""
+        }
+      ]
+    },
+    {
+      "id": "write-zh-13",
+      "document": "references/write-zh.md",
+      "source": "technical-writing",
+      "startLine": 67,
+      "endLine": 79,
+      "sourceSha256": "dbe72e7a819ce5faaf641c3af7dd374f4d970b735b635760d709b4ef6540db15",
+      "renderedSha256": "dbe72e7a819ce5faaf641c3af7dd374f4d970b735b635760d709b4ef6540db15",
+      "transforms": []
     }
   ],
   "supportingFiles": [
@@ -723,5 +953,70 @@
       "sha256": "e0baecf6be4c3e944a744929326f010402cc2d220fc31c3ad72d9921baa66693",
       "reason": "Standalone skill invocation metadata removed"
     }
-  ]
+  ],
+  "updatedOn": "2026-11-02",
+  "integrationDecisions": [
+    {
+      "decision": "Restore the complete Diataxis mode selection and per-mode boundaries from the pinned translation; replace the local mixed-mode allowance."
+    },
+    {
+      "decision": "Restore common Google developer style, STE, Global English, PR, commit and repository rules using source passages; preserve native Chinese wording checks."
+    },
+    {
+      "decision": "Use optimize-zh for post-draft editing under choice B, without a mandatory external unslop dependency."
+    }
+  ],
+  "archivedOnlyTranslationSpans": [
+    {
+      "startLine": 53,
+      "endLine": 53,
+      "reason": "English tense and fixed second-person wording; Chinese voice guidance is already retained."
+    },
+    {
+      "startLine": 68,
+      "endLine": 68,
+      "reason": "English word-count limits do not define Chinese sentence length."
+    },
+    {
+      "startLine": 70,
+      "endLine": 70,
+      "reason": "English articles."
+    },
+    {
+      "startLine": 74,
+      "endLine": 74,
+      "reason": "English ing forms."
+    },
+    {
+      "startLine": 82,
+      "endLine": 83,
+      "reason": "English that and repeated articles."
+    },
+    {
+      "startLine": 85,
+      "endLine": 87,
+      "reason": "English punctuation and plural conventions; retain Chinese and project formatting guidance."
+    },
+    {
+      "startLine": 89,
+      "endLine": 89,
+      "reason": "Blanket idiom and metaphor prohibition conflicts with retained Chinese genre and author-voice guidance."
+    },
+    {
+      "startLine": 93,
+      "endLine": 93,
+      "reason": "Mandatory unslop is replaced by the user-selected optimize-zh phase."
+    },
+    {
+      "startLine": 98,
+      "endLine": 106,
+      "reason": "The source worked example relies on repository context; retain the existing Chinese examples that preserve the supplied information."
+    }
+  ],
+  "retirement": {
+    "retiredOn": "2026-11-02",
+    "oldEntry": "skills/technical-writing",
+    "archive": "skills.bak/technical-writing-local",
+    "replacement": "skills/write-doc"
+  }
 }

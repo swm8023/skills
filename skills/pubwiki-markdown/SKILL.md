@@ -205,7 +205,6 @@ draft: false
 | 准备固定工作区 | `wheelmaker wiki prepare`，首次需要时附加 `--git-url "<URL>"` |
 | 发布前同步干净仓库 | `wheelmaker wiki prepare --sync` |
 | 检查发布策略 | `wheelmaker wiki status`，只使用其返回的受限发布模式 |
-| 本地预览 | `wheelmaker wiki preview --serve` |
 | 保存并发布已确认文件 | `wheelmaker wiki publish-notes --paths "<文件>" ...` |
 | 重新发布已有内容 | `wheelmaker wiki publish`，须已有发布授权 |
 
@@ -223,13 +222,13 @@ wheelmaker wiki publish-notes --paths "content/<实际repo>/<目录>/<文件>.md
 
 冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。先用 `wheelmaker wiki status` 检查受限发布模式；若返回 `off`、`disabled`、`manual` 或 `false`，按策略跳过自动发布，不读取配置全文。
 
-### 预览和验证
+### 发布验证
 
-`wheelmaker wiki preview --serve` 提供本地预览，不上传或同步笔记。重新发布现有内容时直接调用 `wheelmaker wiki publish`，仍遵守本次操作已有的发布授权。
+重新发布现有内容时直接调用 `wheelmaker wiki publish`，仍遵守本次操作已有的发布授权。
 
 发布不得修改源 Markdown。检查对应的目录、标签、搜索、Wikilinks、别名、标题与块链接，以及本批引用图片和附件的实际可读性；代码、公式和 Mermaid 图表应正常显示和交互。
 
-私人 Wiki 原稿、完整配置、私有索引、项目路由和凭据不得交给固定导出器、浏览器或 Release Server。Skill 不绕过 Go 直接向阅读器提供原始 data/；只接收 CLI 的受限状态和结果。线上验证使用已认证入口，就绪检查或本地预览不能替代线上发布成功的证据。
+私人 Wiki 原稿、完整配置、私有索引、项目路由和凭据不得交给固定导出器、浏览器或 Release Server。Skill 不绕过 Go 直接向阅读器提供原始 data/；只接收 CLI 的受限状态和结果。线上验证使用已认证入口，就绪检查不能替代线上发布成功的证据。
 
 ## 范围边界
 

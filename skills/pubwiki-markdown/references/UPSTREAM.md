@@ -44,10 +44,10 @@ The migration baseline was this repository's commit
 `cc06f41560f0e30b5c93b229dd126e680b3762d8`.
 
 WheelMaker embeds the source and pinned dependency manifests in its Go program;
-Go prepares the real `~/.wheelmaker/wiki/reader/` on first preview or publication.
+Go prepares the real `~/.wheelmaker/.tmp/wiki/reader/` on first publication.
 This Skill no longer carries, binds, installs or runs the exporter. Its operational
 scripts delegate to the trusted Go CLI. Go also owns scoped note Git publication,
-private configuration parsing, loopback preview serving and public projection.
+private configuration parsing and public projection.
 Raw Vaults and user configuration never become exporter inputs. Registry serves
 the validated static website and an independent Share profile from the same
 embedded browser source.

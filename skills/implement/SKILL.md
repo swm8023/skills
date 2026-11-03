@@ -9,7 +9,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 把已确认的实施契约一次完成：审查输入、形成可执行计划、实现、验证，并按项目 Git 偏好收尾。计划是执行所需的内部工作项，不是单独出口，除非用户明确只要计划文本。
 
-**开始时声明：** “我正在使用 implement skill 来规划并实施这份已确认范围的工作。”
+**输入关口通过后声明：** “我正在使用 implement skill 来规划并实施这份已确认范围的工作。”
 
 ## 输入关口
 
@@ -22,7 +22,13 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 不传递单独的 approval 参数。`approved-spec` 的 `source` 指向具体 spec；`> 状态：已批准 <日期>` 是批准记录，不是唯一授权来源。用户明确要求执行这份 spec，或当前对话已有对应批准时，视为已授权，不因状态行缺失或仍为待批准而重问；读取并核对实际内容，首次写入前完成 Git prepare，再据此补记状态。当前用户的明确限制优先于旧状态行，禁止没有授权就自行批准。`confirmed-conversation` 必须来自当前对话；`approved-fix` 必须包含 debug 已证实并获用户批准的根因与完整修复契约。
 
-按 `source_kind` 分支检查入口：`approved-spec` 需要 spec 已批准或当前明确要求执行该 spec；`confirmed-conversation` 不要求 spec，但必须来自当前对话中的完整实施契约；`approved-fix` 不要求 spec，但必须包含 debug 已证实的根因、完整修复契约和用户批准。存在实质未决需求时返回 `scope`；`approved-spec` 缺少实施授权时返回 `scope`；`approved-fix` 缺少根因证据、用户批准或修复边界超出授权时返回 `debug`。不能把零散要求或用户最初的“修一下”当作 `confirmed-conversation` 或 `approved-fix`；正常 scope 流程仍保留设计确认、出口选择和契约批准，不借授权继承跳过未决需求。
+在规划或 Git prepare 前，独立核对实际 `source` 内容及对应的用户批准记录。不能仅凭 `source_kind` 标签或调用方“已确认”的声明认定已获授权；用户同意总体方向、回答单个决策或选择出口，也不等于批准尚未呈现的完整契约。按来源检查：
+
+- `approved-spec`：核对具体 spec，以及既有批准或当前明确执行该 spec 的指令；缺少 spec、存在实质未决需求或缺少实施授权时，返回 `scope`。
+- `confirmed-conversation`：核对当前对话中已向用户呈现的完整实施契约，以及用户对该契约的明确确认；契约缺失、不完整、存在实质未决需求或尚未获批时，返回 `scope`，从尚未完成的阶段继续。
+- `approved-fix`：核对 debug 已证实的根因、完整修复契约及用户对该方案的明确批准；缺少根因证据、完整契约、用户批准或修复边界超出授权时，返回 `debug`。
+
+入口不满足时，只做必要的只读核对并返回对应工作流，不建立执行计划或启动 Git prepare。不能把零散要求或用户最初的“修一下”当作 `confirmed-conversation` 或 `approved-fix`；正常 scope 流程仍保留设计确认、出口选择和契约批准，不借授权继承跳过未决需求。
 
 `confirmed-conversation` 与 `approved-fix` 契约只存在于对话中，会话中断后无法恢复；此时不得凭残缺记忆执行，返回 `scope` 或 `debug` 重新确认契约。
 

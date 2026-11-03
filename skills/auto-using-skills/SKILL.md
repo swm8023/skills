@@ -27,7 +27,7 @@ description: Use at the start of every task to select applicable skills. Routes 
 6. **项目知识 / wiki**：用户要沉淀、查找、整理或迁移项目长期知识，维护 `docs/wiki` 时调用 `wiki`；固定 WheelMaker Vault 的检索用 `pubwiki-search`，写入和发布用 `pubwiki-markdown`。按用户目标和已有路径确定知识库，不同时启动两套写入流程。
 7. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
 8. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow`。首次持久化写入前必须已有 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；任务结束或外部 handoff 前必须调用 `finalize`。同一任务在 Skill 间转交时，`git_state: prepared` 继承现有 Git 生命周期，`git_state: unprepared` 才执行 `prepare`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
-9. **即将写生产代码**：如果下一步会实现新行为、重构或改现有行为，统一由 `implement` 按内置测试先行契约执行。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接开始修改生产代码。
+9. **即将写生产代码**：调用 `implement` 前必须先满足第 4 条的契约与批准条件；本条只规定实施归属，不能作为独立入口。新行为、重构或现有行为变更统一由 `implement` 按内置测试先行契约执行。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接开始修改生产代码。
 10. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它，但不得绕过第 2 条的手动触发限制。
 
 ## 调用后

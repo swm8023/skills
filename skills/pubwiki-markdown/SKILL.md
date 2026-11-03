@@ -20,15 +20,15 @@ description: 在固定的 WheelMaker Wiki Vault 中创建、导入、分类、�
 读取或写入知识前，直接调用 WheelMaker CLI 准备固定工作区：
 
 ```text
-wheelmaker wiki prepare
+wheelmaker cmd --command wiki --action prepare
 ```
 
-Go 命令会在检查配置或内容之前先检查 Git。如果路径不存在或为空，向用户索要 Git URL，并使用 `wheelmaker wiki prepare --git-url "<URL>"` 传入该 URL。如果路径非空但不是 Git worktree，立即停止；不要删除、移动或覆盖任何内容。如果没有 URL，告诉用户自行准备或初始化 Git worktree；不要自动运行 `git init`。
+Go 命令会在检查配置或内容之前先检查 Git。如果路径不存在或为空，向用户索要 Git URL，并使用 `wheelmaker cmd --command wiki --action prepare --git-url "<URL>"` 传入该 URL。如果路径非空但不是 Git worktree，立即停止；不要删除、移动或覆盖任何内容。如果没有 URL，告诉用户自行准备或初始化 Git worktree；不要自动运行 `git init`。
 
 计划发布时，在已确认的笔记写入之前，先同步干净的 Git worktree：
 
 ```text
-wheelmaker wiki prepare --sync
+wheelmaker cmd --command wiki --action prepare --sync
 ```
 
 此命令不会在已有修改上自动 stash 或 rebase；发生 rebase 或远程冲突时，要报告给用户处理。
@@ -138,7 +138,7 @@ site:
 2. **按最终分类保存**：新导入的项目图片默认放在 `content/assets/<实际repo>/<directory>/`，沿用笔记最终确认的 repo 和嵌套分类。已有的共享资源可以原路径复用，不为符合新布局批量迁移。确需移动资源时，先检查整个 Vault 的引用，将受影响页面的链接改写纳入同一预览；仍被其他页面引用的资源不得直接删除。
 3. **重名与缺失检查**：确认本地图片来源存在、目标可确定；复用已有资源前核对内容。相同目标路径但内容不同、同名文件导致解析歧义时，在预览中提出保留、复用或重命名方案，不静默覆盖。未解决的缺失资源、重名歧义或资源冲突会阻止本批发布。
 4. **按阅读器规则改写引用**：本地资源先按笔记相对路径、再按 `content/` 内路径解析；仅有文件名时，必须在内容树中唯一。优先使用能明确定位的相对路径或内容路径，保留 alt、标题和尺寸信息；不硬编码构建产物 URL。重名歧义或缺失引用由 Hub 在交给阅读器前拦截。规范化助手未覆盖的引用形式需另行核查，助手没有诊断不代表图片已验证。
-5. **同批保存、提交和发布**：预览中逐项列出 Markdown 与资源的新增、修改、移动、删除路径；移动要包含旧、新路径。确认后一起写入并校验，再将所有发生变更的精确文件路径传给 `wheelmaker wiki publish-notes`。已跟踪且未变化的复用资源不必重复提交，但必须验证仍存在且引用可解析。
+5. **同批保存、提交和发布**：预览中逐项列出 Markdown 与资源的新增、修改、移动、删除路径；移动要包含旧、新路径。确认后一起写入并校验，再将所有发生变更的精确文件路径传给 `wheelmaker cmd --command wiki --action publish --commit`。已跟踪且未变化的复用资源不必重复提交，但必须验证仍存在且引用可解析。
 
 这些规则复用下方的同一份完整预览与确认，不另加图片确认轮次。构建和发布后的图片验证见「构建与发布验证」。
 
@@ -202,11 +202,15 @@ draft: false
 
 | 操作 | Go 命令 |
 | --- | --- |
-| 准备固定工作区 | `wheelmaker wiki prepare`，首次需要时附加 `--git-url "<URL>"` |
-| 发布前同步干净仓库 | `wheelmaker wiki prepare --sync` |
-| 检查发布策略 | `wheelmaker wiki status`，只使用其返回的受限发布模式 |
-| 保存并发布已确认文件 | `wheelmaker wiki publish-notes --paths "<文件>" ...` |
-| 重新发布已有内容 | `wheelmaker wiki publish`，须已有发布授权 |
+| 准备固定工作区 | `wheelmaker cmd --command wiki --action prepare`，首次需要时附加 `--git-url "<URL>"` |
+| 发布前同步干净仓库 | `wheelmaker cmd --command wiki --action prepare --sync` |
+| 检查发布策略 | `wheelmaker cmd --command wiki --action status`，只使用其返回的受限发布模式 |
+| 保存并发布已确认文件 | `wheelmaker cmd --command wiki --action publish --commit --paths "<文件>" ...` |
+| 重新发布已有内容 | `wheelmaker cmd --command wiki --action publish`，须已有发布授权 |
+
+CLI 统一返回 `ok`、`data`、`error`。先检查退出码与 `ok`；成功后从 `data` 读取业务结果，`prepare` 和 `status` 的发布策略是 `data.publishMode`。提交发布中的 `data.paths` 是固定布局路径，`data.staged` 是实际暂存文件，`data.pushed` 是 Git 推送标记；批准输入列表仍以本次 `--paths` 参数为准，结果不完整回显该列表，跳过时还可能没有 `staged`。失败时读取 `error.code`、`error.message` 及保留的部分结果；若 `data.pushed` 已为 true，说明 Git 已推送，不要因发布失败重复提交。
+
+Wiki 公开操作只有 `prepare`、`status`、`publish`。保存并发布批准内容必须显式传入 `--commit` 和逐个 `--paths`；普通 `publish` 不带 `--commit`，不会提交或推送笔记修改。`--paths` 只限定本次允许提交的 Git 文件范围，发布仍使用完整 Wiki 流程。
 
 CLI 不存在、命令不受支持或调用失败时，报告实际结果并按需提示更新 WheelMaker。Skill 不自行实现安装、Git 发布或原始 Vault 导出，不读取完整用户配置。
 
@@ -215,16 +219,16 @@ CLI 不存在、命令不受支持或调用失败时，报告实际结果并按�
 仅本地保存时，只写入并校验已确认的笔记和资源。保存并发布时，将精确的已批准文件路径直接传给 Go：
 
 ```text
-wheelmaker wiki publish-notes --paths "content/<实际repo>/<目录>/<文件>.md" --paths "content/assets/<实际repo>/<目录>/<图片>.png"
+wheelmaker cmd --command wiki --action publish --commit --paths "content/<实际repo>/<目录>/<文件>.md" --paths "content/assets/<实际repo>/<目录>/<图片>.png"
 ```
 
-每个文件分别传 `--paths`，不传目录或通配符；移动和删除也包括旧路径。Go 管理固定 data 仓库的 Git 生命周期，只提交批准文件，再同步、推送和发布；普通 `publish` 不自动提交或推送笔记。
+每个文件分别传 `--paths`，不传目录或通配符；移动和删除也包括旧路径。Go 管理固定 data 仓库的 Git 生命周期，只提交批准文件，再同步、推送和发布；普通 `publish`（不带 `--commit`）不自动提交或推送笔记。
 
-冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。先用 `wheelmaker wiki status` 检查受限发布模式；若返回 `off`、`disabled`、`manual` 或 `false`，按策略跳过自动发布，不读取配置全文。
+冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。先用 `wheelmaker cmd --command wiki --action status` 检查受限发布模式；若 `data.publishMode` 为 `off`、`disabled`、`manual` 或 `false`，按策略跳过自动发布，不读取配置全文。
 
 ### 发布验证
 
-重新发布现有内容时直接调用 `wheelmaker wiki publish`，仍遵守本次操作已有的发布授权。
+重新发布现有内容时直接调用 `wheelmaker cmd --command wiki --action publish`，仍遵守本次操作已有的发布授权。
 
 发布不得修改源 Markdown。检查对应的目录、标签、搜索、Wikilinks、别名、标题与块链接，以及本批引用图片和附件的实际可读性；代码、公式和 Mermaid 图表应正常显示和交互。
 

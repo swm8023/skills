@@ -31,7 +31,9 @@ description: 将当前对话或指定的 WheelMaker session 压缩为交接摘�
 
 `PERMISSION_DENIED` 表示当前执行账户无权连接本机 Hub 命令入口，不能据此判断 Hub 未启动或版本过旧。若命令运行在沙箱中，使用执行器提供的授权机制申请在沙箱外重试同一条导出命令；保持二进制、session ID、主目录和输出路径不变。获得执行许可后只重试一次，仍失败则报告实际错误并停止。执行器不支持该机制或未获许可时，说明需要由启动 Hub 的用户执行，不自行提权、修改管道权限或读取源存储。
 
-Windows 执行器若不能可靠等待 GUI 子系统程序，使用隐藏进程并等待完成，例如 `Start-Process -WindowStyle Hidden -Wait -PassThru`，分别捕获 stdout、stderr 和进程退出码，再按上述结果规则判断。stdout 缺失时不从生成的文件反推成功。
+Windows PowerShell 调用 `wheelmaker.exe` 时，使用 `System.Diagnostics.Process` 显式启动隐藏进程：将 `UseShellExecute` 设为 `false`，将 `CreateNoWindow`、`RedirectStandardOutput` 和 `RedirectStandardError` 设为 `true`。启动后先分别对 stdout、stderr 调用 `ReadToEndAsync()`，再调用 `WaitForExit()`；进程退出后读取该 `Process` 的 `ExitCode` 和两个读取任务的结果。也可使用带 stdout、stderr 重定向的 `Start-Process -WindowStyle Hidden -Wait -PassThru`。不要依赖裸 `& wheelmaker.exe ...; exit $LASTEXITCODE` 判断 GUI 子系统程序是否完成。
+
+进程已启动、退出码为 `0` 或输出文件已生成，都不能单独证明 Hub 已处理请求或导出成功。只有拿到完整的 CLI JSON，才按 `ok` 和 `error` 判断结果；stdout 缺失时明确说明无法确认请求是否到达 Hub，不从生成的文件反推成功。`UNAVAILABLE` 表示没有取得完整导出，不等于会话不存在；仅 `NOT_FOUND` 可以表述为未找到会话。
 
 导出需要本机 Hub 正在运行并连接 Registry。Hub 按 ID 依次向同一 Registry 的在线正常 Hub 请求导出，首个完整成功结果即结束；Skill 不需要查询 Hub 或项目列表。只支持未归档会话，材料固定到 `snapshot.latestPersistedTurnIndex`，不包含尚未落盘的尾部。
 

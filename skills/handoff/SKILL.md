@@ -25,9 +25,13 @@ description: 将当前对话或指定的 WheelMaker session 压缩为交接摘�
    ```
 
    只有用户明确提供自定义 WheelMaker 主目录时，才追加 `--dir WHEELMAKER_HOME`；否则省略该参数。输出路径属于调用机器，不是目标 Hub 的路径。
-3. 先检查退出码，再解析 stdout 的 JSON 并检查 `ok`。成功结果位于 `data`，包含 `path`、`sessionId`、`hubId`、`storedTurns`、`bytes` 和 `sha256`。有效失败结果报告 `error.code` 和 `error.message` 后停止；stdout 缺失或无法解析时，报告退出码及 stderr 诊断后停止，不猜测错误码或从残缺输出拼出成功结果。不把失败或部分传输当成完整历史。
+3. 先检查退出码，再解析 stdout 的 JSON 并检查 `ok`。成功结果位于 `data`，包含 `path`、`sessionId`、`hubId`、`storedTurns`、`bytes` 和 `sha256`。有效失败结果报告 `error.code` 和 `error.message`；仅 `PERMISSION_DENIED` 按下方权限流程处理，其他错误停止。stdout 缺失或无法解析时，报告退出码及 stderr 诊断后停止，不猜测错误码或从残缺输出拼出成功结果。不把失败或部分传输当成完整历史。
 4. 使用当前环境可用的文件读取工具完整读取 `data.path`，自行选择读取方式。输出被截断时继续读取剩余内容，确认完整读取后再总结；无法完整读取时明确说明，不将部分内容作为完整会话总结。格式、记录数和哈希已由 Go CLI 校验，无需在 Skill 中重复实现。
 5. 生成摘要后，只删除本次成功创建的临时 JSON 文件。
+
+`PERMISSION_DENIED` 表示当前执行账户无权连接本机 Hub 命令入口，不能据此判断 Hub 未启动或版本过旧。若命令运行在沙箱中，使用执行器提供的授权机制申请在沙箱外重试同一条导出命令；保持二进制、session ID、主目录和输出路径不变。获得执行许可后只重试一次，仍失败则报告实际错误并停止。执行器不支持该机制或未获许可时，说明需要由启动 Hub 的用户执行，不自行提权、修改管道权限或读取源存储。
+
+Windows 执行器若不能可靠等待 GUI 子系统程序，使用隐藏进程并等待完成，例如 `Start-Process -WindowStyle Hidden -Wait -PassThru`，分别捕获 stdout、stderr 和进程退出码，再按上述结果规则判断。stdout 缺失时不从生成的文件反推成功。
 
 导出需要本机 Hub 正在运行并连接 Registry。Hub 按 ID 依次向同一 Registry 的在线正常 Hub 请求导出，首个完整成功结果即结束；Skill 不需要查询 Hub 或项目列表。只支持未归档会话，材料固定到 `snapshot.latestPersistedTurnIndex`，不包含尚未落盘的尾部。
 

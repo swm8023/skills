@@ -26,15 +26,8 @@ description: 将当前对话或指定的 WheelMaker session 压缩为交接摘�
 
    只有用户明确提供自定义 WheelMaker 主目录时，才追加 `--dir WHEELMAKER_HOME`；否则省略该参数。输出路径属于调用机器，不是目标 Hub 的路径。
 3. 先检查退出码，再解析 stdout 的 JSON 并检查 `ok`。成功结果位于 `data`，包含 `path`、`sessionId`、`hubId`、`storedTurns`、`bytes` 和 `sha256`。有效失败结果报告 `error.code` 和 `error.message` 后停止；stdout 缺失或无法解析时，报告退出码及 stderr 诊断后停止，不猜测错误码或从残缺输出拼出成功结果。不把失败或部分传输当成完整历史。
-4. 使用本 skill 相对路径下的通用 UTF-8 分块工具，从字节 `0` 开始读取 `data.path`：
-
-   ```text
-   node SKILL_DIR/scripts/read-text-chunk.mjs TEMP_JSON_PATH --start 0 --max-bytes 12000
-   ```
-
-   每块报告 `next` 和总字节数。将 `next` 原样传给下一次 `--start`，直到等于总字节数，且总字节数等于 `data.bytes`。工具结果中的文本行数不能代替字节循环，单条 turn 可以包含很长的 JSON。
-5. 完整载入后，核对 `formatVersion` 为 `1`，`session.id` 与请求 ID 一致，`source.hubId` 与 `data.hubId` 一致，`turns.length`、`snapshot.storedTurns`、`snapshot.latestPersistedTurnIndex` 和 `data.storedTurns` 相等。版本未知、文件不完整或无法完成核对时明确失败，不开始总结。可以使用本机 JSON 工具核对数组长度，不依赖文本匹配来统计嵌套的 `turnIndex`。
-6. 生成摘要后，只删除本次成功创建的临时 JSON 文件。
+4. 使用当前环境可用的文件读取工具完整读取 `data.path`，自行选择读取方式。输出被截断时继续读取剩余内容，确认完整读取后再总结；无法完整读取时明确说明，不将部分内容作为完整会话总结。格式、记录数和哈希已由 Go CLI 校验，无需在 Skill 中重复实现。
+5. 生成摘要后，只删除本次成功创建的临时 JSON 文件。
 
 导出需要本机 Hub 正在运行并连接 Registry。Hub 按 ID 依次向同一 Registry 的在线正常 Hub 请求导出，首个完整成功结果即结束；Skill 不需要查询 Hub 或项目列表。只支持未归档会话，材料固定到 `snapshot.latestPersistedTurnIndex`，不包含尚未落盘的尾部。
 

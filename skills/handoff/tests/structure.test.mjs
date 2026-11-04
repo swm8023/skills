@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync, mkdtempSync, writeFileSync, rmSync, existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {dirname, join, resolve} from 'node:path';
+import {basename, dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
@@ -51,6 +51,8 @@ test('JSON history can be completely read across UTF-8 byte boundaries', () => {
     const bad = spawnSync(process.execPath, [join(skillRoot, 'scripts/read-text-chunk.mjs'), path, '--start', String(original.length + 1)], {encoding: 'utf8', windowsHide: true});
     assert.notEqual(bad.status, 0);
   } finally {
+    assert.equal(dirname(resolve(temporary)), resolve(tmpdir()));
+    assert(basename(temporary).startsWith('handoff-json-'));
     rmSync(temporary, {recursive: true});
   }
 });

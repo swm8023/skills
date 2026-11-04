@@ -25,7 +25,7 @@ description: 将当前对话或指定的 WheelMaker session 压缩为交接摘�
    ```
 
    只有用户明确提供自定义 WheelMaker 主目录时，才追加 `--dir WHEELMAKER_HOME`；否则省略该参数。输出路径属于调用机器，不是目标 Hub 的路径。
-3. 先检查退出码和 stdout 的 `ok`。成功结果位于 `data`，包含 `path`、`sessionId`、`hubId`、`storedTurns`、`bytes` 和 `sha256`。错误时报告 `error.code` 和 `error.message` 并停止，不把失败或部分传输当成完整历史。
+3. 先检查退出码，再解析 stdout 的 JSON 并检查 `ok`。成功结果位于 `data`，包含 `path`、`sessionId`、`hubId`、`storedTurns`、`bytes` 和 `sha256`。有效失败结果报告 `error.code` 和 `error.message` 后停止；stdout 缺失或无法解析时，报告退出码及 stderr 诊断后停止，不猜测错误码或从残缺输出拼出成功结果。不把失败或部分传输当成完整历史。
 4. 使用本 skill 相对路径下的通用 UTF-8 分块工具，从字节 `0` 开始读取 `data.path`：
 
    ```text

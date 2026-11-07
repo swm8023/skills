@@ -48,7 +48,7 @@ description: Implement approved product, code, or bug-fix work end to end after 
 
 ### approved-spec
 
-调用 `write-doc` 根据 spec 编写详细计划并保存；交接时明确计划供 Agent 阅读，并为每份计划指定 `optimize_zh: false`。用户明确要求优化时遵循 `write-doc` 的优先级：
+调用 `write-doc` 根据 spec 编写详细计划并保存；交接时注明供 Agent 阅读，并为每份计划指定 `optimize_zh: false`：
 
 - scope 默认 spec：`docs/scope/<YYYY-MM-DD>-<slug>.md`；用户指定其他既有 spec 路径时沿用原文件，不为符合目录或头部格式重建 spec。
 - plan 目录：`docs/plans/<YYYY-MM-DD>-<slug>/`

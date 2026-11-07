@@ -9,12 +9,13 @@ WheelMaker tracks this folder as a Project at `D:\Code\skills`. If the GitHub re
 ## Document writing
 
 [`write-doc`](skills/write-doc/SKILL.md) routes document work through bundled
-references: `write-technical` and `write-zh` before drafting, `optimize-zh` after
-drafting, and Mermaid when diagrams are needed. The three writing references
-contain source passages selected and regrouped without new writing guidance. Editing conflicts
-follow `humanizer-zh`; compatible `shuorenhua` protections are retained.
-The [source map](skills/write-doc/references/REORGANIZATION.json) records source
-spans and hashes. Mermaid is bundled as an ordinary reference under `write-doc`,
+references: `write-technical` and `write-zh` before drafting, `optimize-zh` for
+eligible drafts, `review-doc` for independent review, and Mermaid when diagrams
+are needed. The three writing references were assembled from selected source
+passages and later refined. Editing conflicts follow `humanizer-zh`; compatible
+`shuorenhua` protections are retained. The [source map](skills/write-doc/references/REORGANIZATION.json)
+records original source spans, subsequent corrections, and hashes. Mermaid is
+bundled as an ordinary reference under `write-doc`,
 with its diagram guidance retained and standalone skill entry removed.
 
 The standalone `technical-writing` entry is retired. Its Chinese adaptation and

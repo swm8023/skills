@@ -3,7 +3,7 @@
   "assembledOn": "2026-10-30",
   "selection": "B",
   "primaryEditingSource": "humanizer-zh",
-  "policy": "Source passages are selected, moved and regrouped. Only reference headers, blank separators, recorded fragment exclusions and relative-link rebasing are generated; no new writing guidance is authored in the three references.",
+  "policy": "The mapped source passages were originally selected, moved and regrouped. Document sha256 values preserve the earlier mapped hashes; currentSha256 records the files on currentHashesRecordedOn. Later corrections are listed in postAssemblyEdits; earlier drift is recorded separately.",
   "priorityDecision": "humanizer-zh controls editing scope; shuorenhua supplies compatible factual protections and explicit user-scope options.",
   "excludedConflictingShuorenhuaLines": [
     10,
@@ -244,6 +244,7 @@
       "path": "references/write-technical.md",
       "header": "# write-technical\n\n",
       "sha256": "f2c2e392fc65f103ba8bf06597c11ec1513382c53bff9acf5eab2cb454123987",
+      "currentSha256": "1dd149ace8e4d6550e6ff260005b50f2f722154989a03e6d0fcdfde205886d51",
       "blocks": [
         "write-technical-01",
         "write-technical-02",
@@ -256,6 +257,7 @@
       "path": "references/write-zh.md",
       "header": "# write-zh\n\n",
       "sha256": "e892a6eb077c7cc5ce751707d834f04422a6faac4c2ed06e1ea70107c39bf6f7",
+      "currentSha256": "4f6862b23c49d750cbb3e17b2c5f04dda561af60dbfa3779aaaa63e39852a3c7",
       "blocks": [
         "write-zh-01",
         "write-zh-02",
@@ -276,6 +278,7 @@
       "path": "references/optimize-zh.md",
       "header": "# optimize-zh\n\n",
       "sha256": "1b21af6ce2936d6586d3c6f5283506eda2b2d05251ab1c42a7cc8a47383a2422",
+      "currentSha256": "a498aea6aad64def48533f10a36e4509526087441b58db01450bc01056cc848a",
       "blocks": [
         "optimize-zh-01",
         "optimize-zh-02",
@@ -302,6 +305,39 @@
         "optimize-zh-23",
         "optimize-zh-24"
       ]
+    }
+  ],
+  "currentHashesRecordedOn": "2026-11-07",
+  "postAssemblyEdits": [
+    {
+      "document": "references/write-zh.md",
+      "date": "2026-11-07",
+      "edits": [
+        {
+          "before": "删去某个词后，句子仍然成立，就删掉它。",
+          "after": "删去某个词后，句子仍然成立，且没有丢失信息和限定时才删除。"
+        },
+        {
+          "before": "把 \"schema changes can cause issues\"（schema 变更可能引发问题）改成 \"a column rename fails the build\"（重命名列会使 build 失败）。",
+          "after": "材料明确说明列重命名导致构建失败时，写清该情况；材料只说 schema 变更可能引发问题时，不自行补充情形或改成确定结果。"
+        }
+      ]
+    },
+    {
+      "document": "references/optimize-zh.md",
+      "date": "2026-11-07",
+      "edits": [
+        {
+          "before": "不改时返回完整原文；",
+          "after": "改写模式下不改时返回完整原文；标注模式下无问题时只说明无问题；"
+        }
+      ]
+    }
+  ],
+  "preexistingSourceMapDrift": [
+    {
+      "document": "references/write-technical.md",
+      "note": "The file already differed from its mapped sha256 at the start of the 2026-11-07 revision; this revision did not edit it."
     }
   ],
   "blocks": [
@@ -954,7 +990,7 @@
       "reason": "Standalone skill invocation metadata removed"
     }
   ],
-  "updatedOn": "2026-11-02",
+  "updatedOn": "2026-11-07",
   "integrationDecisions": [
     {
       "decision": "Restore the complete Diataxis mode selection and per-mode boundaries from the pinned translation; replace the local mixed-mode allowance."

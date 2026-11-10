@@ -1,6 +1,6 @@
 ---
 name: auto-using-skills
-description: Use at the start of every task to select skills from explicit requests, workflow delegation, and invocation policies. Route failures to debug and unresolved changes to scope.
+description: Use at the start of every task to select applicable skills. Routes bugs to debug and unclear changes to scope; never auto-selects manual-only review-spec or review-code.
 ---
 
 <SUBAGENT-STOP>
@@ -11,7 +11,7 @@ description: Use at the start of every task to select skills from explicit reque
 
 ## 核心规则
 
-在任何回复、澄清、读文件、写代码或运行命令之前，先按下方路由检查 skill，结合调用来源、触发权限和任务相关性选择适用项。
+在任何回复、澄清、读文件、写代码或运行命令之前，先检查 skill。只要某个 skill 有 1% 的可能适用，就必须调用 Skill 工具读取它。
 
 用户指令始终最高优先级；skill 决定的是**怎么做**，不覆盖用户明确说的**做什么**。如果调用后发现某个 skill 不适用，说明原因并继续检查其他 skill。
 
@@ -19,8 +19,8 @@ description: Use at the start of every task to select skills from explicit reque
 
 按顺序判断：
 
-1. **显式调用**：用户通过 `$skill-name`、`/skill-name` 或明确要求使用某个 skill 时，先读取该 skill。当前工作流明确委托的 skill 按同样方式读取；调用遵守被调用 skill 自身声明的权限。
-2. **自动选择范围**：自动匹配以允许隐式调用的 skill 为候选。`agents/openai.yaml` 中的 `allow_implicit_invocation: false` 表示显式调用入口；`disable-model-invocation: true` 或明确限定仅用户手动调用的 skill，以用户点名为入口。普通任务描述按后续路由选择自动候选。
+1. **用户点名 skill**：先调用被点名的 skill。
+2. **仅限手动触发**：遵守 skill 的显式限制，包括 `disable-model-invocation: true`、`agents/openai.yaml` 中的 `allow_implicit_invocation: false` 或仅限手动触发的说明。`$skill-name`、`/skill-name` 或明确要求使用该 skill 才算点名；普通的“review”“审查”“audit”不算。没有点名时继续执行后续路由，不要因意图或 description 相似而自动选择它们。
 3. **WheelMaker session 默认交接**：用户提供 session ID 并要求继续、总结、交接或未说明导出目的时，调用 `handoff`。
 4. **执行已确认范围或修复**：用户已批准 spec、scope 已取得对话内实施契约确认，或 debug 已提交证据充分的修复契约且用户明确批准时，调用 `implement`。bug 使用 `source_kind: approved-fix`；此项优先于通用 bug 路由，即使确认消息再次提到“bug”“失败”或“修复”。
 5. **新的 bug / failure**：用户报告坏了、报错、测试失败、build 失败、flaky、变慢、性能退化或行为不符合预期，且还没有获批修复契约时，调用 `debug`。不要先走 `scope`。
@@ -28,7 +28,7 @@ description: Use at the start of every task to select skills from explicit reque
 7. **未定需求**：用户要加 feature、设计行为、改交互、新建系统、重构、规划或 review，且范围还没钉清，调用 `scope`。
 8. **Git 工作流**：纯只读调查、对话内需求澄清和不落盘的计划不调用 `git-workflow`。首次持久化写入前必须已有 `prepare`；已验证的独立工作单元按需调用 `checkpoint`；任务结束或外部 handoff 前必须调用 `finalize`。同一任务在 Skill 间转交时，`git_state: prepared` 继承现有 Git 生命周期，`git_state: unprepared` 才执行 `prepare`。调用时必须写明阶段，不能只说“参考 Git 偏好”。
 9. **即将写生产代码**：调用 `implement` 前必须先满足第 4 条的契约与批准条件；本条只规定实施归属，不能作为独立入口。新行为、重构或现有行为变更统一由 `implement` 按内置测试先行契约执行。bug 修复必须先由 debug 形成并获批 `approved-fix`，再交给 implement；不要从 debug 或“确认”消息直接开始修改生产代码。
-10. **其他匹配 skill**：在第 2 条确定的自动候选中，根据当前任务与 skill 的 description 选择适用项。
+10. **其他匹配 skill**：任何 skill 的 description 命中当前任务，就调用它，但不得绕过第 2 条的手动触发限制。
 
 ## 调用后
 

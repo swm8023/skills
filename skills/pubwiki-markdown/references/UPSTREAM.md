@@ -27,9 +27,10 @@ how the syntax is selected during knowledge generation, including confirmed
 Wikilinks, derived backlinks, feature prompts, and preview diagnostics; it is a
 local workflow extension, not upstream syntax material.
 
-Writing and revision route to the sibling [write-doc skill](../../write-doc/SKILL.md),
-which supplies the before-writing references, post-draft optimization, and bundled
-Mermaid guidance. The Wiki reference gives diagrams priority for hierarchies,
+Writing and revision are explicitly delegated to the sibling
+[write-doc skill](../../write-doc/SKILL.md), which owns drafting, optimization,
+independent review, and bundled Mermaid guidance. The Wiki reference gives
+diagrams priority for hierarchies,
 flows, interactions, state changes, data relationships, and dependencies. Candidate
 prose and diagrams return to the existing note preview and publication flow;
 this routing does not grant access to private Wiki source or alter publication

@@ -109,7 +109,7 @@ B. 不落 spec —— 在当前对话中生成实施契约；确认后执行，�
 **A. 落 spec**
 
 1. 写 spec 文件前调用 `git-workflow` 的 `prepare` 阶段。
-2. 调用 `write-doc` 写 `docs/scope/<YYYY-MM-DD>-<slug>.md`，按下文模板组织；交接时注明供 Agent 阅读，并为这份文稿指定 `optimize_zh: false`。`slug` 是根据主题生成的 kebab-case 英文短标题。
+2. 按下文模板编写并保存 `docs/scope/<YYYY-MM-DD>-<slug>.md`。`slug` 是根据主题生成的 kebab-case 英文短标题。
 3. 按下文清单执行完整自我审查并就地修复。
 4. 请用户审阅；审阅与修改期间沿用第 1 步建立的 Git 上下文。用户要求修改时，修改后重新完整自审；如果修改导致 wiki 更新目标变化，按「wiki 落地判断」自行调整。
 5. 用户批准后，把 spec 头部状态回写为 `> 状态：已批准 <YYYY-MM-DD>`，再调用 `checkpoint` 只处理当前 spec。

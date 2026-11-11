@@ -15,8 +15,7 @@ delegates optimization to `optimize-zh`, and performs independent review with
 `review-doc`. Mermaid references support diagrams within the draft. The three
 writing references were assembled from selected source
 passages and later refined. Editing conflicts follow `humanizer-zh`; compatible
-`shuorenhua` protections are retained. The [source map](skills/write-doc/references/REORGANIZATION.json)
-records original source spans, subsequent corrections, and hashes. Mermaid is
+`shuorenhua` protections are retained. Mermaid is
 bundled as an ordinary reference under `write-doc`,
 with its diagram guidance retained and standalone skill entry removed.
 

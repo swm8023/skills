@@ -6,10 +6,10 @@
 - Imported on: 2026-10-26
 - License: MIT; the repository license and copyright notice are retained in `../LICENSE`.
 
-The upstream skill directory was imported with its README and seven references:
+The upstream-derived diagram references are:
 `class-diagrams.md`, `sequence-diagrams.md`, `flowcharts.md`, `erd-diagrams.md`,
 `c4-diagrams.md`, `architecture-diagrams.md`, and `advanced-features.md`.
-Those reference files and the README retain upstream content; line endings and
+These reference files retain upstream content; line endings and
 insignificant trailing whitespace are normalized to repository conventions.
 
 The local `index.md` adapts invocation guidance, adds mind-map selection,

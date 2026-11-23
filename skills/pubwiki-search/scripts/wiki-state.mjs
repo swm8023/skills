@@ -2,41 +2,12 @@
 
 import { createHash } from 'node:crypto';
 import { execFile as execFileCallback } from 'node:child_process';
-import { readFile, realpath, stat } from 'node:fs/promises';
+import { realpath, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
-import { parseWikiConfig } from './yaml.mjs';
-
 const execFile = promisify(execFileCallback);
-
-export const WIKI_CONFIG_FILENAME = 'wiki.config.yaml';
-
-const DEFAULT_WIKI_CONFIG = `# Content configuration only; data and index roots are fixed by the Skill.
-# version: 1
-# content:
-#   root: content
-#   assets: content/assets
-#   repo:
-#     rename: {}
-#   directories:
-#     mode: ai
-#     create: confirm
-#   tags:
-#     lookup: current-repo-first
-#     create: confirm
-# publish:
-#   mode: auto
-#   quartz: auto
-#   git:
-#     sync: rebase
-#     commit: auto
-#     push: auto
-site:
-  title: WheelMaker Knowledge
-  description: Browse the WheelMaker knowledge base.
-`;
 
 function environment(env) {
   return { ...process.env, ...(env || {}) };
@@ -57,7 +28,6 @@ export function resolveWikiPaths({ env = process.env } = {}) {
     home,
     wiki,
     data,
-    config: path.join(data, WIKI_CONFIG_FILENAME),
     content: path.join(data, 'content'),
     assets: path.join(data, 'content', 'assets'),
     indexRoot: path.join(wiki, '.index'),
@@ -98,27 +68,14 @@ async function gitRoot(data, { env = process.env } = {}) {
   } catch { return { valid: false, root: '' }; }
 }
 
-async function validateConfig(config) {
-  let source;
-  try { source = await readFile(config, 'utf8'); } catch (error) {
-    if (error?.code !== 'ENOENT') throw error;
-    source = DEFAULT_WIKI_CONFIG;
-  }
-  parseWikiConfig(source, config);
-  return true;
-}
-
 // Search may refresh its private index, but never initialize or mutate the Vault.
 export async function ensureWikiState({ env = process.env } = {}) {
   const paths = resolveWikiPaths({ env });
   if (!await exists(paths.data)) {
-    return { status: 'needs-setup', paths, message: 'The fixed Wiki Vault is missing; prepare it with pubwiki-markdown before searching.' };
+    return { status: 'needs-setup', paths, message: 'The fixed Wiki Vault is missing; run wheelmaker cmd --command wiki --action prepare --git-url URL before searching.' };
   }
   const root = await gitRoot(paths.data, { env });
   if (!root.valid) return { status: 'blocked', paths, message: 'The fixed Wiki data directory is not a Git worktree rooted at data/.' };
-  try { await validateConfig(paths.config); } catch (error) {
-    return { status: 'blocked', paths, message: `${WIKI_CONFIG_FILENAME} is malformed: ${error.message}` };
-  }
   return { status: 'ready', paths, gitRoot: root.root };
 }
 

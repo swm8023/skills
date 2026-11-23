@@ -23,13 +23,17 @@ The only Vault is:
 ~/.wheelmaker/wiki/data/
 ```
 
-The `data/` directory must itself be a valid Git worktree. Check Git before reading
-configuration or building an index. If `wiki.config.yaml` is missing, use the same
-defaults as `pubwiki-markdown` in memory only. Never create configuration, content
-directories, or a Git checkout during search. A missing or non-Git Vault produces
-an actionable setup error; initialization belongs to `pubwiki-markdown`, not an
-automatic search fallback. Do not search another Vault, the current working
-directory, or the whole machine.
+The `data/` directory must itself be a valid Git worktree. Check Git before
+searching. Search uses fixed content paths and does not read `wiki.config.yaml`.
+It never creates configuration, content directories, or a Git checkout. If the
+Vault is missing or is not a Git worktree rooted at `data/`, report the problem
+and point to `wheelmaker cmd --command wiki --action prepare`. Do not search
+another Vault, the current working directory, or the whole machine.
+
+Use this Skill for explicitly requested local knowledge lookup. It can read
+local drafts. Keep this workflow and its results out of Wiki publication and
+publication preparation, including classification, duplicate checks, and
+writing. Use approved public materials for those steps.
 
 The persistent search index is private and outside the Wiki repository:
 
@@ -39,8 +43,8 @@ The persistent search index is private and outside the Wiki repository:
 └── manifest.json
 ```
 
-Never put this index, a Quartz runtime, credentials, or generated site files into
-`data/` or the public Quartz output.
+Never put this index, credentials, or generated site files into `data/` or
+the published Wiki output.
 
 ## Search order
 
@@ -92,8 +96,8 @@ and atomic manifest replacement preserve the last valid result after interruptio
 Return paths relative to the fixed `data/` root together with title, folder, tags,
 matching text, and relevance when available. Native Obsidian results retain their
 native match information. Local results explicitly identify lexical/degraded mode.
-Local drafts may appear; public Quartz
-content and its `contentIndex.json` must never be treated as the local AI index.
+Local drafts may appear. The published Wiki search data is independent of this
+local index.
 
 ## Dataview-compatible queries
 

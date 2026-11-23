@@ -17,23 +17,29 @@ description: 在固定的 WheelMaker Wiki Vault 中创建、导入、分类、�
 
 把它视为一个 Obsidian Vault。不要发现或使用其他 Vault，不要扫描当前工作目录，也不要接受调用方指定的数据根目录。Wiki 的 Git 根目录必须就是 `data/` 目录。
 
-读取或写入知识前，直接调用 WheelMaker CLI 准备固定工作区：
+开始工作前，直接调用 CLI 准备固定工作区：
 
 ```text
-wheelmaker wiki prepare
+wheelmaker cmd --command wiki --action prepare
 ```
 
-Go 命令会在检查配置或内容之前先检查 Git。如果路径不存在或为空，向用户索要 Git URL，并使用 `wheelmaker wiki prepare --git-url "<URL>"` 传入该 URL。如果路径非空但不是 Git worktree，立即停止；不要删除、移动或覆盖任何内容。如果没有 URL，告诉用户自行准备或初始化 Git worktree；不要自动运行 `git init`。
+如果用户已提供 Git URL，首次调用带上 `--git-url "<URL>"`。使用本地 Git 已配置的认证方式。CLI 若报告路径不存在或为空且缺少 URL，再向用户询问远程仓库地址。非空目录若不是以 `data/` 为根的 Git worktree，停止并保留其中的文件。没有 URL 时由用户准备现有 worktree，Skill 不运行 `git init`。
 
-计划发布时，在已确认的笔记写入之前，先同步干净的 Git worktree：
+Go 先验证 Git 根目录，再补齐缺失的默认配置、`content/` 和 `content/assets/`。读取配置及安装阅读器依赖由 WheelMaker 负责。
+
+收到发布批准后，先查 `status` 的 `data.publishMode`。需要自动发布时，在正式写入已确认的文件之前运行同步：
 
 ```text
-wheelmaker wiki prepare --sync
+wheelmaker cmd --command wiki --action prepare --sync
 ```
 
-此命令不会在已有修改上自动 stash 或 rebase；发生 rebase 或远程冲突时，要报告给用户处理。
+同步需要可用的 Git upstream。原样生成且尚未跟踪的默认配置不阻断首次同步，其他未提交修改、Git 操作或远端冲突仍需按实际错误处理。同步后若相关公开参考或目标状态发生实质变化，重新核对受影响的预览。
 
-Git 检查成功后，Go 只会在缺失时创建默认的 `wiki.config.yaml`、`content/` 和 `content/assets/`。不会静默替换已有配置。数据根目录是唯一的内容配置根；AI 索引和阅读器运行环境位于其外部。
+## 发布准备的输入
+
+准备发布的分类、查重、链接、资源和写作只使用用户已批准用于本次发布的公开材料，以及已发布的公开目录或候选摘录。发布前不得调用 `pubwiki-search`、Obsidian 本地搜索或私有索引，也不得读取原始 Vault、用户配置、项目路由或凭据。
+
+可检查已确认目标路径是否存在。若无法从公开材料确认目标内容、图片来源或重复关系，请用户提供可披露的摘录、目录或精确路径；同名目标的内容未经确认时保留原文件。完整配置校验和发布输入筛选由 Go 完成。
 
 ## 内容目录
 
@@ -109,7 +115,7 @@ site:
 1. 判断材料是否属于长期项目知识。不要把临时日志、凭据、私有配置或未经批准的推测放入 Vault。
 2. 对来源 Wiki 页面，读取其物理第一行。匹配 `> 摘要：...` 的行作为候选 `description`；规范化为笔记时，从正文中移除原始摘要行。绝不能把标题后的任意段落当作 description。如果没有摘要，起草候选摘要并展示给用户。
 3. 解析完整的 Obsidian Markdown 表面：frontmatter/properties、Wikilinks、块和标题目标、嵌入、callout、注释、高亮、标签、脚注、数学、Mermaid、GFM、代码块和外部链接。除非具体目标链接或渲染器要求安全等价写法，否则保留原语法。
-4. 提议目录前先搜索已有笔记和标签。先搜索当前 `repo`，再搜索其他 repo。合适时复用已有的规范多级标签或目录。
+4. 提议目录前，从本次操作可使用的材料中查找已有笔记和标签。先查当前 `repo`，再查其他 repo。合适时复用已有的规范多级标签或目录。
 5. 要求模型根据内容、摘要、来源、相似笔记、`repo` 和嵌套目录，逐个独立分类导入文件。不要把一批导入强行放入同一目录。默认保留来源文件名；任何重命名都需要确认。新目录或新标签都需要确认。
 6. 写入一批导入内容前，建立来源到目标的路径映射。将映射应用到 Wikilinks、相对 Markdown 链接和资源链接。在预览中报告无法解析的目标、重复目标和资源冲突。
 7. 新笔记使用 `YYYY-MM-DD-english-title.md`。创建日期是首次创建日期，后续编辑不得改变。标题存放在 frontmatter 中。
@@ -120,7 +126,7 @@ site:
 
 正文写作委托同一 skill 库中的 [write-doc](../write-doc/SKILL.md) 完成。交接读者、写作目标、编辑范围、已确认的术语与关系，以及 `references/OBSIDIAN-WIKI-PATTERNS.md` 中的表达要求。来源含义、Obsidian 语法和本次授权范围作为成稿约束；图中的节点、关系和正文结论都以材料为依据。
 
-`write-doc` 及其子代理的交接材料限于本次公开输出所需且允许披露的最小事实、候选内容和写作要求，授权路径限于公开候选稿与可披露的参考。私人 Wiki 源码、用户配置、项目路由、凭据和 Vault 访问保留在本 Skill 的授权流程内。
+`write-doc` 及其子代理的交接材料限于本次公开输出所需且允许披露的最小事实、候选内容和写作要求，授权路径限于本次获准的公开候选稿与可披露的参考。
 
 接收完成优化和复核的候选正文与图表，将 `mermaid` 代码块嵌入正文，并把图表理由与验证状态纳入同一份完整预览。本 Skill 负责来源边界、Obsidian 语法、目标路径、资源、确认、正式写入、Git 和发布。
 
@@ -131,10 +137,10 @@ site:
 含图片的创建、导入、迁移和发布，把 Markdown 与其引用的本地图片作为同一批内容处理。图片语法参考 `references/obsidian-markdown/EMBEDS.md`，资源处理遵循以下规则：
 
 1. **清点与映射**：检查 Markdown 图片、引用式图片、Obsidian 嵌入及已有 HTML 图片引用；代码示例中的图片语法不作为实际依赖。为实际引用的本地图片建立来源到最终路径的映射，与笔记共用同一批次。导入默认复制并保留来源；发布引用不能依赖本机绝对路径、`file://` 或会话附件临时路径。外链图片保留为外链并标明外部依赖，不擅自下载归档。
-2. **按最终分类保存**：新导入的项目图片默认放在 `content/assets/<实际repo>/<directory>/`，沿用笔记最终确认的 repo 和嵌套分类。已有的共享资源可以原路径复用，不为符合新布局批量迁移。确需移动资源时，先检查整个 Vault 的引用，将受影响页面的链接改写纳入同一预览；仍被其他页面引用的资源不得直接删除。
+2. **按最终分类保存**：新导入的项目图片默认放在 `content/assets/<实际repo>/<directory>/`，沿用笔记最终确认的 repo 和嵌套分类。已有的共享资源可以原路径复用，不为符合新布局批量迁移。确需移动资源时，先核对当前操作可使用的引用，将受影响页面的链接改写纳入同一预览；仍被其他页面引用的资源不得直接删除。
 3. **重名与缺失检查**：确认本地图片来源存在、目标可确定；复用已有资源前核对内容。相同目标路径但内容不同、同名文件导致解析歧义时，在预览中提出保留、复用或重命名方案，不静默覆盖。未解决的缺失资源、重名歧义或资源冲突会阻止本批发布。
 4. **按阅读器规则改写引用**：本地资源先按笔记相对路径、再按 `content/` 内路径解析；仅有文件名时，必须在内容树中唯一。优先使用能明确定位的相对路径或内容路径，保留 alt、标题和尺寸信息；不硬编码构建产物 URL。重名歧义或缺失引用由 Hub 在交给阅读器前拦截。规范化助手未覆盖的引用形式需另行核查，助手没有诊断不代表图片已验证。
-5. **同批保存、提交和发布**：预览中逐项列出 Markdown 与资源的新增、修改、移动、删除路径；移动要包含旧、新路径。确认后一起写入并校验，再将所有发生变更的精确文件路径传给 `wheelmaker wiki publish-notes`。已跟踪且未变化的复用资源不必重复提交，但必须验证仍存在且引用可解析。
+5. **同批保存、提交和发布**：预览中逐项列出 Markdown 与资源的新增、修改、移动、删除路径；移动要包含旧、新路径。确认后一起写入并校验，再将所有发生变更的精确文件路径传给 `wheelmaker cmd --command wiki --action publish --commit`。已跟踪且未变化的复用资源不必重复提交，但必须验证仍存在且引用可解析。
 
 这些规则复用下方的同一份完整预览与确认，不另加图片确认轮次。构建和发布后的图片验证见「构建与发布验证」。
 
@@ -167,7 +173,7 @@ draft: false
 
 保留仍有意义的来源属性。只有来源中已有 `aliases` 或用户要求时才保留它；绝不要添加空的 aliases 数组。标签可以写在 frontmatter 或行内写成 `#tag`，也可以使用 `a/b` 这样的层级形式。`draft: true` 表示本地/私有内容，不会输出到公开静态站点。
 
-存在相似笔记时，展示候选笔记并让用户选择更新、合并或新建；除非当前请求或此前批准已经明确给出该选择，否则不得静默覆盖。准备预览前先读取相关候选笔记。
+存在相似笔记时，展示候选笔记并让用户选择更新、合并或新建；除非当前请求或此前批准已经明确给出该选择，否则不得静默覆盖。准备预览前先核对可使用的候选摘录；发布时使用本次获准的公开材料。
 
 ### 确认时点和确认范围
 
@@ -198,11 +204,13 @@ draft: false
 
 | 操作 | Go 命令 |
 | --- | --- |
-| 准备固定工作区 | `wheelmaker wiki prepare`，首次需要时附加 `--git-url "<URL>"` |
-| 发布前同步干净仓库 | `wheelmaker wiki prepare --sync` |
-| 检查发布策略 | `wheelmaker wiki status`，只使用其返回的受限发布模式 |
-| 保存并发布已确认文件 | `wheelmaker wiki publish-notes --paths "<文件>" ...` |
-| 重新发布已有内容 | `wheelmaker wiki publish`，须已有发布授权 |
+| 准备固定工作区 | `wheelmaker cmd --command wiki --action prepare`，首次需要时附加 `--git-url "<URL>"` |
+| 发布前同步干净仓库 | `wheelmaker cmd --command wiki --action prepare --sync` |
+| 检查发布策略 | `wheelmaker cmd --command wiki --action status`，只使用其返回的受限发布模式 |
+| 保存并发布已确认文件 | `wheelmaker cmd --command wiki --action publish --commit --paths "<文件>" ...` |
+| 重新发布已有内容 | `wheelmaker cmd --command wiki --action publish`，须已有发布授权 |
+
+CLI 返回 `ok`、`data` 和 `error`。先检查退出码与 `ok`；成功时从 `data.publishMode` 读取准备和状态的发布策略，失败时查看 `error.code`、`error.message` 及已有的部分结果。`data.paths` 是固定布局，`data.staged` 是已暂存文件，批准范围仍以本次 `--paths` 为准。`data.pushed` 为 true 表示 Git 已经推送；如后续发布失败，查发布任务，不要重复提交。
 
 CLI 不存在、命令不受支持或调用失败时，报告实际结果并按需提示更新 WheelMaker。Skill 不自行实现安装、Git 发布或原始 Vault 导出，不读取完整用户配置。
 
@@ -211,20 +219,20 @@ CLI 不存在、命令不受支持或调用失败时，报告实际结果并按�
 仅本地保存时，只写入并校验已确认的笔记和资源。保存并发布时，将精确的已批准文件路径直接传给 Go：
 
 ```text
-wheelmaker wiki publish-notes --paths "content/<实际repo>/<目录>/<文件>.md" --paths "content/assets/<实际repo>/<目录>/<图片>.png"
+wheelmaker cmd --command wiki --action publish --commit --paths "content/<实际repo>/<目录>/<文件>.md" --paths "content/assets/<实际repo>/<目录>/<图片>.png"
 ```
 
-每个文件分别传 `--paths`，不传目录或通配符；移动和删除也包括旧路径。Go 管理固定 data 仓库的 Git 生命周期，只提交批准文件，再同步、推送和发布；普通 `publish` 不自动提交或推送笔记。
+每个文件分别传 `--paths`，不传目录或通配符；移动和删除也包括旧路径。Go 管理固定 data 仓库的 Git 生命周期，提交批准路径，并可在首次提交中附带原样生成的默认配置，然后同步、推送和发布；普通 `publish` 不自动提交或推送笔记。
 
-冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。先用 `wheelmaker wiki status` 检查受限发布模式；若返回 `off`、`disabled`、`manual` 或 `false`，按策略跳过自动发布，不读取配置全文。
+冲突或失败保留现场并报告，不强推、不自动 stash，也不覆盖用户修改。先用 `wheelmaker cmd --command wiki --action status` 检查受限发布模式；若 `data.publishMode` 为 `off`、`disabled`、`manual` 或 `false`，按策略跳过自动发布，不读取配置全文。
 
 ### 发布验证
 
-重新发布现有内容时直接调用 `wheelmaker wiki publish`，仍遵守本次操作已有的发布授权。
+重新发布现有内容时直接调用 `wheelmaker cmd --command wiki --action publish`，仍遵守本次操作已有的发布授权。
 
 发布不得修改源 Markdown。检查对应的目录、标签、搜索、Wikilinks、别名、标题与块链接，以及本批引用图片和附件的实际可读性；代码、公式和 Mermaid 图表应正常显示和交互。
 
-私人 Wiki 原稿、完整配置、私有索引、项目路由和凭据不得交给固定导出器、浏览器或 Release Server。Skill 不绕过 Go 直接向阅读器提供原始 data/；只接收 CLI 的受限状态和结果。线上验证使用已认证入口，就绪检查不能替代线上发布成功的证据。
+固定导出器仅接收 Go 筛选后的公开投影。Skill 的输入遵守发布准备边界，CLI 只返回受限状态和操作结果。线上验证使用已认证入口，就绪检查不能替代线上发布成功的证据。
 
 ## 范围边界
 

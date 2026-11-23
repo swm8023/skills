@@ -67,11 +67,20 @@ for (const mode of ['native', 'fallback', 'dataview']) {
     }
     assert.deepEqual(await sourceSnapshot(paths.data), before);
     assert.equal((await run('git', ['-C', paths.data, 'status', '--porcelain=v1'])).stdout, gitBefore.stdout);
-    await assert.rejects(() => stat(paths.config), { code: 'ENOENT' });
+    await assert.rejects(() => stat(path.join(paths.data, 'wiki.config.yaml')), { code: 'ENOENT' });
     await assert.rejects(() => stat(paths.assets), { code: 'ENOENT' });
     if (mode !== 'native') assert.ok((await stat(paths.manifest)).isFile());
   });
 }
+
+test('local lookup is independent of the private publication configuration', async (t) => {
+  const { env, paths } = await fixture(t);
+  await writeFile(path.join(paths.data, 'wiki.config.yaml'), 'site: [invalid publication configuration\n');
+  await note(paths, 'content/repo/note.md', '# Searchable title\n');
+  const result = await searchKnowledge({ env, query: 'Searchable title', structured: true });
+  assert.equal(result.mode, 'lexical');
+  assert.equal(result.results[0].path, 'content/repo/note.md');
+});
 
 test('searching an empty Git Vault does not create content directories', async (t) => {
   const { env, paths } = await fixture(t);

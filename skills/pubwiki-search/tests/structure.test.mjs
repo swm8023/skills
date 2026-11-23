@@ -35,16 +35,15 @@ test('pubwiki-search contains its active instructions and complete upstream mate
 
   const active = await readFile(await mustExist('SKILL.md'), 'utf8');
   const state = await readFile(await mustExist('scripts/wiki-state.mjs'), 'utf8');
-  const yaml = await readFile(await mustExist('scripts/yaml.mjs'), 'utf8');
   const upstream = await readFile(await mustExist('references/UPSTREAM.md'), 'utf8');
   assert.match(active, /name:\s*pubwiki-search/u);
   assert.match(active, /Obsidian/u);
   assert.match(active, /index/u);
   assert.match(active, /wiki\.config\.yaml/u);
   assert.doesNotMatch(active, /knowledge\.yaml/u);
-  assert.match(state, /wiki\.config\.yaml/u);
+  assert.doesNotMatch(state, /wiki\.config\.yaml|parseWikiConfig/u);
   assert.doesNotMatch(state, /knowledge\.yaml/u);
-  assert.match(yaml, /site\.title/u);
+  assert.match(active, /wheelmaker cmd --command wiki --action prepare/u);
   assert.match(upstream, /03a22a8b563d1657cd1840b9f65000347a15a3b4/u);
   assert.doesNotMatch(active, /(?:^|[\/`])(?:lookup-knowledge|publish-knowledge)(?:$|[\/`])/u);
   assert.doesNotMatch(active, /--(?:config|data)\b/u);

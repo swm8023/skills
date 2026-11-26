@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -38,8 +38,16 @@ test('ensureFresh creates a private index and scans only allowed Markdown conten
   await note(value.paths, 'content/repo/readme.txt', 'not Markdown\n');
 
   const result = await ensureFresh({ env: value.env });
+  const indexRoot = path.join(value.env.USERPROFILE, '.wheelmaker', '.tmp', 'wiki', 'index');
+  assert.equal(result.paths.indexRoot, indexRoot);
+  assert.equal(path.dirname(result.paths.indexDir), indexRoot);
+  assert.match(path.basename(result.paths.indexDir), /^[0-9a-f]{24}$/u);
+  if (process.platform !== 'win32') {
+    assert.equal((await stat(result.paths.indexDir)).mode & 0o077, 0);
+  }
   const manifest = JSON.parse(await readFile(result.paths.manifest, 'utf8'));
   assert.equal(result.status, 'ready');
+  assert.equal(result.rebuilt, true);
   assert.equal(await import('../scripts/index.mjs').then(({ sqliteSupported: supported }) => supported()), sqliteSupported());
   assert.equal(await import('node:fs/promises').then(({ stat }) => stat(result.paths.database).then((info) => info.isFile())), true);
   assert.deepEqual(manifest.files.map((entry) => entry.relativePath), [

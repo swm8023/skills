@@ -436,7 +436,7 @@ export async function ensureFresh({ env = process.env, gitUrl = '', parserVersio
   const state = await ensureWikiState({ env, gitUrl });
   if (state.status !== 'ready') throw new Error(state.message || `Wiki state is not ready: ${state.status}`);
   const paths = resolveWikiPaths({ env });
-  await mkdir(paths.indexDir, { recursive: true });
+  await mkdir(paths.indexDir, { recursive: true, mode: 0o700 });
   const releaseLock = await acquireLock(paths.lock);
   try {
     const candidates = await scanMarkdown(paths);

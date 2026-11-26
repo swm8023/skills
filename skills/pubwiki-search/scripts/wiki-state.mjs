@@ -20,17 +20,19 @@ export function resolveHome({ env = process.env } = {}) {
 
 export function resolveWikiPaths({ env = process.env } = {}) {
   const home = resolveHome({ env });
-  const wiki = path.join(home, '.wheelmaker', 'wiki');
+  const stateRoot = path.join(home, '.wheelmaker');
+  const wiki = path.join(stateRoot, 'wiki');
   const data = path.join(wiki, 'data');
   const fingerprint = createHash('sha256').update(data).digest('hex').slice(0, 24);
-  const indexDir = path.join(wiki, '.index', fingerprint);
+  const indexRoot = path.join(stateRoot, '.tmp', 'wiki', 'index');
+  const indexDir = path.join(indexRoot, fingerprint);
   return {
     home,
     wiki,
     data,
     content: path.join(data, 'content'),
     assets: path.join(data, 'content', 'assets'),
-    indexRoot: path.join(wiki, '.index'),
+    indexRoot,
     indexDir,
     database: path.join(indexDir, 'index.db'),
     manifest: path.join(indexDir, 'manifest.json'),

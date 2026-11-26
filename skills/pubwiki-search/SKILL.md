@@ -35,10 +35,10 @@ local drafts. Keep this workflow and its results out of Wiki publication and
 publication preparation, including classification, duplicate checks, and
 writing. Use approved public materials for those steps.
 
-The persistent search index is private and outside the Wiki repository:
+The local search index is a private, rebuildable cache outside the Wiki repository.
 
 ```text
-~/.wheelmaker/wiki/.index/<data-root-fingerprint>/
+~/.wheelmaker/.tmp/wiki/index/<data-root-fingerprint>/
 ├── index.db
 └── manifest.json
 ```
